@@ -4,6 +4,10 @@ Alles, was die App kann – von der ersten Aufgabe bis zur Sicherung.
 
 ## 1. Erste Schritte
 
+**Starten:** Doppelklick auf `Terminstart.bat` (Windows) bzw. `./start.sh` (Linux/macOS).
+Es öffnet sich ein Konsolenfenster (das ist der kleine Webserver – offen lassen) und die App im
+Browser. Läuft sie schon, wird nur das Browserfenster geholt.
+
 1. Seite öffnen. Auf dem Startbildschirm **Neues Projekt anlegen** wählen.
 2. Projektnamen eingeben – dieser Name wird auch der Dateiname (`Büro-Umbau.tplan.json`).
 3. **Ordner wählen**: einen Ordner auf der Festplatte auswählen (z. B. `Dokumente\Projekte`).

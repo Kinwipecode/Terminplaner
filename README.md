@@ -50,9 +50,15 @@ Abhängigkeiten. Läuft als statische Seite auf **GitHub Pages** oder lokal aus 
 
 ### Variante B – lokal starten
 
-Doppelklick auf `start.bat` (Windows) bzw. `./start.sh` (Linux/macOS). Das startet einen kleinen
-lokalen Webserver und öffnet die App im Browser. Ohne Server geht es nicht, weil die App aus
-JavaScript-Modulen besteht (Browser-Sicherheitsregel).
+Doppelklick auf **`Terminstart.bat`** (Windows) bzw. `./start.sh` (Linux/macOS). Der Start
+erledigt alles: freien Port suchen, kleinen Webserver starten, App im Browser öffnen. Läuft die
+App schon, wird nur das Browserfenster geholt – kein zweiter Server.
+
+Zusatzangaben sind möglich: `Terminstart.bat --port 9000` oder `Terminstart.bat --no-open`.
+Das Konsolenfenster ist der Webserver und muss während der Arbeit offen bleiben (schließen beendet ihn).
+
+> `start.bat` macht dasselbe – beide Namen funktionieren.
+> Ohne Server geht es nicht, weil die App aus JavaScript-Modulen besteht (Browser-Sicherheitsregel).
 
 ### Loslegen
 
@@ -125,6 +131,8 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 
 ```
 index.html            Oberfläche
+Terminstart.bat       Start per Doppelklick (Windows) – start.bat macht dasselbe
+start.sh              Start unter Linux/macOS
 css/app.css           Aussehen (helles und dunkles Thema)
 js/
   main.js             Start, Werkzeugleiste, Tastenkürzel, Speicherzustand
@@ -137,6 +145,7 @@ js/
   views/              gantt.js · table.js · calendar.js · board.js
 docs/                 Handbuch, Testprotokoll, Screenshots
 examples/             Beispielprojekt
+tools/serve.py        kleiner lokaler Webserver (freier Port, kein Cache)
 tools/make-example.mjs erzeugt das Beispielprojekt neu
 ```
 

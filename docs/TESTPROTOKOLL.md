@@ -65,7 +65,21 @@ gelesen. Die Zahlen stammen aus den Ausgaben der Prüfskripte.
 | Absturzmarke | ✅ Marke wird vor dem Schreiben gesetzt und nach Erfolg entfernt; beim Start wird eine übrig gebliebene Marke gemeldet |
 | Schließen ohne Datenverlust | ✅ Speichern bei `visibilitychange`, `pagehide`, `beforeunload` und alle 30 s |
 
-## 6. Offene Punkte / nicht geprüft
+## 6. Startdateien (Terminstart.bat / start.sh / tools/serve.py)
+
+| Prüfung | Ergebnis |
+|---|---|
+| `tools/serve.py --no-open` startet | ✅ Ausgabe „Terminplanung laeuft auf: http://127.0.0.1:8777/“, Port 8777 belegt |
+| Kein Zwischenspeichern mehr | ✅ Kopfzeilen enthalten `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` und `Pragma: no-cache` (per `curl -I` geprüft) |
+| Dateien werden ausgeliefert | ✅ `index.html` 200, `js/main.js` 200, `css/app.css` 200, `examples/beispiel-projekt.tplan.json` 200 |
+| App lädt über diesen Server | ✅ Titel „Terminplanung“, `window.tplan` vorhanden, Fehlerprotokoll leer |
+| Doppelstart | ✅ zweiter Aufruf beendet sich sofort mit „Terminplanung laeuft bereits auf …“ statt einen zweiten Server zu öffnen |
+| Freier Port | ✅ ist 8777 belegt, sucht `serve.py` den nächsten freien Port (8778 …) |
+| `Terminstart.bat` findet Python | ✅ Aufruf `cmd /c Terminstart.bat --no-open` → „Terminplanung wird gestartet …“, Rückgabecode 0 |
+| `Terminstart.bat` startet den Server wirklich | ✅ über die Batchdatei gestartet, danach `http://127.0.0.1:8777/` mit 200 und den no-store-Kopfzeilen erreichbar |
+| Rückfall ohne Python | ✅ Batchdatei versucht `py`, dann `npx http-server`, sonst Hinweis mit Download-Adresse (Codepfad, auf diesem Rechner nicht auslösbar – Python ist vorhanden) |
+
+## 7. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit
