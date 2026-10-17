@@ -11,8 +11,8 @@
 
 #print-root { display: none; }
 
-/* Farben, die es nur auf Papier gibt */
-#print-root {
+/* Farben, die es nur auf Papier gibt – auch für die Bildschirm-Vorschau */
+#print-root, #print-preview {
   --p-fg: #10141c;
   --p-fg-2: #4a5262;
   --p-fg-3: #7b8496;
@@ -24,7 +24,7 @@
 
 @media print {
   html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
-  #welcome, #app, #toasts, #modal-host, .drop-hint, .ctxmenu { display: none !important; }
+  #welcome, #app, #toasts, #modal-host, #print-preview, .drop-hint, .ctxmenu { display: none !important; }
   #print-root { display: block !important; }
 }
 
@@ -150,3 +150,37 @@
 .plg-swatch { width: 5mm; height: 2.6mm; border-radius: .6mm; flex: none; }
 .plg-diamond { width: 2.4mm; height: 2.4mm; transform: rotate(45deg); flex: none; }
 .plg-note { font-size: 7pt; color: var(--p-fg-2); }
+
+/* ───────── Druckvorschau am Bildschirm ───────── */
+
+.ppv {
+  position: fixed; inset: 0; z-index: 150;
+  display: flex; flex-direction: column;
+  background: color-mix(in srgb, var(--bg) 92%, #000);
+}
+.ppv[hidden] { display: none; }
+
+.ppv-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; background: var(--bg-2);
+  border-bottom: 1px solid var(--line); font-size: 12px;
+}
+.ppv-name { font-weight: 650; color: var(--fg); white-space: nowrap; }
+.ppv-info { color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46ch; }
+.ppv-spacer { flex: 1; }
+.ppv-group { display: flex; align-items: center; gap: 4px; padding: 0 6px; border-left: 1px solid var(--line); }
+.ppv-page, .ppv-zoom { color: var(--fg-2); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 6ch; text-align: center; }
+
+.ppv-stage {
+  flex: 1; overflow: auto; padding: 22px 26px 60px;
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  background:
+    radial-gradient(circle at 50% 0, color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%),
+    color-mix(in srgb, var(--bg) 88%, #000);
+}
+.ppv-sheet {
+  flex: none; position: relative; overflow: hidden;
+  background: #fff; box-shadow: 0 10px 34px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.25);
+}
+.ppv-inner { transform-origin: top left; will-change: transform; }
+body.ppv-open { overflow: hidden; }

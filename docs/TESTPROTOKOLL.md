@@ -187,7 +187,41 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | **Umschalt+→** | ✅ Termin 30.10. → 02.11. (ein Arbeitstag, Wochenende übersprungen) |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 12. Offene Punkte / nicht geprüft
+## 12. Druckvorschau am Bildschirm und eigenes Blattmaß
+
+**Druckvorschau**
+
+| Prüfung | Ergebnis |
+|---|---|
+| „🔍 Vorschau anzeigen“ im Druckfenster | ✅ Vorschau öffnet sich, 3 Blätter werden als weiße Blätter gezeigt (Kopie des Druckaufbaus, also garantiert gleich) |
+| Blattgröße am Bildschirm | ✅ Blatt 1 misst 1197 × 898 px bei 400 × 300 mm und „Einpassen“ = 79 % (400 mm × 96/25,4 = 1512 px → 79 %) |
+| Zoom | ✅ `+` 79 % → 99 %, zweimal `−` → 63 %, **Einpassen** wieder 79 % |
+| Blattwechsel | ✅ `▼` → „Blatt 2 / 3“, `▲` → „Blatt 1 / 3“; `Bild ↓` ebenso |
+| Tastatur | ✅ `+`/`-` zoomen (echte Tasten über CDP), `Esc` schließt die Vorschau |
+| `Esc` mit offenem Druckfenster | ✅ schließt **nur** die Vorschau, das Druckfenster bleibt offen (Listener liegt auf `window` im Capture) |
+| Papierfarben | ✅ `--p-fg` = `#10141c` auch in der Vorschau (Variablen für `#print-root` **und** `#print-preview`) |
+| Vorschau im Ausdruck | ✅ im PDF nicht enthalten (`Druckvorschau` kommt nicht vor) |
+| `Strg`+`P` außerhalb | ✅ öffnet das Druckfenster (nicht sofort den Druckdialog) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+**Eigenes Blattmaß**
+
+| Prüfung | Ergebnis |
+|---|---|
+| „✎ eigenes Maß“ wählen | ✅ Felder Breite/Höhe/Rand/Bezeichnung erscheinen, bei A4/A3 sind sie ausgeblendet |
+| 400 × 300 mm, Rand 10, Bezeichnung „Plotter“ | ✅ Anzeige „3 Blatt · Plotter (400 × 300 mm, Rand 10 mm)“ |
+| Ausgabe als PDF (MediaBox) | ✅ `/MediaBox` = **400,0 × 299,9 mm** – das eigene Maß kommt exakt heraus |
+| Vorschau-Leiste | ✅ „3 Blatt · Plotter · 400 × 300 mm · Rand 10 mm“ |
+| A4 quer als Gegenprobe | ✅ `/MediaBox` = 297,0 × 209,9 mm (unverändert) |
+| 600 × 400 mm | ✅ 3 Blatt, keine Warnung |
+| 120 × 90 mm | ✅ 11 Blatt + Hinweis „Aufgabenliste läuft über 3 Blätter“ |
+| 5 × 5 mm (zu klein) | ✅ auf 50 × 50 mm begrenzt, Warnung „Eingabe auf 50 × 50 mm begrenzt (erlaubt sind 50–2000 mm)“ |
+| 9999 × 500 mm (zu groß) | ✅ auf 2000 × 500 mm begrenzt, Warnung |
+| Rand 300 mm | ✅ auf 135 mm begrenzt, Warnung „Rand auf 135 mm begrenzt“ |
+| **⇄ hoch/quer tauschen** | ✅ 400 × 300 → 300 × 400 mm |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 13. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

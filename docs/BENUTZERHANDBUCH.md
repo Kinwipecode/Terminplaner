@@ -345,8 +345,12 @@ damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
 Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
 auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
 
-**Blattformat**: A4 oder A3, je **hoch** oder **quer**. Die Seiten werden exakt in Millimetern
-gebaut; es gibt keine halben Blätter, keine abgeschnittenen Zeilen und keine Überläufe.
+**Blattformat**: **A4** oder **A3**, je **hoch** oder **quer** – oder ein **eigenes Maß**. Dafür im
+Druckfenster **„✎ eigenes Maß“** wählen und **Breite**, **Höhe** und **Rand** in Millimetern
+eintragen (50–2000 mm, Rand höchstens 50 mm, z. B. 400 × 300 mm für einen Plotter). Eine **Bezeichnung** (z. B. „Plotter“)
+erscheint später im Kopf der Blätter. **⇄ hoch/quer tauschen** vertauscht Breite und Höhe. Die
+Seiten werden exakt in Millimetern gebaut; es gibt keine halben Blätter, keine abgeschnittenen
+Zeilen und keine Überläufe.
 
 **Inhalt** (frei kombinierbar):
 
@@ -367,6 +371,25 @@ und ob alle oder nur die gefilterten Aufgaben gedruckt werden.
 Die **Blattzahl wird laufend angezeigt** (z. B. „7 Blatt A4 hoch · Deckblatt 1 · Gantt 4 ·
 Tabelle 1 · Legende 1“), samt Hinweisen, wenn es viele Blätter werden.
 
+**Vorschau ansehen, bevor gedruckt wird**
+
+Im Druckfenster auf **🔍 Vorschau anzeigen** – die fertigen Blätter erscheinen am Bildschirm, genau
+so, wie sie aufs Papier kommen (dieselben Seiten, nur am Bildschirm dargestellt). Oben in der Leiste:
+
+| Bedienung | Wirkung |
+|---|---|
+| **▲ / ▼** oder `Bild ↑` / `Bild ↓` | voriges / nächstes Blatt |
+| **− / +** | kleiner / größer zoomen |
+| **Einpassen** | ganze Blattbreite ins Fenster einpassen (Voreinstellung beim Öffnen) |
+| `+` / `-` | zoomen über die Tastatur |
+| **🖨 Drucken / PDF erzeugen** oder `Strg`+`P` | Druckdialog öffnen |
+| **⚙ Einstellungen** | zurück zum Druckfenster (die Vorschau schließt sich) |
+| `Esc` oder **✕** | Vorschau schließen |
+
+Die Blätter werden in ihrer echten Größe gezeigt (100 % = Originalgröße in Millimetern), die
+Leiste nennt Anzahl, Format und Rand, z. B. „3 Blatt · Plotter · 400 × 300 mm · Rand 10 mm“.
+Nichts wird gedruckt, solange du nicht **Drucken / PDF erzeugen** anklickst.
+
 **Passt der Inhalt nicht auf ein Blatt**, entstehen weitere Blätter:
 
 - **Gantt**: die Aufgabenliste wiederholt sich auf jedem Blatt links, die Zeitachse läuft nach
@@ -376,17 +399,21 @@ Tabelle 1 · Legende 1“), samt Hinweisen, wenn es viele Blätter werden.
 
 **So entsteht die PDF-Datei** (Windows):
 
-1. **Drucken / PDF erzeugen** anklicken – der Druckdialog des Browsers öffnet sich.
-2. Als Drucker **„Microsoft Print to PDF“** wählen (oder einen anderen PDF-Drucker).
-3. Papierformat prüfen: es wird automatisch auf das eingestellte Format gesetzt
-   („Papierformat: A4/A3“ und „Layout: Hochformat/Querformat“).
-4. Ränder auf **Standard** (oder **Keine**) lassen, **Hintergrundgrafiken** einschalten –
+1. Im Druckfenster **🔍 Vorschau anzeigen** – dort siehst du die Blätter und kannst alles prüfen.
+2. In der Vorschau **🖨 Drucken / PDF erzeugen** (oder `Strg`+`P`) – der Druckdialog des Browsers öffnet sich.
+3. Als Drucker **„Microsoft Print to PDF“** wählen (oder einen anderen PDF-Drucker).
+4. Papierformat prüfen: es wird automatisch auf das eingestellte Format gesetzt
+   („Papierformat: A4/A3“ und „Layout: Hochformat/Querformat“). Bei einem **eigenen Maß** steht das
+   Papierformat auf „Benutzerdefiniert“ – beim PDF-Drucker ist das die eingegebene Größe, bei einem
+   echten Drucker muss das Papier im Gerät liegen und dort passend gewählt sein.
+5. Ränder auf **Standard** (oder **Keine**) lassen, **Hintergrundgrafiken** einschalten –
    sonst bleiben die Balken weiß.
-5. **Speichern** → Dateiname und Ort wählen. Der Dateiname ist bereits sinnvoll vorbelegt
+6. **Speichern** → Dateiname und Ort wählen. Der Dateiname ist bereits sinnvoll vorbelegt
    (Projektname und Datum).
 
-**Drucken ohne Dialog prüfen**: Mit **Vorschau bauen** wird der Aufbau erzeugt, ohne dass der
-Druckdialog aufgeht – man kann ihn dann in Ruhe ansehen (z. B. mit der Druckvorschau des Browsers).
+**Ohne Vorschau drucken**: Im Druckfenster gibt es zusätzlich **Direkt drucken / PDF** – das geht
+sofort in den Druckdialog, mit den aktuellen Einstellungen. Und ein `Strg`+`P` außerhalb des
+Druckfensters öffnet dieses Fenster (nicht sofort den Druckdialog), damit die Einstellungen stimmen.
 
 ## 17. Häufige Fragen
 

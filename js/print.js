@@ -33,8 +33,39 @@ export const FORMATS = {
   a3q: { label: 'A3 quer', short: 'A3 quer', w: 420, h: 297, margin: 14 },
 };
 
+/** Grenzen für eigene Blattmaße (Millimeter). */
+export const CUSTOM_LIMITS = { min: 50, max: 2000 };
+
+function clampNum(v, lo, hi, fallback) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(hi, Math.max(lo, Math.round(n * 10) / 10));
+}
+
+/**
+ * Das tatsächlich benutzte Blattformat – entweder ein festes (A4/A3)
+ * oder das selbst eingegebene Maß aus den Einstellungen.
+ */
+export function formatOf(s) {
+  if (s && s.format === 'custom') {
+    const c = s.custom || {};
+    const w = clampNum(c.w, CUSTOM_LIMITS.min, CUSTOM_LIMITS.max, 297);
+    const h = clampNum(c.h, CUSTOM_LIMITS.min, CUSTOM_LIMITS.max, 210);
+    const maxMargin = Math.min(50, Math.max(0, Math.min(w, h) / 2 - 20));
+    const margin = clampNum(c.margin, 0, Math.max(2, maxMargin), 12);
+    const name = (c.name || '').trim();
+    return {
+      label: name ? `${name} (${w} × ${h} mm)` : `eigenes Maß (${w} × ${h} mm)`,
+      short: `${w} × ${h} mm`,
+      w, h, margin, custom: true, name,
+    };
+  }
+  return FORMATS[(s && s.format) || 'a4q'] || FORMATS.a4q;
+}
+
 export const DEFAULT_PRINT = {
   format: 'a4q',
+  custom: { w: 297, h: 210, margin: 12, name: '' },   // eigenes Blattmaß in Millimetern
   parts: { cover: true, gantt: true, table: false, calendar: false, board: false, legend: true },
   period: { mode: 'all', from: null, to: null },   // all | custom | upcoming
   raster: 'week',      // day | week | month
@@ -55,6 +86,7 @@ export function loadPrintSettings() {
     parts: { ...DEFAULT_PRINT.parts, ...(saved.parts || {}) },
     details: { ...DEFAULT_PRINT.details, ...(saved.details || {}) },
     period: { ...DEFAULT_PRINT.period, ...(saved.period || {}) },
+    custom: { ...DEFAULT_PRINT.custom, ...(saved.custom || {}) },
   };
 }
 
@@ -65,7 +97,7 @@ export function savePrintSettings(s) {
 /* ───────── Rechnen für den Aufbau ───────── */
 
 function geometry(s) {
-  const f = FORMATS[s.format] || FORMATS.a4q;
+  const f = formatOf(s);
   const contentW = f.w - 2 * f.margin;
   const contentH = f.h - 2 * f.margin;
   const leftW = Math.min(80, Math.max(44, Math.round(contentW * 0.21)));
@@ -439,7 +471,7 @@ function ganttPage(project, s, plan, desc) {
   track.appendChild(area);
   wrap.appendChild(track);
 
-  const sub = `${FORMATS[s.format].short} · Zeitraum ${formatIso(segFrom)} bis ${formatIso(segTo)}`
+  const sub = `${formatOf(s).short} · Zeitraum ${formatIso(segFrom)} bis ${formatIso(segTo)}`
     + (desc.chunks > 1 ? ` · Aufgaben ${desc.chunk + 1}/${desc.chunks}` : '');
   return pageBox(plan.geometry, s, {
     title: project.meta.name,
@@ -669,7 +701,7 @@ function coverPage(project, s, plan) {
     title: '',
     sub: '',
     right: '',
-    footerLeft: `Erstellt mit Terminplanung · Blattformat ${FORMATS[s.format].label} · ${formatIso(todayIso(), 'long')}`,
+    footerLeft: `Erstellt mit Terminplanung · Blattformat ${formatOf(s).label} · ${formatIso(todayIso(), 'long')}`,
     content: wrap,
   });
 }
@@ -708,7 +740,7 @@ function legendPage(project, s, plan) {
   ]));
 
   grid.appendChild(box('Dieser Ausdruck', [
-    el('div', { class: 'plg-note', text: `Blattformat: ${FORMATS[s.format].label} (${FORMATS[s.format].w} × ${FORMATS[s.format].h} mm)` }),
+    el('div', { class: 'plg-note', text: `Blattformat: ${formatOf(s).label} (${formatOf(s).w} × ${formatOf(s).h} mm)` }),
     el('div', { class: 'plg-note', text: `Zeitraum: ${formatIso(plan.range.from)} bis ${formatIso(plan.range.to)}` }),
     el('div', { class: 'plg-note', text: `Gantt-Raster: ${({ day: 'Tage', week: 'Wochen', month: 'Monate' })[s.raster]}, Feinheit ${s.fineness}` }),
     el('div', { class: 'plg-note', text: `Aufgaben: ${plan.tasks.length}${s.onlyFiltered ? ' (gefiltert)' : ''}` }),
@@ -736,7 +768,7 @@ function legendPage(project, s, plan) {
 let pageStyleEl = null;
 
 function setPageRule(s) {
-  const f = FORMATS[s.format] || FORMATS.a4q;
+  const f = formatOf(s);
   if (!pageStyleEl) {
     pageStyleEl = document.createElement('style');
     pageStyleEl.id = 'print-page-style';
@@ -798,6 +830,118 @@ export function ensurePrintLayout(project, s) {
   if (!root || !root.children.length) buildPrintLayout(project, s || loadPrintSettings());
 }
 
+/* ───────── Druckvorschau auf dem Bildschirm ───────── */
+
+const PX_PER_MM = 96 / 25.4;   // CSS-Pixel je Millimeter (Bildschirmmaßstab)
+let previewCtl = null;
+
+/** Ist die Vorschau gerade offen? */
+export function isPreviewOpen() {
+  const host = document.getElementById('print-preview');
+  return !!(previewCtl && host && !host.hidden);
+}
+
+/**
+ * Baut den Druckaufbau und zeigt ihn als Vorschau auf dem Bildschirm.
+ * Gedruckt wird aus #print-root; die Vorschau ist eine Kopie davon,
+ * damit Anzeige und Papier garantiert gleich aussehen.
+ */
+export function openPrintPreview(project, s) {
+  const host = document.getElementById('print-preview');
+  const stage = document.getElementById('ppv-stage');
+  if (!host || !stage) { printNow(project, s); return null; }
+
+  const res = buildPrintLayout(project, s);
+  const f = formatOf(s);
+  const srcPages = [...document.querySelectorAll('#print-root > .pp')];
+  clear(stage);
+
+  const sheets = srcPages.map((page, i) => {
+    const inner = el('div', { class: 'ppv-inner' });
+    inner.appendChild(page.cloneNode(true));
+    const sheet = el('div', { class: 'ppv-sheet', dataset: { page: String(i + 1) } }, inner);
+    stage.appendChild(sheet);
+    return { sheet, inner };
+  });
+
+  const zoomEl = document.getElementById('ppv-zoom');
+  const pageEl = document.getElementById('ppv-page');
+  const infoEl = document.getElementById('ppv-info');
+  if (infoEl) infoEl.textContent = `${sheets.length} Blatt · ${f.custom && f.name ? f.name : f.label} · ${f.w} × ${f.h} mm · Rand ${f.margin} mm`;
+
+  let scale = 1;
+  const apply = () => {
+    const w = f.w * PX_PER_MM * scale;
+    const h = f.h * PX_PER_MM * scale;
+    for (const sh of sheets) {
+      sh.sheet.style.width = `${w}px`;
+      sh.sheet.style.height = `${h}px`;
+      sh.inner.style.transform = `scale(${scale})`;
+    }
+    if (zoomEl) zoomEl.textContent = `${Math.round(scale * 100)} %`;
+  };
+  const setScale = (v) => { scale = Math.min(3, Math.max(0.1, v)); apply(); };
+  const fit = () => { const avail = Math.max(200, stage.clientWidth - 56); setScale(avail / (f.w * PX_PER_MM)); };
+
+  const currentIndex = () => {
+    let best = 0;
+    let bestD = Infinity;
+    const top = stage.getBoundingClientRect().top + 8;
+    sheets.forEach((sh, i) => {
+      const d = Math.abs(sh.sheet.getBoundingClientRect().top - top);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return best;
+  };
+  const jump = (dir) => {
+    if (!sheets.length) return;
+    const next = Math.min(sheets.length - 1, Math.max(0, currentIndex() + dir));
+    sheets[next].sheet.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    setTimeout(() => { if (pageEl) pageEl.textContent = `Blatt ${next + 1} / ${sheets.length}`; }, 260);
+  };
+  const updatePage = () => { if (pageEl) pageEl.textContent = `Blatt ${currentIndex() + 1} / ${sheets.length}`; };
+
+  const close = () => {
+    host.hidden = true;
+    clear(stage);
+    document.body.classList.remove('ppv-open');
+    window.removeEventListener('keydown', onKey, true);
+    stage.removeEventListener('scroll', updatePage);
+    previewCtl = null;
+  };
+  const onKey = (e) => {
+    if (host.hidden) return;
+    const k = e.key;
+    if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); return; }
+    if (k === '+' || k === '=') { e.preventDefault(); e.stopPropagation(); setScale(scale * 1.25); return; }
+    if (k === '-' || k === '_') { e.preventDefault(); e.stopPropagation(); setScale(scale / 1.25); return; }
+    if (k === 'PageDown') { e.preventDefault(); e.stopPropagation(); jump(1); return; }
+    if (k === 'PageUp') { e.preventDefault(); e.stopPropagation(); jump(-1); return; }
+    if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'p') { e.preventDefault(); e.stopPropagation(); window.print(); }
+  };
+
+  const on = (id, fn) => { const b = document.getElementById(id); if (b) b.onclick = fn; };
+  on('ppv-zoom-in', () => setScale(scale * 1.25));
+  on('ppv-zoom-out', () => setScale(scale / 1.25));
+  on('ppv-fit', fit);
+  on('ppv-prev', () => jump(-1));
+  on('ppv-next', () => jump(1));
+  on('ppv-close', close);
+  on('ppv-settings', close);
+  on('ppv-print', () => window.print());
+
+  host.hidden = false;
+  document.body.classList.add('ppv-open');
+  window.addEventListener('keydown', onKey, true);   // window zuerst: Esc schließt nur die Vorschau
+  stage.addEventListener('scroll', updatePage);
+  previewCtl = { close };
+
+  fit();
+  updatePage();
+  toast('Druckvorschau', 'ok', `${res.pages} Blatt · „Drucken / PDF erzeugen“ startet den Druckdialog.`, 3600);
+  return res;
+}
+
 /* ───────── Auswahlfenster ───────── */
 
 export function openPrintDialog() {
@@ -832,8 +976,41 @@ export function openPrintDialog() {
   const chip = (label, on) => el('button', { class: 'pick' + (on ? ' on' : ''), text: label });
 
   /* Blattformat */
-  const fmtSeg = seg(Object.entries(FORMATS).map(([v, f]) => ({ v, t: f.label })), s.format, (v) => { s.format = v; refreshSeg(fmtSeg, v); update(); });
-  body.appendChild(row('Blattformat (A4 oder A3)', fmtSeg));
+  const fmtOpts = [...Object.entries(FORMATS).map(([v, f]) => ({ v, t: f.label })), { v: 'custom', t: '✎ eigenes Maß' }];
+  const fmtSeg = seg(fmtOpts, s.format, (v) => { s.format = v; refreshSeg(fmtSeg, v); showCustom(); update(); });
+  body.appendChild(row('Blattformat (A4, A3 oder eigenes Maß)', fmtSeg));
+
+  /* eigenes Blattmaß */
+  const numIn = (val, min, max, on) => el('input', {
+    type: 'number', min: String(min), max: String(max), step: '1',
+    value: String(val), style: { width: '84px' }, oninput: on,
+  });
+  const nameIn = el('input', {
+    type: 'text', placeholder: 'z. B. Plotter, Banner, Karte', value: s.custom.name || '',
+    style: { width: '190px' }, oninput: (e) => { s.custom.name = e.target.value; update(); },
+  });
+  const wIn = numIn(s.custom.w, CUSTOM_LIMITS.min, CUSTOM_LIMITS.max, (e) => { s.custom.w = Number(e.target.value); update(); });
+  const hIn = numIn(s.custom.h, CUSTOM_LIMITS.min, CUSTOM_LIMITS.max, (e) => { s.custom.h = Number(e.target.value); update(); });
+  const mIn = numIn(s.custom.margin, 0, 100, (e) => { s.custom.margin = Number(e.target.value); update(); });
+  const swapBtn = el('button', {
+    class: 'btn', text: '⇄ hoch/quer tauschen', title: 'Breite und Höhe vertauschen',
+    onclick: () => {
+      const w = s.custom.w; s.custom.w = s.custom.h; s.custom.h = w;
+      wIn.value = String(s.custom.w); hIn.value = String(s.custom.h); update();
+    },
+  });
+  const customWrap = el('div', { class: 'field' },
+    el('label', { text: 'Eigenes Blattmaß (Millimeter)' }),
+    el('div', { class: 'chip-row' },
+      el('span', { class: 'hint', text: 'Breite' }), wIn, el('span', { class: 'hint', text: 'mm' }),
+      el('span', { class: 'hint', text: 'Höhe' }), hIn, el('span', { class: 'hint', text: 'mm' }),
+      el('span', { class: 'hint', text: 'Rand' }), mIn, el('span', { class: 'hint', text: 'mm' }),
+      swapBtn),
+    el('div', { class: 'chip-row' }, el('span', { class: 'hint', text: 'Bezeichnung' }), nameIn,
+      el('span', { class: 'hint', text: `${CUSTOM_LIMITS.min}–${CUSTOM_LIMITS.max} mm · quer heißt: Breite > Höhe` })));
+  body.appendChild(customWrap);
+  const showCustom = () => { customWrap.style.display = s.format === 'custom' ? '' : 'none'; };
+  showCustom();
 
   /* Inhalt */
   const partsRow = el('div', { class: 'chip-row' });
@@ -885,7 +1062,7 @@ export function openPrintDialog() {
   const info = el('div', { class: 'warnbox', style: { color: 'var(--fg-2)', background: 'var(--bg-3)', borderColor: 'var(--line)' } });
   body.appendChild(info);
 
-  const hint = el('div', { class: 'hint', text: 'Im Druckdialog als Drucker „Microsoft Print to PDF“ (oder einen anderen PDF-Drucker) wählen – die Blätter werden genau in A4/A3 ausgegeben. Ränder auf „Standard“ bzw. „Keine“ stellen, Hintergrundgrafiken einschalten.' });
+  const hint = el('div', { class: 'hint', text: 'Mit „Vorschau anzeigen“ siehst du die fertigen Blätter, bevor gedruckt wird – dort gibt es auch den Knopf „Drucken / PDF erzeugen“. Im Druckdialog als Drucker „Microsoft Print to PDF“ (oder einen anderen PDF-Drucker) wählen, Ränder auf „Standard“ bzw. „Keine“ stellen und Hintergrundgrafiken einschalten. Ein eigenes Blattmaß gibt der Drucker nur aus, wenn er das Papier kennt – beim PDF-Drucker spielt das keine Rolle.' });
   body.appendChild(hint);
 
   function update() {
@@ -894,8 +1071,16 @@ export function openPrintDialog() {
     for (const d of plan.list) counts[d.kind] = (counts[d.kind] || 0) + 1;
     const names = { cover: 'Deckblatt', gantt: 'Gantt', table: 'Tabelle', calendar: 'Kalender', board: 'Board', legend: 'Legende' };
     const parts = Object.entries(counts).map(([k, v]) => `${names[k]} ${v}`).join(' · ');
-    info.innerHTML = `<b>${plan.list.length} Blatt ${FORMATS[s.format].label}</b> (${FORMATS[s.format].w} × ${FORMATS[s.format].h} mm)<br>`
+    const f = formatOf(s);
+    let warn = '';
+    if (f.custom) {
+      const c = s.custom;
+      if (Number(c.w) !== f.w || Number(c.h) !== f.h) warn = `Eingabe auf ${f.w} × ${f.h} mm begrenzt (erlaubt sind ${CUSTOM_LIMITS.min}–${CUSTOM_LIMITS.max} mm).`;
+      else if (Number(c.margin) !== f.margin) warn = `Rand auf ${f.margin} mm begrenzt.`;
+    }
+    info.innerHTML = `<b>${plan.list.length} Blatt · ${f.custom && f.name ? f.name : f.label}</b> (${f.w} × ${f.h} mm, Rand ${f.margin} mm)<br>`
       + (parts ? parts : 'kein Inhalt gewählt')
+      + (warn ? `<br><span style="color:var(--warn)">${warn}</span>` : '')
       + (plan.notes.length ? `<br><span style="color:var(--warn)">${plan.notes.join('<br>')}</span>` : '');
     savePrintSettings(s);
   }
@@ -903,13 +1088,13 @@ export function openPrintDialog() {
 
   /* Fußzeile mit Aktionen */
   const foot = api.footer;
-  const btnPreview = el('button', { class: 'btn', text: 'Vorschau bauen', onclick: () => {
-    const res = buildPrintLayout(project, s);
-    toast('Druckvorschau steht', 'ok', `${res.pages} Blatt · jetzt Strg+P oder „Drucken / PDF“`);
+  const btnPreview = el('button', { class: 'btn btn-primary', text: '🔍 Vorschau anzeigen', title: 'Die fertigen Blätter ansehen, bevor gedruckt wird', onclick: () => {
+    savePrintSettings(s);
+    openPrintPreview(project, s);
   } });
-  const btnPrint = el('button', { class: 'btn btn-primary', text: '🖨 Drucken / PDF erzeugen', onclick: () => {
+  const btnPrint = el('button', { class: 'btn', text: '🖨 Direkt drucken / PDF', title: 'Ohne Vorschau in den Druckdialog', onclick: () => {
     const res = printNow(project, s);
-    toast('Druckdialog geöffnet', 'ok', `${res.pages} Blatt ${FORMATS[s.format].label}`);
+    toast('Druckdialog geöffnet', 'ok', `${res.pages} Blatt · ${formatOf(s).label}`);
   } });
   foot.appendChild(el('button', { class: 'btn', text: 'Schließen', onclick: () => api.close() }));
   foot.appendChild(btnPreview);

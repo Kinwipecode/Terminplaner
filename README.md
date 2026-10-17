@@ -45,8 +45,12 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
 
 ![Druckausgabe](docs/screenshot-druck.png)
 
-- Blattformat **A4 oder A3**, je hoch oder quer – die Seiten werden exakt in Millimetern aufgebaut,
-  es gibt keine halben Blätter und keine abgeschnittenen Zeilen.
+- Blattformat **A4 oder A3**, je hoch oder quer – oder ein **eigenes Maß**: Breite, Höhe und Rand in
+  Millimetern eintippen (z. B. 400 × 300 mm), mit Bezeichnung und Knopf „hoch/quer tauschen“.
+  Die Seiten werden exakt in Millimetern aufgebaut, es gibt keine halben Blätter und keine
+  abgeschnittenen Zeilen.
+- **Druckvorschau am Bildschirm**: „🔍 Vorschau anzeigen“ zeigt die fertigen Blätter, bevor gedruckt
+  wird – mit Blattwechsel, Zoom und „Einpassen“. Gedruckt wird erst auf Klick (oder `Strg`+`P`).
 - Inhalte frei zusammenklicken: **Deckblatt, Gantt-Diagramm, Tabelle, Kalender, Board, Legende**.
 - Zeitraum, Zeitraster (Tage/Wochen/Monate) und Feinheit einstellbar; die Blattzahl wird laufend angezeigt.
 - Reicht der Platz nicht, entstehen weitere Blätter: die Aufgabenliste wiederholt sich links,
@@ -213,7 +217,7 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Esc` | Auswahl aufheben |
 | `1` … `4` | Gantt / Tabelle / Kalender / Board |
 | `Leertaste` | zu „Heute“ springen (wie der Knopf **◉ Heute**) |
-| `Strg`+`P` | drucken bzw. PDF erzeugen (Druckaufbau entsteht automatisch) |
+| `Strg`+`P` | Druck-Einstellungen öffnen (in der Vorschau: direkt drucken) |
 | `F1` | Kurzanleitung |
 
 ## Aufbau des Projekts
@@ -225,7 +229,7 @@ Terminstart.bat       Start per Doppelklick (Windows) – start.bat macht dassel
 start.sh              Start unter Linux/macOS
 css/app.css           Aussehen der Oberfläche (benutzt die Farbvariablen)
 css/themes.css        die neun Farblayouts
-css/print.css         Druckvorlage (A4/A3, Millimetermaße)
+css/print.css         Druckvorlage (A4/A3/eigenes Maß, Millimetermaße) + Druckvorschau
 css/sideboard.css     Aussehen des Sammelbecken-Fensters
 js/
   main.js             Start, Werkzeugleiste, Tastenkürzel, Speicherzustand

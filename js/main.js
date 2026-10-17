@@ -17,7 +17,7 @@ import {
   shiftTaskDialog, poolDialog,
 } from './ui/dialogs.js';
 import { initTheme, toggleLightDark } from './themes.js';
-import { openPrintDialog, ensurePrintLayout, loadPrintSettings } from './print.js';
+import { openPrintDialog, openPrintPreview, isPreviewOpen, ensurePrintLayout, loadPrintSettings } from './print.js';
 import { startPoolHub } from './poolhub.js';
 import { loadGlobalPool } from './pool.js';
 import { renderDetail } from './ui/editor.js';
@@ -377,6 +377,7 @@ const actions = {
   'help': () => helpDialog(),
   'theme': () => themeDialog(),
   'print': () => openPrintDialog(),
+  'print-preview': () => { if (store.project) openPrintPreview(store.project, loadPrintSettings()); },
   'pool-window': () => openPoolWindow(),
   'pool': () => poolDialog(null, openPoolWindow),
   'shift': () => shiftTaskDialog(store.selected),
@@ -455,6 +456,13 @@ document.addEventListener('keydown', (e) => {
   if (mod && e.key.toLowerCase() === 'n') { e.preventDefault(); newProject(); return; }
   if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); actions.open(); return; }
   if (mod && e.key.toLowerCase() === 'f') { e.preventDefault(); $('#filter-text').focus(); return; }
+  if (mod && e.key.toLowerCase() === 'p') {
+    e.preventDefault();
+    // In der Vorschau direkt drucken, sonst erst die Druck-Einstellungen zeigen
+    if (isPreviewOpen()) window.print();
+    else openPrintDialog();
+    return;
+  }
   if (e.key === 'F1') { e.preventDefault(); helpDialog(); return; }
   if (e.key === 'Escape') {
     if (!document.getElementById('modal-host').hidden) return;

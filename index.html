@@ -189,6 +189,30 @@
 <!-- Fertige Druckseiten (nur auf Papier sichtbar) -->
 <div id="print-root"></div>
 
+<!-- Druckvorschau (Blätter am Bildschirm, bevor gedruckt wird) -->
+<div id="print-preview" class="ppv" hidden>
+  <div class="ppv-bar">
+    <span class="ppv-name">🖨 Druckvorschau</span>
+    <span class="ppv-info" id="ppv-info"></span>
+    <span class="ppv-spacer"></span>
+    <span class="ppv-group">
+      <button class="iconbtn" id="ppv-prev" title="Vorheriges Blatt (Bild ↑)">▲</button>
+      <span class="ppv-page" id="ppv-page">–</span>
+      <button class="iconbtn" id="ppv-next" title="Nächstes Blatt (Bild ↓)">▼</button>
+    </span>
+    <span class="ppv-group">
+      <button class="iconbtn" id="ppv-zoom-out" title="Kleiner (−)">−</button>
+      <span class="ppv-zoom" id="ppv-zoom">100 %</span>
+      <button class="iconbtn" id="ppv-zoom-in" title="Größer (+)">+</button>
+      <button class="btn" id="ppv-fit" title="Ganze Blattbreite ins Fenster einpassen">Einpassen</button>
+    </span>
+    <button class="btn" id="ppv-settings" title="Zurück zu den Druck-Einstellungen">⚙ Einstellungen</button>
+    <button class="btn btn-primary" id="ppv-print" title="Druckdialog öffnen (Strg+P)">🖨 Drucken / PDF erzeugen</button>
+    <button class="iconbtn" id="ppv-close" title="Vorschau schließen (Esc)">✕</button>
+  </div>
+  <div class="ppv-stage" id="ppv-stage"></div>
+</div>
+
 <script>
 // Hinweis, wenn die Datei direkt per Doppelklick geöffnet wurde:
 // Browser laden JavaScript-Module von file:// nicht (Sicherheitsregel).
