@@ -1,0 +1,13 @@
+# Zeilenenden passend zum Zielsystem
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sh  text eol=lf
+*.py  text eol=lf
+*.js  text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md  text eol=lf
+
+# Bilder und Projektdateien unverändert lassen
+*.png binary
+*.tplan.json text eol=lf
