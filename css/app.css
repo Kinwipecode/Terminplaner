@@ -392,3 +392,17 @@ table.tbl tr.drop-target td { background: var(--accent-soft) !important; box-sha
   .detail { width: 300px; }
   .search input { width: 130px; }
 }
+
+/* Dauer einer Idee im Sammelbecken-Fenster des Hauptfensters */
+.pool-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.pool-row-main .nm { width: 100%; }
+.pool-dur { display: flex; align-items: center; gap: 5px; flex: none; }
+.pool-dur-num, .pool-dur-unit {
+  height: 24px; line-height: 1.1; font-size: 11.5px; flex: none;
+  background: var(--bg-2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px;
+}
+.pool-dur .pool-dur-num { width: 46px; max-width: 46px; padding: 2px 5px; text-align: center; flex: 0 0 auto; }
+.pool-dur .pool-dur-unit { width: 96px; max-width: 96px; padding: 2px 4px; flex: 0 0 auto; }
+.pool-dur-out { font-size: 10.5px; color: var(--fg-3); min-width: 40px; font-variant-numeric: tabular-nums; }
+.pool-dur.is-set .pool-dur-num, .pool-dur.is-set .pool-dur-unit { border-color: color-mix(in srgb, var(--pool) 60%, var(--line)); }
+.pool-dur.is-set .pool-dur-out { color: var(--pool); font-weight: 600; }

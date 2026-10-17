@@ -75,3 +75,21 @@ body.sideboard {
 }
 
 .sb-empty { text-align: center; color: var(--fg-3); font-size: 12.5px; padding: 30px 12px; }
+
+/* ───────── Dauer einer Idee (freiwillig) ───────── */
+
+.sb-dur { display: flex; align-items: center; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+.sb-dur-label { font-size: 10.5px; color: var(--fg-3); }
+.sb-dur .sb-dur-num {
+  width: 52px; max-width: 52px; height: 24px; line-height: 1.1; padding: 2px 5px; font-size: 11px;
+  text-align: center; flex: 0 0 auto;
+  background: var(--bg-2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px;
+}
+.sb-dur-num::-webkit-outer-spin-button, .sb-dur-num::-webkit-inner-spin-button { opacity: .45; }
+.sb-dur .sb-dur-unit {
+  padding: 2px 4px; font-size: 11px; width: 96px; max-width: 96px; height: 24px; line-height: 1.1; flex: 0 0 auto;
+  background: var(--bg-2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px;
+}
+.sb-dur-out { font-size: 10.5px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.sb-dur.is-set .sb-dur-num, .sb-dur.is-set .sb-dur-unit { border-color: color-mix(in srgb, var(--pool, #14b8a6) 60%, var(--line)); }
+.sb-dur.is-set .sb-dur-out { color: var(--pool, #14b8a6); font-weight: 600; }

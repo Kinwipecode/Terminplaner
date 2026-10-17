@@ -3,7 +3,8 @@
    Team, Projekt-Einstellungen, Sicherungen, Rückfragen.
    ══════════════════════════════════════════════════════════════ */
 
-import { el, clear, toast, initials } from './dom.js';
+import { el, clear, initials, toast } from './dom.js';
+import { POOL_UNITS, POOL_DURATION_MAX, poolDurationWorkdays } from '../pool.js';
 import { store } from '../store.js';
 import { storage, slugify } from '../storage.js';
 import { THEMES, applyTheme, currentThemeId, toggleLightDark } from '../themes.js';
@@ -512,6 +513,38 @@ export function shiftTaskDialog(task = store.selected) {
 
 /* ───────── Ideen-Sammelbecken (Fenster im Hauptfenster) ───────── */
 
+/**
+ * Dauer einer Idee: Zahl + Einheit, darf leer bleiben.
+ * Steht eine Dauer drin, bekommt die daraus entstehende Aufgabe diese Länge.
+ */
+function poolDurationControl(entry, scope, rerender) {
+  const days = poolDurationWorkdays(entry);
+  const wrap = el('span', { class: 'pool-dur' + (days ? ' is-set' : '') });
+  wrap.appendChild(el('input', {
+    class: 'pool-dur-num',
+    type: 'number', min: '1', max: String(POOL_DURATION_MAX), step: '1',
+    placeholder: '–',
+    value: entry.duration > 0 ? String(entry.duration) : '',
+    title: 'Dauer der Idee (freiwillig) – leer lassen, wenn noch keine Dauer feststeht',
+    onchange: (ev) => {
+      const n = Math.round(Number(ev.target.value) || 0);
+      store.updatePoolEntry(entry.id, { duration: n > 0 ? Math.min(POOL_DURATION_MAX, n) : 0, unit: entry.unit || 'day' }, { scope });
+      rerender();
+    },
+  }));
+  wrap.appendChild(el('select', {
+    class: 'pool-dur-unit',
+    title: 'Einheit: Tage, Wochen oder Monate',
+    onchange: (ev) => { store.updatePoolEntry(entry.id, { unit: ev.target.value, duration: entry.duration || 0 }, { scope }); rerender(); },
+  }, ...POOL_UNITS.map((u) => el('option', { value: u.v, text: u.label, selected: (entry.unit || 'day') === u.v }))));
+  wrap.appendChild(el('span', {
+    class: 'pool-dur-out',
+    title: days ? 'So lang wird die Aufgabe beim Einplanen' : 'Ohne Angabe wird die Aufgabe 1 Arbeitstag lang',
+    text: days ? (days === 1 ? '1 AT' : `${days} AT`) : '',
+  }));
+  return wrap;
+}
+
 export function poolDialog(highlightId = null, onOpenWindow = null) {
   let scope = 'project';
   let renderList = () => {};
@@ -546,7 +579,8 @@ export function poolDialog(highlightId = null, onOpenWindow = null) {
           const row = el('div', { class: 'rc-row', style: placed ? { borderLeft: '3px solid var(--pool)' } : null });
           row.appendChild(el('span', { class: 'pool-badge' + (placed ? '' : ' soft'), text: `(${e.placedCount || 0})`, title: 'Wie oft schon in den Plan gelegt' }));
           const txt = el('input', { class: 'nm', type: 'text', value: e.text, onchange: (ev) => { store.updatePoolEntry(e.id, { text: ev.target.value.trim() || e.text }, { scope }); renderList(); } });
-          row.appendChild(txt);
+          // Name oben, Dauer darunter – so bleibt der Name gut lesbar
+          row.appendChild(el('div', { class: 'pool-row-main' }, txt, poolDurationControl(e, scope, renderList)));
           row.appendChild(el('button', { class: 'btn', text: 'In den Plan legen', title: 'Danach im Plan auf die gewünschte Stelle klicken', onclick: () => {
             store.arm(e.id, scope);
             closeModal();

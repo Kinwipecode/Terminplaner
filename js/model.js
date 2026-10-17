@@ -328,6 +328,7 @@ export function serializeProject(project) {
     pool: (project.pool || []).map((e) => ({
       id: e.id, text: e.text, note: e.note, createdAt: e.createdAt,
       placedCount: e.placedCount || 0, placedAt: e.placedAt, done: !!e.done,
+      duration: e.duration || 0, unit: e.unit || 'day',
     })),
     views: project.views,
   };
@@ -385,9 +386,10 @@ export function sampleProject() {
   link(c1, b2, 'SS', 1); link(c2, b3); link(c3, c2); link(c4, b1, 'SS', 2); link(c5, c3);
   link(d1, c5); link(d1, c4, 'FS', 0); link(d2, d1);
 
-  /* Ideen-Sammelbecken – Aufgaben ohne Termin, zum Ausprobieren */
-  const i1 = newPoolEntry({ text: 'Schulung für die Redaktion' });
-  const i2 = newPoolEntry({ text: 'Foto-Shooting Produktbilder' });
+  /* Ideen-Sammelbecken – Aufgaben ohne Termin, zum Ausprobieren.
+     Die Dauer ist freiwillig: steht sie drin, wird die Aufgabe beim Einplanen so lang. */
+  const i1 = newPoolEntry({ text: 'Schulung für die Redaktion', duration: 2, unit: 'day' });
+  const i2 = newPoolEntry({ text: 'Foto-Shooting Produktbilder', duration: 1, unit: 'week' });
   const i3 = newPoolEntry({ text: 'Barrierefreiheit prüfen', note: 'Kontrast, Tastaturbedienung, Screenreader', placedCount: 1 });
   p.pool = [i1, i2, i3];
   // eine Aufgabe, die schon aus dem Sammelbecken stammt (türkis, mit Zähler)

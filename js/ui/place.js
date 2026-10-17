@@ -57,8 +57,9 @@ export function placeArmed(target = {}, poolId = null) {
   if (newId) {
     const t = store.project.tasks.find((x) => x.id === newId);
     const n = t ? store.placedCountFor(t) : 0;
+    const days = t ? Math.max(1, t.duration || 1) : 1;
     toast(`„${t ? t.name : 'Idee'}“ eingeplant`, 'ok',
-      `${n}× im Plan · der Eintrag bleibt für weitere Termine erhalten.`);
+      `${days === 1 ? '1 Arbeitstag' : `${days} Arbeitstage`} · ${n}× im Plan · der Eintrag bleibt für weitere Termine erhalten.`);
   }
   return !!newId;
 }

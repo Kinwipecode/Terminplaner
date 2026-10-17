@@ -12,7 +12,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { el, clear, toast } from './ui/dom.js';
-import { loadGlobalPool, saveGlobalPool, normalizePool, POOL_COLOR } from './pool.js';
+import { loadGlobalPool, saveGlobalPool, normalizePool, POOL_COLOR, POOL_UNITS, POOL_DURATION_MAX, poolDurationWorkdays, poolDurationText } from './pool.js';
 import { toggleLightDark } from './themes.js';
 import { formatDateTime } from './dateutil.js';
 
@@ -148,6 +148,7 @@ function render() {
     if (e.createdAt) meta.appendChild(el('span', { text: 'aufgeschrieben ' + formatDateTime(Date.parse(e.createdAt) || Date.now()) }));
     if (e.placedAt) meta.appendChild(el('span', { text: 'zuletzt geplant ' + formatDateTime(Date.parse(e.placedAt) || Date.now()) }));
     main.appendChild(meta);
+    main.appendChild(durationRow(e));
     card.appendChild(main);
 
     const acts = el('div', { class: 'sb-actions' });
@@ -174,7 +175,8 @@ function render() {
       else {
         armedId = e.id;
         send({ type: 'arm', id: e.id, scope });
-        hint(`„${e.text}“ ist bereit – jetzt im Planungsfenster auf die gewünschte Stelle klicken.`);
+        const dt = poolDurationText(e);
+        hint(`„${e.text}“ ist bereit${dt ? ` (${dt})` : ''} – jetzt im Planungsfenster auf die gewünschte Stelle klicken.`);
         window.focus();
       }
       render();
@@ -198,6 +200,52 @@ function render() {
 
     list.appendChild(card);
   }
+}
+
+/* ───────── Dauer einer Idee (freiwillig) ───────── */
+
+/**
+ * Zeile „Dauer [Zahl] [Einheit]“ – darf leer bleiben.
+ * Steht eine Dauer drin, wird sie beim Einplanen zur Dauer der Aufgabe.
+ */
+function durationRow(e) {
+  const days = poolDurationWorkdays(e);
+  const wrap = el('div', { class: 'sb-dur' + (days ? ' is-set' : '') });
+
+  const num = el('input', {
+    class: 'sb-dur-num',
+    type: 'number', min: '1', max: String(POOL_DURATION_MAX), step: '1',
+    placeholder: '–',
+    value: e.duration > 0 ? String(e.duration) : '',
+    title: 'Dauer der Idee (freiwillig). Leer lassen, wenn noch keine Dauer feststeht.',
+    onclick: (ev) => ev.stopPropagation(),
+    onkeydown: (ev) => ev.stopPropagation(),
+    onchange: (ev) => {
+      ev.stopPropagation();
+      const n = Math.round(Number(ev.target.value) || 0);
+      patchEntry(e.id, { duration: n > 0 ? Math.min(POOL_DURATION_MAX, n) : 0, unit: e.unit || 'day' });
+    },
+  });
+
+  const unit = el('select', {
+    class: 'sb-dur-unit',
+    title: 'Einheit: Tage, Wochen oder Monate',
+    onclick: (ev) => ev.stopPropagation(),
+    onchange: (ev) => {
+      ev.stopPropagation();
+      patchEntry(e.id, { unit: ev.target.value, duration: e.duration || 0 });
+    },
+  }, ...POOL_UNITS.map((u) => el('option', { value: u.v, text: u.label, selected: (e.unit || 'day') === u.v })));
+
+  wrap.appendChild(el('span', { class: 'sb-dur-label', text: 'Dauer' }));
+  wrap.appendChild(num);
+  wrap.appendChild(unit);
+  wrap.appendChild(el('span', {
+    class: 'sb-dur-out',
+    title: days ? 'So lang wird die Aufgabe beim Einplanen' : 'Keine Dauer angegeben – die Aufgabe wird 1 Arbeitstag lang',
+    text: days ? (days === 1 ? '= 1 Arbeitstag' : `= ${days} Arbeitstage`) : 'ohne Angabe',
+  }));
+  return wrap;
 }
 
 function editText(node, entry) {

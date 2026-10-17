@@ -4,8 +4,8 @@
   "meta": {
     "name": "Beispielprojekt – Website-Neulaufbau",
     "description": "Beispielplan zum Ausprobieren. Zeilen ziehen, Abhängigkeiten ändern, Ansichten wechseln.",
-    "created": "2026-10-17T14:54:13.444Z",
-    "modified": "2026-10-17T14:54:13.447Z",
+    "created": "2026-10-17T18:58:30.093Z",
+    "modified": "2026-10-17T18:58:30.095Z",
     "author": ""
   },
   "settings": {
@@ -30,7 +30,7 @@
   },
   "resources": [
     {
-      "id": "rmvcioxxg1ye2s",
+      "id": "rmvcrf32l1jhnt",
       "name": "Anna Weber",
       "type": "person",
       "email": "anna@example.org",
@@ -38,7 +38,7 @@
       "capacity": 100
     },
     {
-      "id": "rmvcioxxg2isbx",
+      "id": "rmvcrf32l2mu8i",
       "name": "Ben Krause",
       "type": "person",
       "email": "ben@example.org",
@@ -46,7 +46,7 @@
       "capacity": 100
     },
     {
-      "id": "rmvcioxxg3kkgy",
+      "id": "rmvcrf32l3m3vz",
       "name": "Clara Sander",
       "type": "person",
       "email": "clara@example.org",
@@ -54,7 +54,7 @@
       "capacity": 100
     },
     {
-      "id": "rmvcioxxg4limg",
+      "id": "rmvcrf32l4is68",
       "name": "Extern: Agentur",
       "type": "team",
       "email": "",
@@ -64,7 +64,7 @@
   ],
   "tasks": [
     {
-      "id": "tmvcioxxg5wpmb",
+      "id": "tmvcrf32l5ncmf",
       "parentId": null,
       "wbs": "1",
       "name": "Konzept & Planung",
@@ -86,8 +86,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxg6wnmn",
-      "parentId": "tmvcioxxg5wpmb",
+      "id": "tmvcrf32m6j95u",
+      "parentId": "tmvcrf32l5ncmf",
       "wbs": "1.1",
       "name": "Anforderungen sammeln",
       "type": "task",
@@ -98,7 +98,7 @@
       "status": "done",
       "priority": "high",
       "assignees": [
-        "rmvcioxxg1ye2s"
+        "rmvcrf32l1jhnt"
       ],
       "deps": [],
       "constraint": null,
@@ -110,8 +110,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxg7zttc",
-      "parentId": "tmvcioxxg5wpmb",
+      "id": "tmvcrf32m77kjt",
+      "parentId": "tmvcrf32l5ncmf",
       "wbs": "1.2",
       "name": "Zielgruppen-Workshop",
       "type": "task",
@@ -122,12 +122,12 @@
       "status": "done",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg1ye2s",
-        "rmvcioxxg2isbx"
+        "rmvcrf32l1jhnt",
+        "rmvcrf32l2mu8i"
       ],
       "deps": [
         {
-          "id": "tmvcioxxg6wnmn",
+          "id": "tmvcrf32m6j95u",
           "type": "FS",
           "lag": 0
         }
@@ -141,8 +141,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxh8l256",
-      "parentId": "tmvcioxxg5wpmb",
+      "id": "tmvcrf32m83os1",
+      "parentId": "tmvcrf32l5ncmf",
       "wbs": "1.3",
       "name": "Konzept freigegeben",
       "type": "milestone",
@@ -155,7 +155,7 @@
       "assignees": [],
       "deps": [
         {
-          "id": "tmvcioxxg7zttc",
+          "id": "tmvcrf32m77kjt",
           "type": "FS",
           "lag": 0
         }
@@ -169,7 +169,7 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxh930nt",
+      "id": "tmvcrf32m9h9w5",
       "parentId": null,
       "wbs": "2",
       "name": "Design",
@@ -191,8 +191,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhaie6r",
-      "parentId": "tmvcioxxh930nt",
+      "id": "tmvcrf32marjx2",
+      "parentId": "tmvcrf32m9h9w5",
       "wbs": "2.1",
       "name": "Wireframes",
       "type": "task",
@@ -203,11 +203,11 @@
       "status": "done",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg4limg"
+        "rmvcrf32l4is68"
       ],
       "deps": [
         {
-          "id": "tmvcioxxh8l256",
+          "id": "tmvcrf32m83os1",
           "type": "FS",
           "lag": 0
         }
@@ -221,8 +221,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhby930",
-      "parentId": "tmvcioxxh930nt",
+      "id": "tmvcrf32mbz263",
+      "parentId": "tmvcrf32m9h9w5",
       "wbs": "2.2",
       "name": "Screendesign",
       "type": "task",
@@ -233,11 +233,11 @@
       "status": "running",
       "priority": "high",
       "assignees": [
-        "rmvcioxxg4limg"
+        "rmvcrf32l4is68"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhaie6r",
+          "id": "tmvcrf32marjx2",
           "type": "FS",
           "lag": 0
         }
@@ -251,8 +251,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhcwyj9",
-      "parentId": "tmvcioxxh930nt",
+      "id": "tmvcrf32mcsw97",
+      "parentId": "tmvcrf32m9h9w5",
       "wbs": "2.3",
       "name": "Design-Review",
       "type": "task",
@@ -263,11 +263,11 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg1ye2s"
+        "rmvcrf32l1jhnt"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhby930",
+          "id": "tmvcrf32mbz263",
           "type": "FS",
           "lag": 0
         }
@@ -281,7 +281,7 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhdfoad",
+      "id": "tmvcrf32mdvfxb",
       "parentId": null,
       "wbs": "3",
       "name": "Umsetzung",
@@ -303,8 +303,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhexwir",
-      "parentId": "tmvcioxxhdfoad",
+      "id": "tmvcrf32megmci",
+      "parentId": "tmvcrf32mdvfxb",
       "wbs": "3.1",
       "name": "Datenmodell & API",
       "type": "task",
@@ -315,11 +315,11 @@
       "status": "running",
       "priority": "critical",
       "assignees": [
-        "rmvcioxxg2isbx"
+        "rmvcrf32l2mu8i"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhby930",
+          "id": "tmvcrf32mbz263",
           "type": "SS",
           "lag": 1
         }
@@ -333,8 +333,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhf8gt4",
-      "parentId": "tmvcioxxhdfoad",
+      "id": "tmvcrf32mfsfzo",
+      "parentId": "tmvcrf32mdvfxb",
       "wbs": "3.2",
       "name": "Frontend-Grundgerüst",
       "type": "task",
@@ -345,11 +345,11 @@
       "status": "running",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg2isbx"
+        "rmvcrf32l2mu8i"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhcwyj9",
+          "id": "tmvcrf32mcsw97",
           "type": "FS",
           "lag": 0
         }
@@ -363,8 +363,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhg6cow",
-      "parentId": "tmvcioxxhdfoad",
+      "id": "tmvcrf32mgwini",
+      "parentId": "tmvcrf32mdvfxb",
       "wbs": "3.3",
       "name": "Seiten einbauen",
       "type": "task",
@@ -375,12 +375,12 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg2isbx",
-        "rmvcioxxg3kkgy"
+        "rmvcrf32l2mu8i",
+        "rmvcrf32l3m3vz"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhf8gt4",
+          "id": "tmvcrf32mfsfzo",
           "type": "FS",
           "lag": 0
         }
@@ -394,8 +394,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhhzh17",
-      "parentId": "tmvcioxxhdfoad",
+      "id": "tmvcrf32mhjfrr",
+      "parentId": "tmvcrf32mdvfxb",
       "wbs": "3.4",
       "name": "Redaktion Inhalte",
       "type": "task",
@@ -406,11 +406,11 @@
       "status": "running",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg3kkgy"
+        "rmvcrf32l3m3vz"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhaie6r",
+          "id": "tmvcrf32marjx2",
           "type": "SS",
           "lag": 2
         }
@@ -424,8 +424,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxhiulls",
-      "parentId": "tmvcioxxhdfoad",
+      "id": "tmvcrf32mivgyd",
+      "parentId": "tmvcrf32mdvfxb",
       "wbs": "3.5",
       "name": "Tests & Fehlerbehebung",
       "type": "task",
@@ -436,12 +436,12 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg2isbx",
-        "rmvcioxxg3kkgy"
+        "rmvcrf32l2mu8i",
+        "rmvcrf32l3m3vz"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhg6cow",
+          "id": "tmvcrf32mgwini",
           "type": "FS",
           "lag": 0
         }
@@ -455,7 +455,7 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxij1g06",
+      "id": "tmvcrf32mjs71y",
       "parentId": null,
       "wbs": "4",
       "name": "Abschluss",
@@ -477,8 +477,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxikk2yr",
-      "parentId": "tmvcioxxij1g06",
+      "id": "tmvcrf32mk3u32",
+      "parentId": "tmvcrf32mjs71y",
       "wbs": "4.1",
       "name": "Abnahme mit Kunde",
       "type": "task",
@@ -489,16 +489,16 @@
       "status": "open",
       "priority": "high",
       "assignees": [
-        "rmvcioxxg1ye2s"
+        "rmvcrf32l1jhnt"
       ],
       "deps": [
         {
-          "id": "tmvcioxxhiulls",
+          "id": "tmvcrf32mivgyd",
           "type": "FS",
           "lag": 0
         },
         {
-          "id": "tmvcioxxhhzh17",
+          "id": "tmvcrf32mhjfrr",
           "type": "FS",
           "lag": 0
         }
@@ -512,8 +512,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxxilvzhq",
-      "parentId": "tmvcioxxij1g06",
+      "id": "tmvcrf32mld92b",
+      "parentId": "tmvcrf32mjs71y",
       "wbs": "4.2",
       "name": "Live-Schaltung",
       "type": "milestone",
@@ -526,7 +526,7 @@
       "assignees": [],
       "deps": [
         {
-          "id": "tmvcioxxikk2yr",
+          "id": "tmvcrf32mk3u32",
           "type": "FS",
           "lag": 0
         }
@@ -540,8 +540,8 @@
       "fromPool": null
     },
     {
-      "id": "tmvcioxximtaq2",
-      "parentId": "tmvcioxxij1g06",
+      "id": "tmvcrf32nmbqxo",
+      "parentId": "tmvcrf32mjs71y",
       "wbs": "4.3",
       "name": "Barrierefreiheit prüfen",
       "type": "task",
@@ -552,7 +552,7 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvcioxxg2isbx"
+        "rmvcrf32l2mu8i"
       ],
       "deps": [],
       "constraint": null,
@@ -561,36 +561,42 @@
       "notes": "",
       "tags": [],
       "collapsed": false,
-      "fromPool": "pmvcioxxi3elz"
+      "fromPool": "pmvcrf32n3450"
     }
   ],
   "pool": [
     {
-      "id": "pmvcioxxi1sfl",
+      "id": "pmvcrf32m1exy",
       "text": "Schulung für die Redaktion",
       "note": "",
-      "createdAt": "2026-10-17T14:54:13.446Z",
+      "createdAt": "2026-10-17T18:58:30.095Z",
       "placedCount": 0,
       "placedAt": null,
-      "done": false
+      "done": false,
+      "duration": 2,
+      "unit": "day"
     },
     {
-      "id": "pmvcioxxi2zec",
+      "id": "pmvcrf32n2s27",
       "text": "Foto-Shooting Produktbilder",
       "note": "",
-      "createdAt": "2026-10-17T14:54:13.446Z",
+      "createdAt": "2026-10-17T18:58:30.095Z",
       "placedCount": 0,
       "placedAt": null,
-      "done": false
+      "done": false,
+      "duration": 1,
+      "unit": "week"
     },
     {
-      "id": "pmvcioxxi3elz",
+      "id": "pmvcrf32n3450",
       "text": "Barrierefreiheit prüfen",
       "note": "Kontrast, Tastaturbedienung, Screenreader",
-      "createdAt": "2026-10-17T14:54:13.446Z",
+      "createdAt": "2026-10-17T18:58:30.095Z",
       "placedCount": 1,
       "placedAt": null,
-      "done": false
+      "done": false,
+      "duration": 0,
+      "unit": "day"
     }
   ],
   "views": {}

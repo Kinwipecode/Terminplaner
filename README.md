@@ -104,6 +104,9 @@ legt die Auswahl zusätzlich als Text in die Windows-Zwischenablage (für Excel)
   anklicken und im Plan auf die gewünschte Stelle klicken.
 - Der Eintrag bleibt erhalten und lässt sich **mehrfach** einplanen; die **Zahl in Klammern**
   zeigt, wie oft er schon im Plan steht.
+- Optional lässt sich je Eintrag eine **Dauer** eintragen (**Tage, Wochen oder Monate**) – freiwillig,
+  darf leer bleiben. Steht sie drin, bekommt die daraus entstehende Aufgabe genau diese Länge
+  (1 Woche = 5, 1 Monat = 20 Arbeitstage); ohne Angabe wird sie 1 Arbeitstag lang.
 - Eingeplante Aufgaben sind **türkis** und damit sofort von den anderen zu unterscheiden.
 - Die Liste wird **mit dem Projekt gespeichert**; ein **allgemeiner Vorrat** gilt für alle
   Projekte und lässt sich in neue Projekte übernehmen.

@@ -236,7 +236,24 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | Nach dem Schließen | ✅ kein Schreibvorgang mehr (Dateiname leer ⇒ `flush()` steigt aus) |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 14. Offene Punkte / nicht geprüft
+## 14. Dauer einer Idee (freiwillig) im Sammelbecken
+
+| Prüfung | Ergebnis |
+|---|---|
+| Feld je Eintrag | ✅ „Dauer [Zahl] [Tag(e)/Woche(n)/Monat(e)]“ in **beiden** Oberflächen: eigenes Fenster (`sideboard.html`) und Ideen-Dialog im Hauptfenster |
+| Leer lassen | ✅ Anzeige „ohne Angabe“, gespeichert wird `duration: 0, unit: 'day'` – kein Muss, kein Fehler |
+| 3 Wochen eintragen | ✅ Anzeige „= 15 Arbeitstage“, Eintrag wird hervorgehoben (`is-set`) |
+| 2 Monate (allgemeiner Vorrat, eigenes Fenster) | ✅ `localStorage` enthält `{"d":2,"u":"month"}`, Anzeige „= 40 Arbeitstage“ |
+| Übertragung ans Hauptfenster | ✅ Nachricht über den BroadcastChannel (`type: 'update'`) setzt die Dauer im Projekt – geprüft mit `{duration: 2, unit: 'month'}` |
+| Einplanen **mit** Dauer | ✅ Idee mit 3 Wochen, Start 02.11.2026 → Aufgabe 02.11.–**20.11.2026**, `duration: 15`, Farbe türkis |
+| Einplanen **ohne** Dauer | ✅ Idee ohne Angabe → 02.11.–02.11.2026, `duration: 1` |
+| Speichern in der Projektdatei | ✅ `duration`/`unit` stehen im JSON des Sammelbecken-Eintrags (Fehler dabei gefunden und behoben: `serializeProject` ließ die beiden Felder weg) |
+| Neu laden (Rundreise serialize → migrate) | ✅ 3 Wochen bleiben erhalten |
+| Alte Projektdatei ohne die Felder | ✅ Beispiel-Datei hat kein `duration`-Feld → nach der Migration `0`/`day`, kein Fehler |
+| Beispieldaten | ✅ `examples/beispiel-projekt.tplan.json` zeigt jetzt „Schulung … 2 Tage“ und „Foto-Shooting … 1 Woche“ |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 15. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

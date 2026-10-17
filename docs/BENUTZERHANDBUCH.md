@@ -286,14 +286,32 @@ Sie stehen in einem eigenen Fenster, das man auf den zweiten Bildschirm schieben
 **Öffnen:** links auf **Ideen**. Es öffnet sich ein eigenes Browserfenster (mit der Ideenliste).
 Das Planungsfenster bleibt offen – das Sammelbecken-Fenster ist eine Ergänzung.
 
-**Aufschreiben:** oben eintippen, `Eingabe` – fertig. Kein Termin, keine Dauer, nur der Text.
+**Aufschreiben:** oben eintippen, `Eingabe` – fertig. Kein Termin nötig, nur der Text.
 Der Text lässt sich mit **✎** ändern, mit **✓** als erledigt markieren, mit **🗑** löschen.
+
+**Dauer (freiwillig):** Unter jeder Idee steht **Dauer** mit einem Zahlenfeld und der Einheit
+(**Tag(e)**, **Woche(n)**, **Monat(e)**). Beides darf **leer bleiben** – dann wird die Aufgabe beim
+Einplanen 1 Arbeitstag lang. Steht eine Dauer drin, bekommt die daraus entstehende Aufgabe genau
+diese Länge; daneben steht zur Kontrolle die Umrechnung in Arbeitstage („= 15 Arbeitstage“):
+
+| Eingabe | ergibt |
+|---|---|
+| 3 Tage | 3 Arbeitstage |
+| 1 Woche | 5 Arbeitstage |
+| 2 Wochen | 10 Arbeitstage |
+| 1 Monat | 20 Arbeitstage |
+| *(leer)* | 1 Arbeitstag |
+
+Die Dauer gehört zum Eintrag: sie gilt für **jeden** Termin, den man daraus anlegt, und wird mit
+dem Projekt gespeichert (im allgemeinen Vorrat im Browser). Im Gantt sieht man das Ergebnis sofort
+an der Balkenlänge.
 
 **Einplanen – zwei Wege:**
 
 1. **Ziehen**: Eintrag mit der Maus greifen und im Planungsfenster auf die gewünschte Zeile und
    Position fallen lassen. Eine Linie zeigt die Zielzeile, ein kleines Schild das Datum und den
-   Platz („nach ‚Screendesign‘“). Dort entsteht eine Aufgabe von einem Arbeitstag.
+   Platz („nach ‚Screendesign‘“). Dort entsteht eine Aufgabe – **so lang wie die eingetragene
+   Dauer**, ohne Angabe einen Arbeitstag lang.
 2. **Klicken**: Eintrag anklicken → er ist „bereit zum Ablegen“ (unten erscheint ein Hinweis).
    Dann im Gantt, in der Tabelle oder im Kalender auf die gewünschte Stelle klicken.
    `Esc` bricht ab.

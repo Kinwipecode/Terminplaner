@@ -9,7 +9,7 @@ import {
   newTask, newResource, sortTasks, renumberWbs, taskById, descendantsOf,
   prevSibling, childrenOf, isSummary, uid, STATUS, serializeProject,
 } from './model.js';
-import { loadGlobalPool, saveGlobalPool, newPoolEntry, POOL_COLOR } from './pool.js';
+import { loadGlobalPool, saveGlobalPool, newPoolEntry, POOL_COLOR, poolDurationWorkdays } from './pool.js';
 import { schedule } from './scheduler.js';
 import { addWorkdays, addDays, addMonths, todayIso, startOfWeek, snapToWorkday, endFromDuration } from './dateutil.js';
 
@@ -807,6 +807,8 @@ export const store = {
     this.mutate('Idee in den Plan legen', (p) => {
       const cal = p.settings.calendar;
       const s = snapToWorkday(start || p.settings.projectStart || todayIso(), cal, 1);
+      // Dauer aus der Idee übernehmen (leer = 1 Arbeitstag)
+      const days = poolDurationWorkdays(entry) || 1;
       const t = newTask({
         name: entry.text,
         notes: entry.note || '',
@@ -814,10 +816,10 @@ export const store = {
         fromPool: entry.id,
         status,
         start: s,
-        duration: 1,
+        duration: days,
         parentId: parentId || null,
       });
-      t.end = endFromDuration(s, 1, cal);
+      t.end = endFromDuration(s, days, cal);
       const e = (p.pool || []).find((x) => x.id === poolId);
       if (e) { e.placedCount = (e.placedCount || 0) + 1; e.placedAt = new Date().toISOString(); }
       const idx = afterId ? p.tasks.findIndex((x) => x.id === afterId) : -1;
