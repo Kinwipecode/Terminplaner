@@ -4,6 +4,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { el, clear, initials, drag } from '../ui/dom.js';
+import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { contextMenu } from '../ui/menu.js';
 import { store } from '../store.js';
 import {
@@ -175,6 +176,14 @@ function leftCell(task, depth, hasKids) {
   cell.appendChild(name);
 
   const meta = el('div', { class: 'g-meta' });
+  if (task.fromPool) {
+    const n = store.placedCountFor(task);
+    meta.appendChild(el('span', {
+      class: 'pool-badge',
+      title: `Aus dem Ideen-Sammelbecken – bisher ${n}× in den Plan gelegt`,
+      text: `(${n})`,
+    }));
+  }
   if (task.priority && task.priority !== 'normal') meta.appendChild(el('span', { class: 'pdot', style: { background: PRIORITY[task.priority].color }, title: 'Priorität: ' + PRIORITY[task.priority].label }));
   if (task.deadline && task.end > task.deadline && task.status !== 'done') meta.appendChild(el('span', { title: 'Ziel überschritten: ' + task.deadline, text: '⏰' }));
   if ((task.deps || []).length) meta.appendChild(el('span', { title: (task.deps || []).length + ' Vorgänger', text: '⛓' }));
@@ -291,14 +300,22 @@ function attachDrag(node, task, range, dayW, mode) {
 }
 
 /* ───────── Kontextmenü einer Zeile ───────── */
-
 function rowMenu(ev, task) {
   const p = store.project;
   store.select(task.id);
+  const n = store.placedCountFor(task);
   contextMenu(ev.clientX, ev.clientY, [
     { label: 'Aufgabe hinzufügen', hint: 'Einfg', run: () => store.addTask({}, task.id) },
     { label: 'Unteraufgabe hinzufügen', run: () => { const id = store.addTask({ parentId: task.id, start: task.start }, task.id); store.indent(id); } },
     { label: 'Duplizieren', run: () => store.duplicateTask(task.id) },
+    '-',
+    { label: 'Termin: 1 Tag später', hint: 'Umschalt+→', run: () => store.shiftTask(task.id, 1, 'day') },
+    { label: 'Termin: 1 Woche später', hint: 'Umschalt+↓', run: () => store.shiftTask(task.id, 1, 'week') },
+    { label: 'Termin: 1 Monat später', hint: 'Umschalt+Strg+→', run: () => store.shiftTask(task.id, 1, 'month') },
+    { label: 'Termin: 1 Tag früher', hint: 'Umschalt+←', run: () => store.shiftTask(task.id, -1, 'day') },
+    { label: 'Termin: 1 Woche früher', hint: 'Umschalt+↑', run: () => store.shiftTask(task.id, -1, 'week') },
+    { label: 'Termin: 1 Monat früher', hint: 'Umschalt+Strg+←', run: () => store.shiftTask(task.id, -1, 'month') },
+    { label: 'Termin verschieben…', run: () => store.emit('open-shift') },
     '-',
     { label: 'Einrücken', hint: 'Alt+→', run: () => store.indent(task.id) },
     { label: 'Ausrücken', hint: 'Alt+←', run: () => store.outdent(task.id) },
@@ -306,8 +323,9 @@ function rowMenu(ev, task) {
     { label: 'Nach unten', hint: 'Alt+↓', run: () => store.moveRow(task.id, 1) },
     '-',
     { label: 'Details zeigen', run: () => store.emit('open-detail') },
+    task.fromPool ? { label: `Zur Idee im Sammelbecken (${n}×)`, run: () => store.emit('open-pool', task.fromPool) } : null,
     { label: 'Aufgabe löschen', danger: true, hint: 'Entf', run: () => store.deleteTask(task.id) },
-  ]);
+  ].filter(Boolean));
   void p;
 }
 
@@ -321,6 +339,7 @@ export function renderGantt(container) {
   const project = store.project;
   const tasks = store.visibleTasks();
   const rows = tasks;
+  const RH = store.ui.rowH || 30;   // Zeilenhöhe (im Setup einstellbar)
 
   // Zeitraum bestimmen
   let min = project.settings.projectStart;
@@ -342,8 +361,8 @@ export function renderGantt(container) {
   const { head } = buildHeader({ from, to, days }, dayW);
   inner.appendChild(head);
 
-  const body = el('div', { class: 'g-body', style: { position: 'relative', height: (rows.length * 30) + 'px' } });
-  const bg = buildBackground({ from, to, days }, dayW, rows.length * 30);
+  const body = el('div', { class: 'g-body', style: { position: 'relative', height: (rows.length * RH) + 'px' } });
+  const bg = buildBackground({ from, to, days }, dayW, rows.length * RH);
   body.appendChild(bg);
 
   const rowIndex = new Map();
@@ -364,6 +383,7 @@ export function renderGantt(container) {
     row.appendChild(track);
     row.addEventListener('mousedown', (e) => {
       if (e.target.closest('.g-twist') || e.target.closest('.bar') || e.target.closest('.ms-diamond')) return;
+      if (store.ui.armedPool) { e.preventDefault(); placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId }); return; }
       store.select(task.id);
     });
     row.addEventListener('contextmenu', (e) => { e.preventDefault(); rowMenu(e, task); });
@@ -375,7 +395,7 @@ export function renderGantt(container) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'deps-svg');
     svg.setAttribute('width', String(trackW));
-    svg.setAttribute('height', String(rows.length * 30));
+    svg.setAttribute('height', String(rows.length * RH));
     svg.style.left = 'var(--left-w)';
     svg.style.top = '0';
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -393,10 +413,10 @@ export function renderGantt(container) {
         if (!pred || !rowIndex.has(pred.id) || !rowIndex.has(task.id)) continue;
         const x1e = (diffDays(from, pred.start) + diffDays(pred.start, pred.end) + 1) * dayW;
         const x1s = diffDays(from, pred.start) * dayW;
-        const y1 = rowIndex.get(pred.id) * 30 + 15;
+        const y1 = rowIndex.get(pred.id) * RH + RH / 2;
         const x2s = diffDays(from, task.start) * dayW;
         const x2e = (diffDays(from, task.start) + diffDays(task.start, task.end) + 1) * dayW;
-        const y2 = rowIndex.get(task.id) * 30 + 15;
+        const y2 = rowIndex.get(task.id) * RH + RH / 2;
         let x1 = x1e, x2 = x2s;
         if (dep.type === 'SS') x1 = x1s;
         if (dep.type === 'FF') x2 = x2e;
@@ -431,6 +451,66 @@ export function renderGantt(container) {
 
   inner.appendChild(body);
   scroller.appendChild(inner);
+
+  /* ── Ideen aus dem Sammelbecken hier ablegen (Ziehen oder Klicken) ── */
+  const leftW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--left-w')) || 380;
+  const dropLine = el('div', { class: 'g-drop-line', hidden: true });
+  const dropTag = el('div', { class: 'g-drop-tag', hidden: true });
+  body.appendChild(dropLine);
+  body.appendChild(dropTag);
+
+  const targetAt = (e) => {
+    const rect = body.getBoundingClientRect();
+    const trackX = e.clientX - rect.left - leftW;
+    if (trackX < 0) return null;
+    const dayIdx = Math.max(0, Math.floor(trackX / dayW));
+    const date = snapToWorkday(addDays(from, dayIdx), store.project.settings.calendar, 1);
+    const rowIdx = Math.max(0, Math.min(rows.length - 1, Math.floor((e.clientY - rect.top) / RH)));
+    const task = rows[rowIdx] || null;
+    return {
+      date, rowIdx, task,
+      afterId: task ? task.id : null,
+      parentId: task ? task.parentId : null,
+      label: task ? `nach „${task.name}“` : 'oberste Ebene',
+    };
+  };
+  const poolIdOf = (e) => poolIdFromDrag(e);
+
+  scroller.addEventListener('dragover', (e) => {
+    if (!isPoolDrag(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    const t = targetAt(e);
+    if (!t) return;
+    dropLine.hidden = false;
+    dropLine.style.top = (t.rowIdx * RH) + 'px';
+    dropTag.hidden = false;
+    dropTag.style.top = (t.rowIdx * RH) + 'px';
+    dropTag.style.left = `calc(var(--left-w) + ${Math.max(0, diffDays(from, t.date) * dayW)}px)`;
+    dropTag.textContent = `${formatIso(t.date, 'short')} · ${t.label}`;
+  });
+  scroller.addEventListener('dragleave', () => { dropLine.hidden = true; dropTag.hidden = true; });
+  scroller.addEventListener('drop', (e) => {
+    const poolId = poolIdOf(e);
+    if (!poolId || !isPoolDrag(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dropLine.hidden = true;
+    dropTag.hidden = true;
+    const t = targetAt(e);
+    if (!t) return;
+    placeArmed({ start: t.date, afterId: t.afterId, parentId: t.parentId }, poolId);
+  });
+  scroller.addEventListener('mousedown', (e) => {
+    if (!store.ui.armedPool) return;
+    if (e.target.closest('.bar') || e.target.closest('.ms-diamond') || e.target.closest('.g-twist')) return;
+    const rect = body.getBoundingClientRect();
+    if (e.clientX - rect.left < leftW) return;   // Klick in der Namensspalte
+    e.preventDefault();
+    const t = targetAt(e);
+    if (t) placeArmed({ start: t.date, afterId: t.afterId, parentId: t.parentId });
+  });
   if (!rows.length) {
     scroller.appendChild(el('div', { class: 'g-empty' },
       el('p', { text: 'Noch keine Aufgaben.' }),

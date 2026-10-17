@@ -51,6 +51,21 @@ export function renderDetail(host) {
       store.updateTask(task.id, { duration: dur, end: endFromDuration(task.start, dur, cal) }, 'Dauer ändern');
     } }))));
 
+  /* Termin verschieben */
+  const shiftRow = el('div', { class: 'chip-row' });
+  const shiftBtn = (label, amount, unit, title) => el('button', {
+    class: 'pick', text: label, title,
+    onclick: () => store.shiftTask(task.id, amount, unit),
+  });
+  shiftRow.appendChild(shiftBtn('− 1 Monat', -1, 'month', 'Einen Monat früher'));
+  shiftRow.appendChild(shiftBtn('− 1 Woche', -1, 'week', 'Eine Woche früher (Umschalt+↑)'));
+  shiftRow.appendChild(shiftBtn('− 1 Tag', -1, 'day', 'Einen Arbeitstag früher (Umschalt+←)'));
+  shiftRow.appendChild(shiftBtn('+ 1 Tag', 1, 'day', 'Einen Arbeitstag später (Umschalt+→)'));
+  shiftRow.appendChild(shiftBtn('+ 1 Woche', 1, 'week', 'Eine Woche später (Umschalt+↓)'));
+  shiftRow.appendChild(shiftBtn('+ 1 Monat', 1, 'month', 'Einen Monat später'));
+  shiftRow.appendChild(el('button', { class: 'pick', text: 'Verschieben…', title: 'Betrag und Einheit wählen', onclick: () => store.emit('open-shift') }));
+  body.appendChild(field('Termin verschieben', shiftRow));
+
   /* Fortschritt */
   body.appendChild(field(`Fortschritt – ${task.progress} %`,
     el('input', { type: 'range', min: '0', max: '100', step: '5', value: String(task.progress), oninput: (e) => { e.target.parentNode.querySelector('label').textContent = `Fortschritt – ${e.target.value} %`; }, onchange: (e) => store.setProgress(task.id, Number(e.target.value)) })));
@@ -77,6 +92,17 @@ export function renderDetail(host) {
   if (task.conflict) body.appendChild(el('div', { class: 'warnbox', text: '⚠ Dieser Termin ist mit seinen Vorgängern nicht vereinbar. Auto-Planung einschalten oder Vorgänger prüfen.' }));
   const viol = store.violations.filter((v) => v.taskId === task.id);
   for (const v of viol) body.appendChild(el('div', { class: 'warnbox', text: '⚠ ' + v.message }));
+
+  if (task.fromPool) {
+    const n = store.placedCountFor(task);
+    const entry = store.poolEntry(task.fromPool);
+    body.appendChild(el('div', { class: 'rc-row', style: { borderLeft: '3px solid var(--pool)' } },
+      el('span', { class: 'pool-badge', text: `(${n})`, title: 'Wie oft diese Idee schon in den Plan gelegt wurde' }),
+      el('div', { class: 'nm', style: { fontSize: '11.5px' } },
+        el('div', { text: `Aus dem Ideen-Sammelbecken: „${entry ? entry.text : '?'}“` }),
+        el('div', { class: 'hint', text: `${n}× in den Plan gelegt – der Eintrag kann weiterhin mehrfach verwendet werden.` })),
+      el('button', { class: 'btn', text: 'Zur Idee', onclick: () => store.emit('open-pool', task.fromPool) })));
+  }
 
   /* Wer */
   const whoRow = el('div', { class: 'chip-row' });

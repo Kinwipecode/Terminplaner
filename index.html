@@ -103,6 +103,7 @@
     <button class="railbtn" data-view="calendar" title="Kalender (3)"><span class="ri">▦</span><span class="rl">Kalender</span></button>
     <button class="railbtn" data-view="board" title="Board (4)"><span class="ri">▥</span><span class="rl">Board</span></button>
     <div class="rail-spacer"></div>
+    <button class="railbtn" data-action="pool-window" title="Ideen-Sammelbecken in eigenem Fenster öffnen (für den zweiten Bildschirm)"><span class="ri">✎</span><span class="rl">Ideen</span></button>
     <button class="railbtn" data-action="print" title="Drucken / PDF erzeugen"><span class="ri">🖨</span><span class="rl">Drucken</span></button>
     <button class="railbtn" data-action="theme" title="Farblayout der Oberfläche"><span class="ri">◑</span><span class="rl">Farbe</span></button>
     <button class="railbtn" data-action="resources" title="Ressourcen / Beteiligte"><span class="ri">☺</span><span class="rl">Team</span></button>
@@ -178,6 +179,9 @@
 <div id="toasts" class="toasts"></div>
 <div id="drop-hint" class="drop-hint" hidden><div>Projektdatei hier ablegen, um sie zu öffnen</div></div>
 <input type="file" id="file-input" accept=".json,.tplan,application/json" hidden>
+
+<!-- Bereit zum Ablegen (Ideen-Sammelbecken) -->
+<div id="armed-bar" class="armed-bar" hidden></div>
 
 <!-- Fertige Druckseiten (nur auf Papier sichtbar) -->
 <div id="print-root"></div>

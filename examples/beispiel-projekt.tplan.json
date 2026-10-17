@@ -4,8 +4,8 @@
   "meta": {
     "name": "Beispielprojekt – Website-Neulaufbau",
     "description": "Beispielplan zum Ausprobieren. Zeilen ziehen, Abhängigkeiten ändern, Ansichten wechseln.",
-    "created": "2026-10-17T09:10:55.089Z",
-    "modified": "2026-10-17T09:10:55.090Z",
+    "created": "2026-10-17T14:54:13.444Z",
+    "modified": "2026-10-17T14:54:13.447Z",
     "author": ""
   },
   "settings": {
@@ -25,11 +25,12 @@
     "showCritical": false,
     "showDeps": true,
     "autoPlan": true,
-    "zoom": "week"
+    "zoom": "week",
+    "rowHeight": 30
   },
   "resources": [
     {
-      "id": "rmvc6fg4x11f4z",
+      "id": "rmvcioxxg1ye2s",
       "name": "Anna Weber",
       "type": "person",
       "email": "anna@example.org",
@@ -37,7 +38,7 @@
       "capacity": 100
     },
     {
-      "id": "rmvc6fg4x2lj59",
+      "id": "rmvcioxxg2isbx",
       "name": "Ben Krause",
       "type": "person",
       "email": "ben@example.org",
@@ -45,7 +46,7 @@
       "capacity": 100
     },
     {
-      "id": "rmvc6fg4x3z8gq",
+      "id": "rmvcioxxg3kkgy",
       "name": "Clara Sander",
       "type": "person",
       "email": "clara@example.org",
@@ -53,7 +54,7 @@
       "capacity": 100
     },
     {
-      "id": "rmvc6fg4x47r23",
+      "id": "rmvcioxxg4limg",
       "name": "Extern: Agentur",
       "type": "team",
       "email": "",
@@ -63,7 +64,7 @@
   ],
   "tasks": [
     {
-      "id": "tmvc6fg4x5raqg",
+      "id": "tmvcioxxg5wpmb",
       "parentId": null,
       "wbs": "1",
       "name": "Konzept & Planung",
@@ -81,11 +82,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4x6age2",
-      "parentId": "tmvc6fg4x5raqg",
+      "id": "tmvcioxxg6wnmn",
+      "parentId": "tmvcioxxg5wpmb",
       "wbs": "1.1",
       "name": "Anforderungen sammeln",
       "type": "task",
@@ -96,7 +98,7 @@
       "status": "done",
       "priority": "high",
       "assignees": [
-        "rmvc6fg4x11f4z"
+        "rmvcioxxg1ye2s"
       ],
       "deps": [],
       "constraint": null,
@@ -104,11 +106,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4x7p6d5",
-      "parentId": "tmvc6fg4x5raqg",
+      "id": "tmvcioxxg7zttc",
+      "parentId": "tmvcioxxg5wpmb",
       "wbs": "1.2",
       "name": "Zielgruppen-Workshop",
       "type": "task",
@@ -119,12 +122,12 @@
       "status": "done",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x11f4z",
-        "rmvc6fg4x2lj59"
+        "rmvcioxxg1ye2s",
+        "rmvcioxxg2isbx"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4x6age2",
+          "id": "tmvcioxxg6wnmn",
           "type": "FS",
           "lag": 0
         }
@@ -134,11 +137,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4x8w0rz",
-      "parentId": "tmvc6fg4x5raqg",
+      "id": "tmvcioxxh8l256",
+      "parentId": "tmvcioxxg5wpmb",
       "wbs": "1.3",
       "name": "Konzept freigegeben",
       "type": "milestone",
@@ -151,7 +155,7 @@
       "assignees": [],
       "deps": [
         {
-          "id": "tmvc6fg4x7p6d5",
+          "id": "tmvcioxxg7zttc",
           "type": "FS",
           "lag": 0
         }
@@ -161,10 +165,11 @@
       "color": "#8b5cf6",
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4x9f5gv",
+      "id": "tmvcioxxh930nt",
       "parentId": null,
       "wbs": "2",
       "name": "Design",
@@ -182,11 +187,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4xay576",
-      "parentId": "tmvc6fg4x9f5gv",
+      "id": "tmvcioxxhaie6r",
+      "parentId": "tmvcioxxh930nt",
       "wbs": "2.1",
       "name": "Wireframes",
       "type": "task",
@@ -197,11 +203,11 @@
       "status": "done",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x47r23"
+        "rmvcioxxg4limg"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4x8w0rz",
+          "id": "tmvcioxxh8l256",
           "type": "FS",
           "lag": 0
         }
@@ -211,11 +217,12 @@
       "color": "#ec4899",
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4xbaeq4",
-      "parentId": "tmvc6fg4x9f5gv",
+      "id": "tmvcioxxhby930",
+      "parentId": "tmvcioxxh930nt",
       "wbs": "2.2",
       "name": "Screendesign",
       "type": "task",
@@ -226,11 +233,11 @@
       "status": "running",
       "priority": "high",
       "assignees": [
-        "rmvc6fg4x47r23"
+        "rmvcioxxg4limg"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4xay576",
+          "id": "tmvcioxxhaie6r",
           "type": "FS",
           "lag": 0
         }
@@ -240,11 +247,12 @@
       "color": "#ec4899",
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4xceiv9",
-      "parentId": "tmvc6fg4x9f5gv",
+      "id": "tmvcioxxhcwyj9",
+      "parentId": "tmvcioxxh930nt",
       "wbs": "2.3",
       "name": "Design-Review",
       "type": "task",
@@ -255,11 +263,11 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x11f4z"
+        "rmvcioxxg1ye2s"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4xbaeq4",
+          "id": "tmvcioxxhby930",
           "type": "FS",
           "lag": 0
         }
@@ -269,10 +277,11 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4xdbgk0",
+      "id": "tmvcioxxhdfoad",
       "parentId": null,
       "wbs": "3",
       "name": "Umsetzung",
@@ -290,11 +299,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4ye1k75",
-      "parentId": "tmvc6fg4xdbgk0",
+      "id": "tmvcioxxhexwir",
+      "parentId": "tmvcioxxhdfoad",
       "wbs": "3.1",
       "name": "Datenmodell & API",
       "type": "task",
@@ -305,11 +315,11 @@
       "status": "running",
       "priority": "critical",
       "assignees": [
-        "rmvc6fg4x2lj59"
+        "rmvcioxxg2isbx"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4xbaeq4",
+          "id": "tmvcioxxhby930",
           "type": "SS",
           "lag": 1
         }
@@ -319,11 +329,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4yfk4v1",
-      "parentId": "tmvc6fg4xdbgk0",
+      "id": "tmvcioxxhf8gt4",
+      "parentId": "tmvcioxxhdfoad",
       "wbs": "3.2",
       "name": "Frontend-Grundgerüst",
       "type": "task",
@@ -334,11 +345,11 @@
       "status": "running",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x2lj59"
+        "rmvcioxxg2isbx"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4xceiv9",
+          "id": "tmvcioxxhcwyj9",
           "type": "FS",
           "lag": 0
         }
@@ -348,11 +359,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4yg11y4",
-      "parentId": "tmvc6fg4xdbgk0",
+      "id": "tmvcioxxhg6cow",
+      "parentId": "tmvcioxxhdfoad",
       "wbs": "3.3",
       "name": "Seiten einbauen",
       "type": "task",
@@ -363,12 +375,12 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x2lj59",
-        "rmvc6fg4x3z8gq"
+        "rmvcioxxg2isbx",
+        "rmvcioxxg3kkgy"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4yfk4v1",
+          "id": "tmvcioxxhf8gt4",
           "type": "FS",
           "lag": 0
         }
@@ -378,11 +390,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4yhq434",
-      "parentId": "tmvc6fg4xdbgk0",
+      "id": "tmvcioxxhhzh17",
+      "parentId": "tmvcioxxhdfoad",
       "wbs": "3.4",
       "name": "Redaktion Inhalte",
       "type": "task",
@@ -393,11 +406,11 @@
       "status": "running",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x3z8gq"
+        "rmvcioxxg3kkgy"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4xay576",
+          "id": "tmvcioxxhaie6r",
           "type": "SS",
           "lag": 2
         }
@@ -407,11 +420,12 @@
       "color": "#f59e0b",
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4yibxo3",
-      "parentId": "tmvc6fg4xdbgk0",
+      "id": "tmvcioxxhiulls",
+      "parentId": "tmvcioxxhdfoad",
       "wbs": "3.5",
       "name": "Tests & Fehlerbehebung",
       "type": "task",
@@ -422,12 +436,12 @@
       "status": "open",
       "priority": "normal",
       "assignees": [
-        "rmvc6fg4x2lj59",
-        "rmvc6fg4x3z8gq"
+        "rmvcioxxg2isbx",
+        "rmvcioxxg3kkgy"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4yg11y4",
+          "id": "tmvcioxxhg6cow",
           "type": "FS",
           "lag": 0
         }
@@ -437,10 +451,11 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4yjfq7d",
+      "id": "tmvcioxxij1g06",
       "parentId": null,
       "wbs": "4",
       "name": "Abschluss",
@@ -458,11 +473,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4ykviv1",
-      "parentId": "tmvc6fg4yjfq7d",
+      "id": "tmvcioxxikk2yr",
+      "parentId": "tmvcioxxij1g06",
       "wbs": "4.1",
       "name": "Abnahme mit Kunde",
       "type": "task",
@@ -473,16 +489,16 @@
       "status": "open",
       "priority": "high",
       "assignees": [
-        "rmvc6fg4x11f4z"
+        "rmvcioxxg1ye2s"
       ],
       "deps": [
         {
-          "id": "tmvc6fg4yibxo3",
+          "id": "tmvcioxxhiulls",
           "type": "FS",
           "lag": 0
         },
         {
-          "id": "tmvc6fg4yhq434",
+          "id": "tmvcioxxhhzh17",
           "type": "FS",
           "lag": 0
         }
@@ -492,11 +508,12 @@
       "color": null,
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
     },
     {
-      "id": "tmvc6fg4ylbnem",
-      "parentId": "tmvc6fg4yjfq7d",
+      "id": "tmvcioxxilvzhq",
+      "parentId": "tmvcioxxij1g06",
       "wbs": "4.2",
       "name": "Live-Schaltung",
       "type": "milestone",
@@ -509,7 +526,7 @@
       "assignees": [],
       "deps": [
         {
-          "id": "tmvc6fg4ykviv1",
+          "id": "tmvcioxxikk2yr",
           "type": "FS",
           "lag": 0
         }
@@ -519,7 +536,61 @@
       "color": "#22c55e",
       "notes": "",
       "tags": [],
-      "collapsed": false
+      "collapsed": false,
+      "fromPool": null
+    },
+    {
+      "id": "tmvcioxximtaq2",
+      "parentId": "tmvcioxxij1g06",
+      "wbs": "4.3",
+      "name": "Barrierefreiheit prüfen",
+      "type": "task",
+      "start": "2026-12-14",
+      "end": "2026-12-16",
+      "duration": 3,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [
+        "rmvcioxxg2isbx"
+      ],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": "#14b8a6",
+      "notes": "",
+      "tags": [],
+      "collapsed": false,
+      "fromPool": "pmvcioxxi3elz"
+    }
+  ],
+  "pool": [
+    {
+      "id": "pmvcioxxi1sfl",
+      "text": "Schulung für die Redaktion",
+      "note": "",
+      "createdAt": "2026-10-17T14:54:13.446Z",
+      "placedCount": 0,
+      "placedAt": null,
+      "done": false
+    },
+    {
+      "id": "pmvcioxxi2zec",
+      "text": "Foto-Shooting Produktbilder",
+      "note": "",
+      "createdAt": "2026-10-17T14:54:13.446Z",
+      "placedCount": 0,
+      "placedAt": null,
+      "done": false
+    },
+    {
+      "id": "pmvcioxxi3elz",
+      "text": "Barrierefreiheit prüfen",
+      "note": "Kontrast, Tastaturbedienung, Screenreader",
+      "createdAt": "2026-10-17T14:54:13.446Z",
+      "placedCount": 1,
+      "placedAt": null,
+      "done": false
     }
   ],
   "views": {}

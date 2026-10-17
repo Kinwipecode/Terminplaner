@@ -14,6 +14,7 @@
 
 import { el, clear, initials, toast } from './ui/dom.js';
 import { store } from './store.js';
+import { POOL_COLOR } from './pool.js';
 import {
   STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, DEP_TYPES, taskById, isSummary,
   stats, projectRange,
@@ -695,6 +696,7 @@ function legendPage(project, s, plan) {
   grid.appendChild(box('Balken und Zeichen', [
     item(el('span', { class: 'plg-swatch', style: { background: '#5b8def' } }), 'Aufgabe – Balken von Beginn bis Ende'),
     item(el('span', { class: 'plg-swatch', style: { background: '#5b8def', position: 'relative' } }, el('i', { style: { display: 'block', height: '100%', width: '45%', background: 'rgba(0,0,0,.42)' } })), 'dunkler Teil = bereits erledigt (%)'),
+    item(el('span', { class: 'plg-swatch', style: { background: POOL_COLOR } }), 'Aufgabe aus dem Ideen-Sammelbecken (Zahl = wie oft eingeplant)'),
     item(el('span', { class: 'plg-swatch', style: { background: '#98a2b3' } }), 'Sammelaufgabe – aus Unteraufgaben zusammengefasst'),
     item(el('span', { class: 'plg-diamond', style: { background: '#8b5cf6' } }), 'Meilenstein (ein Tag, keine Dauer)'),
     item(el('span', { class: 'plg-swatch', style: { background: 'transparent', border: '.4mm solid #c62828' } }), 'kritischer Pfad (kein Puffer)'),

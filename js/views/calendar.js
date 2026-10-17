@@ -3,6 +3,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { el, clear } from '../ui/dom.js';
+import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { store } from '../store.js';
 import { STATUS, taskById } from '../model.js';
 import {
@@ -82,6 +83,13 @@ export function renderCalendar(container) {
     cell.addEventListener('drop', (e) => {
       e.preventDefault();
       cell.classList.remove('drop-target');
+      const poolId = isPoolDrag(e) ? poolIdFromDrag(e) : null;
+      if (poolId) {
+        e.stopPropagation();
+        const d = snapToWorkday(day, cal, 1);
+        placeArmed({ start: d }, poolId);
+        return;
+      }
       const id = e.dataTransfer.getData('text/plain');
       const t = taskById(store.project, id);
       if (!t) return;
@@ -92,7 +100,13 @@ export function renderCalendar(container) {
       const ne = t.type === 'milestone' ? ns : addDays(t.end, real);
       store.moveTaskDates(t.id, { start: ns, end: ne }, { addConstraint: true });
     });
-    cell.addEventListener('click', () => { store.select(null); });
+    cell.addEventListener('click', () => {
+      if (store.ui.armedPool) {
+        placeArmed({ start: snapToWorkday(day, cal, 1) });
+        return;
+      }
+      store.select(null);
+    });
     grid.appendChild(cell);
   }
   wrap.appendChild(grid);

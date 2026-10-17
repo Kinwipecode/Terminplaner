@@ -7,7 +7,7 @@ import { el, clear, toast, initials } from './dom.js';
 import { store } from '../store.js';
 import { storage, slugify } from '../storage.js';
 import { THEMES, applyTheme, currentThemeId, toggleLightDark } from '../themes.js';
-import { formatDateTime, formatIso, dowLong, todayIso, addDays, parseIso } from '../dateutil.js';
+import { formatDateTime, formatIso, dowLong, todayIso, addDays, addMonths, parseIso, snapToWorkday, endFromDuration } from '../dateutil.js';
 import { PALETTE, DEP_TYPES, CONSTRAINT_TYPES, newTask, taskById, flatTasks } from '../model.js';
 
 let openModal = null;
@@ -108,6 +108,14 @@ export function helpDialog() {
         '<kbd>Einfg</kbd> neue Aufgabe · <kbd>Entf</kbd> löschen · <kbd>F2</kbd> umbenennen',
         '<kbd>Alt</kbd>+<kbd>→</kbd> einrücken · <kbd>Alt</kbd>+<kbd>←</kbd> ausrücken · <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> Zeile verschieben',
         '<kbd>1</kbd>…<kbd>4</kbd> Ansicht wechseln · <kbd>Strg</kbd>+<kbd>S</kbd> sofort speichern · <kbd>Strg</kbd>+<kbd>P</kbd> drucken · <kbd>F1</kbd> Hilfe',
+        '<b>Umschalt</b>+<kbd>←</kbd>/<kbd>→</kbd> Aufgabe einen Arbeitstag verschieben, <b>Umschalt</b>+<kbd>↑</kbd>/<kbd>↓</kbd> eine Woche (mit <kbd>Strg</kbd> dazu: ein Monat)',
+      ]));
+      box.appendChild(sec('Ideen-Sammelbecken', [
+        'Links auf <b>Ideen</b>: öffnet ein eigenes Browserfenster – ideal für den zweiten Bildschirm.',
+        'Dort Aufgaben <b>ohne Termin</b> aufschreiben. Dann in den Plan ziehen oder anklicken und im Plan auf die Stelle klicken.',
+        'Der Eintrag bleibt erhalten und kann <b>mehrfach</b> eingeplant werden; die Zahl in Klammern zeigt, wie oft.',
+        'Eingeplante Aufgaben sind <b>türkis</b> gefärbt und damit sofort von den anderen zu unterscheiden.',
+        'Die Liste wird mit dem Projekt gespeichert. Der <b>allgemeine Vorrat</b> gilt für alle Projekte und lässt sich in ein neues Projekt übernehmen.',
       ]));
       box.appendChild(sec('Farblayout', [
         'Links auf <b>Farbe</b> oder oben auf <b>◐</b>: neun fertige Farblayouts, ein Klick genügt – Nachtblau, Anthrazit, Tiefsee, Violettnacht, Hoher Kontrast, Tageslicht, Nordlicht, Papier, Sonnenschein.',
@@ -257,6 +265,25 @@ export function projectSettingsDialog() {
         el('div', { style: { display: 'flex', gap: '8px' } }, holIn,
           el('button', { class: 'btn', text: 'Hinzufügen', onclick: () => { if (holIn.value) { store.setCalendar({ holidays: [...store.project.settings.calendar.holidays, holIn.value] }); holIn.value = ''; renderHol(); } } })),
         holList));
+
+      /* Darstellung: Zeilenhöhe */
+      const rowSeg = el('div', { class: 'segmented' });
+      for (const [v, t] of [[24, 'kompakt'], [30, 'normal'], [38, 'geräumig'], [46, 'sehr groß']]) {
+        const b = el('button', {
+          class: Number(p.settings.rowHeight || 30) === v ? 'is-active' : '',
+          text: t,
+          onclick: () => {
+            store.setRowHeight(v);
+            for (const x of rowSeg.children) x.classList.toggle('is-active', Number(x.dataset.v) === v);
+          },
+        });
+        b.dataset.v = String(v);
+        rowSeg.appendChild(b);
+      }
+      box.appendChild(el('div', { class: 'field' },
+        el('label', { text: 'Zeilenhöhe in Listen und Gantt' }),
+        rowSeg,
+        el('div', { class: 'hint', text: 'Wird sofort angewendet und im Projekt gespeichert – praktisch bei vielen Aufgaben oder für touch-Bedienung.' })));
     },
     footer: (bar, close) => {
       bar.appendChild(el('button', { class: 'btn', text: 'Farblayout…', onclick: () => { close(); themeDialog(); } }));
@@ -387,6 +414,153 @@ export function themeDialog() {
     },
     footer: (bar, close) => {
       bar.appendChild(el('button', { class: 'btn', text: 'Hell ⇄ Dunkel', title: 'Schnell zwischen hell und dunkel wechseln', onclick: () => { toggleLightDark(); renderGrid(); } }));
+      bar.appendChild(el('button', { class: 'btn btn-primary', text: 'Fertig', onclick: close }));
+    },
+  });
+}
+
+/* ───────── Termin verschieben (Dialog) ───────── */
+
+export function shiftTaskDialog(task = store.selected) {
+  if (!task) { toast('Bitte zuerst eine Aufgabe auswählen', 'warn'); return; }
+  const p = store.project;
+  const cal = p.settings.calendar;
+  let amount = 1;
+  let unit = 'day';
+  let dir = 1;
+
+  const preview = el('div', { class: 'hint', style: { fontSize: '12.5px' } });
+  const amountI = el('input', { type: 'number', value: '1', min: '1', max: '99', style: { width: '80px' }, onchange: (e) => { amount = Math.max(1, Number(e.target.value) || 1); e.target.value = String(amount); update(); } });
+
+  const unitSeg = el('div', { class: 'segmented' });
+  for (const [v, t] of [['day', 'Tage'], ['week', 'Wochen'], ['month', 'Monate']]) {
+    const b = el('button', { class: v === unit ? 'is-active' : '', text: t, onclick: () => { unit = v; refresh(); } });
+    b.dataset.v = v;
+    unitSeg.appendChild(b);
+  }
+  const dirSeg = el('div', { class: 'segmented' });
+  for (const [v, t] of [[1, 'später →'], [-1, '← früher']]) {
+    const b = el('button', { class: v === dir ? 'is-active' : '', text: t, onclick: () => { dir = v; refresh(); } });
+    b.dataset.v = String(v);
+    dirSeg.appendChild(b);
+  }
+  function refresh() {
+    for (const b of unitSeg.children) b.classList.toggle('is-active', b.dataset.v === unit);
+    for (const b of dirSeg.children) b.classList.toggle('is-active', b.dataset.v === String(dir));
+    update();
+  }
+
+  function computeDates() {
+    const n = amount * dir;
+    const step = unit === 'month' ? 0 : (unit === 'week' ? 7 : 1);
+    const nsRaw = unit === 'month' ? addMonths(task.start, n) : addDays(task.start, n * step);
+    const ns = snapToWorkday(nsRaw, cal, n > 0 ? 1 : -1);
+    const dur = task.type === 'milestone' ? 0 : Math.max(1, task.duration || 1);
+    const ne = task.type === 'milestone' ? ns : endFromDuration(ns, dur, cal);
+    return { ns, ne };
+  }
+
+  function update() {
+    const { ns, ne } = computeDates();
+    preview.innerHTML = `<b>${formatIso(task.start)}</b>${task.type === 'milestone' ? '' : ' – <b>' + formatIso(task.end) + '</b>'}`
+      + ` &nbsp;→&nbsp; <b style="color:var(--accent)">${formatIso(ns)}</b>${task.type === 'milestone' ? '' : ' – <b style="color:var(--accent)">' + formatIso(ne) + '</b>'}`
+      + ` &nbsp;(Dauer ${task.duration} Arbeitstag(e))`;
+  }
+  update();
+
+  const autoI = el('input', { type: 'checkbox', checked: store.ui.autoPlan, onchange: (e) => {
+    store.ui.autoPlan = e.target.checked;
+    store.reschedule();
+    store.emit('change');
+  } });
+
+  modal({
+    title: 'Termin verschieben',
+    className: 'small',
+    body: (box) => {
+      box.appendChild(el('p', { class: 'hint', text: `Aufgabe: „${task.name}“` }));
+      box.appendChild(el('div', { class: 'grid2' },
+        el('div', { class: 'field' }, el('label', { text: 'Wie viele' }), amountI),
+        el('div', { class: 'field' }, el('label', { text: 'Richtung' }), dirSeg)));
+      box.appendChild(el('div', { class: 'field' }, el('label', { text: 'Einheit' }), unitSeg));
+      box.appendChild(el('div', { class: 'field' }, el('label', { text: 'Neuer Termin' }), preview));
+      box.appendChild(el('label', { class: 'toggle' }, autoI, el('span', { class: 'track' }), el('span', { text: 'Auto-Planung: Nachfolger mitverschieben' })));
+      box.appendChild(el('p', { class: 'hint', text: 'Der neue Termin wird als Festlegung gespeichert („beginnt nicht vor …“), damit er hält. Über den Detailbereich lässt sich das wieder lösen.' }));
+    },
+    footer: (bar, close) => {
+      bar.appendChild(el('button', { class: 'btn', text: 'Abbrechen', onclick: close }));
+      bar.appendChild(el('button', { class: 'btn btn-primary', text: 'Verschieben', onclick: () => {
+        store.shiftTask(task.id, amount * dir, unit);
+        close();
+      } }));
+    },
+  });
+}
+
+/* ───────── Ideen-Sammelbecken (Fenster im Hauptfenster) ───────── */
+
+export function poolDialog(highlightId = null, onOpenWindow = null) {
+  let scope = 'project';
+  let renderList = () => {};
+
+  modal({
+    title: 'Ideen-Sammelbecken',
+    body: (box) => {
+      box.appendChild(el('p', { class: 'hint', text: 'Aufgaben ohne Termin aufschreiben. Anklicken → im Plan auf die Stelle klicken (oder in den Plan ziehen). Der Eintrag bleibt erhalten und lässt sich mehrfach einplanen – die Zahl in Klammern zählt mit.' }));
+
+      const tabs = el('div', { class: 'segmented' });
+      for (const [v, t] of [['project', 'Projekt-Sammelbecken'], ['global', 'Allgemeiner Vorrat']]) {
+        const b = el('button', { class: v === scope ? 'is-active' : '', text: t, onclick: () => { scope = v; refreshTabs(); renderList(); } });
+        b.dataset.v = v;
+        tabs.appendChild(b);
+      }
+      function refreshTabs() { for (const b of tabs.children) b.classList.toggle('is-active', b.dataset.v === scope); }
+      box.appendChild(tabs);
+
+      const input = el('input', { type: 'text', placeholder: 'Neue Idee aufschreiben…' });
+      const add = () => { if (input.value.trim()) { store.addPoolEntry(input.value, { scope }); input.value = ''; renderList(); } };
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+      box.appendChild(el('div', { style: { display: 'flex', gap: '8px' } }, input,
+        el('button', { class: 'btn btn-accent', text: '＋ Aufschreiben', onclick: add })));
+
+      const list = el('div', { class: 'filelist' });
+      renderList = () => {
+        clear(list);
+        const items = store.poolEntries(scope);
+        if (!items.length) list.appendChild(el('p', { class: 'hint', text: scope === 'global' ? 'Der allgemeine Vorrat ist leer.' : 'Noch keine Ideen aufgeschrieben.' }));
+        for (const e of items) {
+          const placed = (e.placedCount || 0) > 0;
+          const row = el('div', { class: 'rc-row', style: placed ? { borderLeft: '3px solid var(--pool)' } : null });
+          row.appendChild(el('span', { class: 'pool-badge' + (placed ? '' : ' soft'), text: `(${e.placedCount || 0})`, title: 'Wie oft schon in den Plan gelegt' }));
+          const txt = el('input', { class: 'nm', type: 'text', value: e.text, onchange: (ev) => { store.updatePoolEntry(e.id, { text: ev.target.value.trim() || e.text }, { scope }); renderList(); } });
+          row.appendChild(txt);
+          row.appendChild(el('button', { class: 'btn', text: 'In den Plan legen', title: 'Danach im Plan auf die gewünschte Stelle klicken', onclick: () => {
+            store.arm(e.id, scope);
+            closeModal();
+            toast(`„${e.text}“ ist bereit`, 'ok', 'Jetzt im Gantt oder Kalender auf die gewünschte Stelle klicken.');
+          } }));
+          row.appendChild(el('button', { class: 'iconbtn', title: e.done ? 'wieder offen' : 'erledigt', text: e.done ? '↺' : '✓', onclick: () => { store.updatePoolEntry(e.id, { done: !e.done }, { scope }); renderList(); } }));
+          row.appendChild(el('button', { class: 'iconbtn', title: scope === 'global' ? 'ins Projekt holen' : 'in den allgemeinen Vorrat', text: scope === 'global' ? '↧' : '↥', onclick: () => { store.movePoolEntry(e.id, scope === 'global' ? 'project' : 'global'); renderList(); } }));
+          row.appendChild(el('button', { class: 'iconbtn', title: 'löschen', text: '🗑', onclick: async () => {
+            if (await confirmDialog('Idee löschen?', `„${e.text}“ wird aus der Liste entfernt. Bereits eingeplante Aufgaben bleiben.`, 'Löschen', { danger: true })) {
+              store.removePoolEntry(e.id, { scope });
+              renderList();
+            }
+          } }));
+          if (highlightId === e.id) row.style.boxShadow = '0 0 0 2px var(--accent)';
+          list.appendChild(row);
+        }
+      };
+      renderList();
+      box.appendChild(list);
+    },
+    footer: (bar, close) => {
+      bar.appendChild(el('button', { class: 'btn', text: 'Allgemeinen Vorrat ins Projekt holen', onclick: () => {
+        const n = store.importGlobalPool();
+        renderList();
+        toast(n ? `${n} Eintrag/Einträge übernommen` : 'Vorrat ist leer', n ? 'ok' : 'warn');
+      } }));
+      if (onOpenWindow) bar.appendChild(el('button', { class: 'btn', text: 'Fenster für zweiten Bildschirm', onclick: () => { close(); onOpenWindow(); } }));
       bar.appendChild(el('button', { class: 'btn btn-primary', text: 'Fertig', onclick: close }));
     },
   });

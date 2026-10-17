@@ -28,6 +28,17 @@ export function addDays(isoStr, n) {
   return iso(new Date(d.getTime() + n * MS_DAY));
 }
 
+/** n Monate verschieben; der Tag im Monat bleibt erhalten, notfalls der Monatsletzte. */
+export function addMonths(isoStr, n) {
+  const d = parseIso(isoStr);
+  if (!d) return isoStr;
+  const y = d.getUTCFullYear(), m = d.getUTCMonth(), day = d.getUTCDate();
+  const target = new Date(Date.UTC(y, m + n, 1));
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(day, lastDay));
+  return iso(target);
+}
+
 /** Differenz in Kalendertagen (b - a). */
 export function diffDays(a, b) {
   return Math.round((parseIso(b) - parseIso(a)) / MS_DAY);

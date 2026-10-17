@@ -53,6 +53,31 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
   die Zeitachse läuft nach rechts weiter.
 - Im Druckdialog **„Microsoft Print to PDF“** wählen → fertige PDF-Datei im gewählten Format.
 
+**Aufgaben verschieben – schnell und genau**
+
+- **Umschalt**+`←`/`→` verschiebt die ausgewählte Aufgabe um einen Arbeitstag, **Umschalt**+`↑`/`↓`
+  um eine Woche (mit `Strg` dazu: einen Monat).
+- Rechtsklick auf eine Zeile → „Termin: 1 Tag/Woche/Monat später bzw. früher“.
+- Im Detailbereich rechts die Knöpfe `− 1 Monat … + 1 Monat` oder **Verschieben…** für einen
+  eigenen Betrag (z. B. 3 Wochen) mit Vorschau des neuen Termins.
+
+**Ideen-Sammelbecken in eigenem Fenster** (links auf **Ideen**)
+
+![Ideen-Sammelbecken](docs/screenshot-ideen.png)
+
+- Öffnet ein **eigenes Browserfenster** – ideal für den zweiten Bildschirm.
+- Dort Aufgaben **ohne Termin** aufschreiben, dann mit der Maus **in den Plan ziehen** oder
+  anklicken und im Plan auf die gewünschte Stelle klicken.
+- Der Eintrag bleibt erhalten und lässt sich **mehrfach** einplanen; die **Zahl in Klammern**
+  zeigt, wie oft er schon im Plan steht.
+- Eingeplante Aufgaben sind **türkis** und damit sofort von den anderen zu unterscheiden.
+- Die Liste wird **mit dem Projekt gespeichert**; ein **allgemeiner Vorrat** gilt für alle
+  Projekte und lässt sich in neue Projekte übernehmen.
+
+**Zeilenhöhe einstellbar** (Setup → „Zeilenhöhe in Listen und Gantt“)
+
+Kompakt · normal · geräumig · sehr groß – wird sofort angewendet und im Projekt gespeichert.
+
 **Speichern ohne Nachdenken** (siehe unten)
 
 - Automatisches Speichern ~0,7 s nach jeder Änderung, zusätzlich alle 30 s und beim Schließen
@@ -146,6 +171,9 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Einfg` | neue Aufgabe · `Entf` löschen · `F2` umbenennen |
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
 | `Alt`+`↑` / `Alt`+`↓` | Zeile nach oben / unten |
+| **Umschalt**+`←` / `→` | Termin um einen Arbeitstag verschieben |
+| **Umschalt**+`↑` / `↓` | Termin um eine Woche verschieben |
+| **Umschalt**+`Strg`+`←` / `→` / `↑` / `↓` | Termin um einen Monat verschieben |
 | `1` … `4` | Gantt / Tabelle / Kalender / Board |
 | `Leertaste` | im Gantt zu „Heute“ springen |
 | `Strg`+`P` | drucken bzw. PDF erzeugen (Druckaufbau entsteht automatisch) |
@@ -155,21 +183,26 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 
 ```
 index.html            Oberfläche
+sideboard.html        Ideen-Sammelbecken (eigenes Fenster, zweiter Bildschirm)
 Terminstart.bat       Start per Doppelklick (Windows) – start.bat macht dasselbe
 start.sh              Start unter Linux/macOS
 css/app.css           Aussehen der Oberfläche (benutzt die Farbvariablen)
 css/themes.css        die neun Farblayouts
 css/print.css         Druckvorlage (A4/A3, Millimetermaße)
+css/sideboard.css     Aussehen des Sammelbecken-Fensters
 js/
   main.js             Start, Werkzeugleiste, Tastenkürzel, Speicherzustand
   model.js            Datenmodell, Prüfen/Reparieren von Dateien, Beispielprojekt
   scheduler.js        Terminberechnung, Abhängigkeiten, kritischer Pfad
-  store.js            Zustand, Änderungen, Rückgängig/Wiederholen
+  store.js            Zustand, Änderungen, Rückgängig/Wiederholen, Verschieben
   storage.js          Speichern (Ordner / Browser / Notfall), Autospeichern, Sicherungen
   print.js            Aufbau der Druckseiten und der Druckdialog
   themes.js           Farblayouts: Namen, Auswahl, merken
+  pool.js             Ideen-Sammelbecken: Einträge, allgemeiner Vorrat
+  poolhub.js          Verbindung zwischen Planungs- und Sammelbecken-Fenster
+  sideboard.js        Steuerung des Sammelbecken-Fensters
   dateutil.js         Datums- und Arbeitstagsrechnung
-  ui/                 Dialoge, Detailbereich, Kontextmenü, kleine Helfer
+  ui/                 Dialoge, Detailbereich, Kontextmenü, Ablegen, kleine Helfer
   views/              gantt.js · table.js · calendar.js · board.js
 docs/                 Handbuch, Testprotokoll, Screenshots
 examples/             Beispielprojekt

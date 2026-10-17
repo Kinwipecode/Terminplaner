@@ -117,7 +117,34 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | Strg+P des Browsers | ✅ baut den Aufbau automatisch mit den zuletzt gewählten Einstellungen (`beforeprint`) |
 | Keine Fehler | ✅ Fehlerprotokoll bei allen Durchläufen leer |
 
-## 9. Offene Punkte / nicht geprüft
+## 9. Verschieben, Zeilenhöhe und Ideen-Sammelbecken
+
+| Prüfung | Ergebnis |
+|---|---|
+| **Umschalt+→** (1 Arbeitstag) | ✅ „Screendesign“ 04.11. → 05.11., Nachfolger „Design-Review“ 16.11. → 17.11. (Auto-Planung) |
+| **Umschalt+↓** (1 Woche) | ✅ 05.11. → 12.11., Nachfolger 17.11. → 24.11. |
+| **Umschalt+Strg+→** (1 Monat) | ✅ 12.11. → 14.12. (12.12. ist Samstag → auf Montag gerastet) |
+| Rückgängig-Einträge | ✅ „1 Tag später“, „1 Woche später“, „1 Monat später“ – jeder Schritt einzeln umkehrbar |
+| Kontextmenü | ✅ 6 Schnellknöpfe (1 Tag/Woche/Monat später bzw. früher) + „Termin verschieben…“ in Gantt und Tabelle |
+| Verschieben-Dialog | ✅ Betrag, Richtung, Einheit, Vorschau („14.12.2026 – 23.12.2026 → 15.12.2026 – 24.12.2026, Dauer 8 AT“), Auto-Planung schaltbar |
+| Detailbereich | ✅ Knöpfe „− 1 Monat“ … „+ 1 Monat“ und „Verschieben…“ |
+| Zeilenhöhe „geräumig“ | ✅ `--row-h` = 38 px, Gantt-Zeile misst 38 px, Wert steht als `settings.rowHeight` in der Datei |
+| **Sammelbecken: Eintrag aufschreiben** | ✅ drei Einträge angelegt, alle mit Zähler (0), im Speichertext enthalten |
+| **Ablegen per Klick** (bereit + Klick in die Zeile) | ✅ Aufgabe „Kickoff-Termin mit Kunde“ am 27.10.2026, Farbe `#14b8a6`, als Unteraufgabe 1.4 einsortiert, Zähler 0 → 1 |
+| **Mehrfaches Ablegen** | ✅ derselbe Eintrag erneut abgelegt → zwei Aufgaben mit derselben Kennung, Zähler 2 |
+| **Zahl in Klammern** | ✅ beide Aufgaben zeigen „(2)“; zusätzlich im Detailbereich und im Sammelbecken |
+| **Farbe unterscheidbar** | ✅ Aufgaben aus dem Sammelbecken sind türkis (`#14b8a6`), andere behalten ihre Farbe |
+| **Ziehen und Ablegen im Gantt** | ✅ `dragover` zeigt Linie + Schild („22.10. · nach ‚Zielgruppen-Workshop‘“), `drop` legt die Aufgabe an |
+| **Ablegen in Tabelle und Kalender** | ✅ Tabellenzeile (Ablegen nach dieser Zeile) und Kalendertag (Ablegen an diesem Tag) |
+| **Speichern in der Datei** | ✅ Projektdatei enthält `pool` mit `placedCount`, die Aufgaben mit `fromPool` und `settings.rowHeight` |
+| **Sammelbecken-Fenster** | ✅ zweites Browserfenster verbindet sich („● mit Planungsfenster verbunden“), zeigt Projektname, Einträge und Zähler |
+| **Unterschiedliche Darstellung** | ✅ bereits eingeplante Einträge haben türkisen Balken, Tönung und „(2) im Plan“; offene bleiben grau mit „(0)“ |
+| **Fenster → Projekt** | ✅ im Sammelbecken aufgeschriebene Idee („Nachkontrolle“) erscheint **genau einmal** im Projekt und in der gespeicherten Datei (Doppelzustellung behoben) |
+| **Projekt → Fenster** | ✅ Zähler und Liste im Fenster aktualisieren sich sofort nach dem Ablegen |
+| **Fenster ohne Hauptfenster** | ✅ meldet „○ kein Planungsfenster“, allgemeiner Vorrat bleibt bearbeitbar (Codepfad) |
+| Keine Fehler | ✅ Fehlerprotokoll bei allen Durchläufen leer |
+
+## 10. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit
@@ -134,3 +161,10 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
   ab etwa 1.000 Zeilen ist mit spürbarer Verzögerung zu rechnen. Beim Drucken werden alle
   Blätter auf einmal aufgebaut – bei sehr vielen Blättern (über 40) erscheint ein Hinweis.
 - **CSV-/Excel-Ausgabe und Kalender-Abo (ICS)**: noch nicht enthalten. Drucken/PDF ist umgesetzt.
+- **Ziehen zwischen zwei Browserfenstern**: Das Ziehen aus dem Sammelbecken-Fenster in das
+  Planungsfenster ließ sich nicht automatisiert auslösen (echte Mausbewegung über Fenstergrenzen).
+  Geprüft wurde stattdessen der vollständige Weg im Code: `dragover`-Vorschau, `drop` mit den
+  übergebenen Daten sowie der Klick-Weg als Rückfall. Ein echter Zug über zwei Bildschirme steht
+  noch aus.
+- **Popup-Blocker**: Öffnet der Browser das Sammelbecken-Fenster nicht, erscheint statt dessen die
+  Ideenliste im Planungsfenster (Codepfad geprüft, auf diesem Rechner nicht auslösbar).

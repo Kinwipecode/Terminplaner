@@ -142,13 +142,83 @@ Farbe gesetzt ist.
 | `F2` | ausgewählte Aufgabe umbenennen |
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
 | `Alt`+`↑` / `Alt`+`↓` | Zeile verschieben |
+| **Umschalt**+`←` / `→` | Termin um **einen Arbeitstag** verschieben |
+| **Umschalt**+`↑` / `↓` | Termin um **eine Woche** verschieben |
+| **Umschalt**+`Strg`+Pfeile | Termin um **einen Monat** verschieben |
 | `1` … `4` | Ansicht wechseln |
 | `Leertaste` | zu „Heute“ springen |
 | `Strg`+`P` | drucken bzw. PDF erzeugen |
 | `F1` | Kurzanleitung |
-| `Esc` | Dialog schließen / Auswahl aufheben |
+| `Esc` | Dialog schließen / Auswahl aufheben / Ablegen abbrechen |
 
-## 10. Farblayout der Oberfläche
+## 10. Termine verschieben
+
+Drei Wege, alle mit demselben Ergebnis:
+
+1. **Tastatur**: Aufgabe auswählen, dann `Umschalt`+`←`/`→` (ein Arbeitstag),
+   `Umschalt`+`↑`/`↓` (eine Woche) oder mit `Strg` dazu (ein Monat).
+2. **Rechtsklick** auf eine Zeile (Gantt oder Tabelle) → *Termin: 1 Tag/Woche/Monat
+   später bzw. früher* oder **Termin verschieben…**.
+3. **Detailbereich** rechts: die Knöpfe `− 1 Monat` bis `+ 1 Monat`, oder **Verschieben…** für
+   einen eigenen Betrag mit Richtung und Vorschau des neuen Termins.
+
+Geregelt wird dabei immer:
+
+- Verschoben wird in **Arbeitstagen** – Wochenenden und Feiertage werden übersprungen.
+  Bei Monaten bleibt der Tag im Monat erhalten (der 15. bleibt der 15.).
+- Der neue Termin wird als **Festlegung** gespeichert („beginnt nicht vor …“), damit er hält.
+  Im Detailbereich unter *Termin-Festlegung* lässt sich das wieder auf „So früh wie möglich“ stellen.
+- **Nachfolger wandern mit**, wenn die Auto-Planung eingeschaltet ist (Werkzeugleiste bzw. direkt
+  im Verschieben-Fenster). Ist sie aus, bleibt alles stehen und die App meldet nur Widersprüche.
+- Sammelaufgaben verschieben alle ihre Unteraufgaben mit.
+
+## 11. Zeilenhöhe
+
+**Setup** → *Zeilenhöhe in Listen und Gantt*: **kompakt** (24 px), **normal** (30 px),
+**geräumig** (38 px) oder **sehr groß** (46 px). Die Einstellung wirkt sofort in Gantt, Tabelle,
+Kalender und Board und wird **im Projekt gespeichert** – beim nächsten Öffnen ist sie wieder da.
+
+## 12. Ideen-Sammelbecken (zweites Fenster)
+
+Der Gedanke: Aufgaben, die es gibt, aber noch keinen Termin haben, sollen nicht verloren gehen.
+Sie stehen in einem eigenen Fenster, das man auf den zweiten Bildschirm schieben kann.
+
+**Öffnen:** links auf **Ideen**. Es öffnet sich ein eigenes Browserfenster (mit der Ideenliste).
+Das Planungsfenster bleibt offen – das Sammelbecken-Fenster ist eine Ergänzung.
+
+**Aufschreiben:** oben eintippen, `Eingabe` – fertig. Kein Termin, keine Dauer, nur der Text.
+Der Text lässt sich mit **✎** ändern, mit **✓** als erledigt markieren, mit **🗑** löschen.
+
+**Einplanen – zwei Wege:**
+
+1. **Ziehen**: Eintrag mit der Maus greifen und im Planungsfenster auf die gewünschte Zeile und
+   Position fallen lassen. Eine Linie zeigt die Zielzeile, ein kleines Schild das Datum und den
+   Platz („nach ‚Screendesign‘“). Dort entsteht eine Aufgabe von einem Arbeitstag.
+2. **Klicken**: Eintrag anklicken → er ist „bereit zum Ablegen“ (unten erscheint ein Hinweis).
+   Dann im Gantt, in der Tabelle oder im Kalender auf die gewünschte Stelle klicken.
+   `Esc` bricht ab.
+
+**Mehrfach verwenden:** Der Eintrag bleibt immer erhalten – man kann ihn beliebig oft einplanen.
+Die **Zahl in Klammern** zeigt, wie oft er schon im Plan steht: im Sammelbecken, am Balken in der
+Liste und im Detailbereich. Eingeplante Aufgaben sind **türkis** gefärbt und damit auf einen Blick
+von den übrigen zu unterscheiden.
+
+**Zwei Ablagen:**
+
+| Ablage | Gilt für | Gespeichert in |
+|---|---|---|
+| **Projekt-Sammelbecken** | dieses Projekt | Projektdatei (`*.tplan.json`) |
+| **Allgemeiner Vorrat** | alle Projekte | Browser-Speicher |
+
+Einträge lassen sich mit **↥**/**↧** zwischen beiden verschieben. Mit
+**Allgemeinen Vorrat ins Projekt holen** (im Ideen-Dialog) oder beim Öffnen eines neuen Projekts
+wandert der Vorrat ins Projekt.
+
+**Wenn kein Planungsfenster offen ist:** Das Sammelbecken-Fenster zeigt das an und lässt den
+allgemeinen Vorrat trotzdem bearbeiten; das Projekt-Sammelbecken braucht das Planungsfenster
+(denn die Daten gehören zur Projektdatei).
+
+## 13. Farblayout der Oberfläche
 
 Links auf **Farbe** (oder oben auf **◐**, oder im Setup-Fenster auf **Farblayout…**).
 Es öffnet sich eine Auswahl mit neun fertigen Layouts – jedes mit echter Vorschau in seinen
@@ -174,7 +244,7 @@ blau = offen, grau = niedrige Priorität). Dadurch sehen Pläne in jedem Layout 
 nur die Flächen und Linien ändern sich. Der **Ausdruck ist unabhängig vom Layout immer hell**,
 damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
 
-## 11. Drucken und PDF erzeugen
+## 14. Drucken und PDF erzeugen
 
 Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
 auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
@@ -222,7 +292,7 @@ Tabelle 1 · Legende 1“), samt Hinweisen, wenn es viele Blätter werden.
 **Drucken ohne Dialog prüfen**: Mit **Vorschau bauen** wird der Aufbau erzeugt, ohne dass der
 Druckdialog aufgeht – man kann ihn dann in Ruhe ansehen (z. B. mit der Druckvorschau des Browsers).
 
-## 12. Häufige Fragen
+## 15. Häufige Fragen
 
 **Wo liegt meine Datei?** Der Hinweis oben rechts nennt den Speicherort (Ordnerpfad bzw.
 „Browser-Speicher“). Im Ordner-Modus ist es eine normale Datei, die man kopieren, sichern oder
@@ -263,3 +333,19 @@ hinzufügen – schon erscheint es in der Auswahl.
 
 **Meilenstein lässt sich nicht verlängern?** Richtig – Meilensteine haben keine Dauer. Über
 **Art** im Detailbereich lässt sich die Aufgabe wieder in eine normale Aufgabe umwandeln.
+
+**Warum sind manche Balken türkis?** Diese Aufgaben stammen aus dem Ideen-Sammelbecken
+(Abschnitt 12). Die Zahl in Klammern daneben sagt, wie oft diese Idee schon eingeplant wurde.
+Ein eigenes Farbschema lässt sich der Aufgabe trotzdem geben – im Detailbereich unter *Farbe*.
+
+**Ich habe eine Idee gelöscht – sind die Aufgaben weg?** Nein. Löschen betrifft nur den Eintrag im
+Sammelbecken; bereits eingeplante Aufgaben bleiben im Plan (sie verlieren nur den Verweis und den
+Zähler).
+
+**Kann das Sammelbecken-Fenster allein arbeiten?** Nur für den allgemeinen Vorrat. Das
+Projekt-Sammelbecken gehört zur Projektdatei und braucht das Planungsfenster – das Fenster zeigt
+deutlich an, ob eine Verbindung besteht („mit Planungsfenster verbunden“).
+
+**Der Klick auf „Ideen“ öffnet kein Fenster.** Dann blockiert der Browser Pop-ups. Im gleichen
+Dialog erscheint die Liste auch direkt im Planungsfenster (Knopf **Ideenliste** im Hinweis bzw.
+der Dialog nach dem Blockieren) – oder Pop-ups für diese Seite erlauben.

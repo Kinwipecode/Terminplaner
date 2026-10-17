@@ -9,8 +9,9 @@ import {
   newTask, newResource, sortTasks, renumberWbs, taskById, descendantsOf,
   prevSibling, childrenOf, isSummary, uid, STATUS, serializeProject,
 } from './model.js';
+import { loadGlobalPool, saveGlobalPool, newPoolEntry, POOL_COLOR } from './pool.js';
 import { schedule } from './scheduler.js';
-import { addWorkdays, todayIso, startOfWeek } from './dateutil.js';
+import { addWorkdays, addDays, addMonths, todayIso, startOfWeek, snapToWorkday, endFromDuration } from './dateutil.js';
 
 const MAX_UNDO = 120;
 
@@ -39,13 +40,15 @@ export const store = {
     lastSaved: 0,
     saving: false,
     error: null,
+    rowH: 30,          // Zeilenhöhe in Pixel (wird aus den Projekt-Einstellungen gesetzt)
+    armedPool: null,   // Sammelbecken-Eintrag, der auf einen Klick zum Ablegen wartet
   },
   _listeners: new Set(),
   _render: null,
 
   on(fn) { this._listeners.add(fn); return () => this._listeners.delete(fn); },
-  emit(reason = 'change') {
-    for (const fn of this._listeners) { try { fn(reason); } catch (e) { console.error(e); } }
+  emit(reason = 'change', ...args) {
+    for (const fn of this._listeners) { try { fn(reason, ...args); } catch (e) { console.error(e); } }
   },
   /** Vollständiges Neuzeichnen anfordern (nach Ansichtswechsel o. Ä.) */
   render() { if (this._render) this._render(); },
@@ -60,6 +63,8 @@ export const store = {
     this.ui.showDeps = project.settings.showDeps !== false;
     this.ui.zoom = project.settings.zoom || 'week';
     this.ui.view = project.settings.defaultView || 'gantt';
+    this.ui.rowH = Math.max(22, Math.min(60, Number(project.settings.rowHeight) || 30));
+    this.ui.armedPool = null;
     this.reschedule();
     this.emit('load');
   },
@@ -308,15 +313,8 @@ export const store = {
       if (!t) return false;
       if (t.type === 'summary' || isSummary(p, t)) {
         // Sammelaufgabe: alle Unteraufgaben mitverschieben
-        const kids = descendantsOf(p, id).filter((k) => !isSummary(p, k));
         const delta = start && t.start ? diffWorkdays(p, t.start, start) : 0;
-        for (const k of kids) {
-          if (!k.start) continue;
-          k.start = addWorkdays(k.start, delta, p.settings.calendar);
-          if (k.type === 'milestone') k.end = k.start;
-          else k.end = addWorkdays(k.end, delta, p.settings.calendar);
-          k.constraint = k.constraint || null;
-        }
+        shiftSubtree(p, id, delta);
         return;
       }
       t.start = start;
@@ -409,6 +407,182 @@ export const store = {
     this.mutate('Kalender ändern', (p) => { p.settings.calendar = Object.assign(p.settings.calendar, patch); });
   },
 
+  /* ───────── Termin verschieben (Menü, Tastatur, Dialog) ───────── */
+
+  /**
+   * Aufgabe um Tage, Wochen oder Monate verschieben.
+   * @param {string} id
+   * @param {number} amount  positiv = später, negativ = früher
+   * @param {'day'|'week'|'month'} unit
+   */
+  shiftTask(id, amount, unit = 'day', { label = null } = {}) {
+    const n = Number(amount) || 0;
+    if (!n) return false;
+    const unitName = { day: n === 1 ? 'Tag' : 'Tage', week: n === 1 ? 'Woche' : 'Wochen', month: n === 1 ? 'Monat' : 'Monate' }[unit] || 'Tage';
+    const dirWord = n > 0 ? 'später' : 'früher';
+    const text = label || `${Math.abs(n)} ${unitName} ${dirWord}`;
+    let done = false;
+    this.mutate(text, (p) => {
+      const t = taskById(p, id);
+      if (!t) return false;
+      const cal = p.settings.calendar;
+      const step = unit === 'month' ? 0 : (unit === 'week' ? 7 : 1);
+      const nsRaw = unit === 'month' ? addMonths(t.start, n) : addDays(t.start, n * step);
+      const ns = snapToWorkday(nsRaw, cal, n > 0 ? 1 : -1);
+
+      if (isSummary(p, t)) {
+        // Sammelaufgabe: alle Unteraufgaben mitverschieben
+        shiftSubtree(p, id, diffWorkdays(p, t.start, ns));
+        done = true;
+        return;
+      }
+      const dur = t.type === 'milestone' ? 0 : Math.max(1, t.duration || 1);
+      t.start = ns;
+      t.end = t.type === 'milestone' ? ns : endFromDuration(ns, dur, cal);
+      // Festlegung mitziehen, damit der neue Termin auch hält
+      if (t.constraint && t.constraint.type === 'MSO') t.constraint = { type: 'MSO', date: ns };
+      else t.constraint = { type: 'SNET', date: ns };
+      done = true;
+    });
+    return done;
+  },
+
+  /* ───────── Ideen-Sammelbecken ───────── */
+
+  poolEntries(scope = 'project') {
+    return scope === 'global' ? loadGlobalPool() : (this.project.pool || []);
+  },
+
+  /** Sammelbecken-Änderungen laufen über den Store (Projekt) bzw. localStorage (Vorrat). */
+  addPoolEntry(text, { scope = 'project' } = {}) {
+    const clean = String(text || '').trim();
+    if (!clean) return null;
+    const entry = newPoolEntry({ text: clean });
+    if (scope === 'global') {
+      saveGlobalPool([...loadGlobalPool(), entry]);
+      this.emit('pool-global');
+      return entry.id;
+    }
+    this.mutate('Idee aufschreiben', (p) => { p.pool = [...(p.pool || []), entry]; }, { noSchedule: true });
+    return entry.id;
+  },
+
+  updatePoolEntry(id, patch, { scope = 'project' } = {}) {
+    if (scope === 'global') {
+      const list = loadGlobalPool().map((e) => (e.id === id ? { ...e, ...patch } : e));
+      saveGlobalPool(list);
+      this.emit('pool-global');
+      return;
+    }
+    this.mutate('Idee ändern', (p) => {
+      const e = (p.pool || []).find((x) => x.id === id);
+      if (!e) return false;
+      Object.assign(e, patch);
+    }, { noSchedule: true });
+  },
+
+  removePoolEntry(id, { scope = 'project' } = {}) {
+    if (scope === 'global') {
+      saveGlobalPool(loadGlobalPool().filter((e) => e.id !== id));
+      this.emit('pool-global');
+      return;
+    }
+    this.mutate('Idee entfernen', (p) => {
+      p.pool = (p.pool || []).filter((e) => e.id !== id);
+      for (const t of p.tasks) if (t.fromPool === id) t.fromPool = null;
+    }, { noSchedule: true });
+  },
+
+  /** Eintrag zwischen Projekt und allgemeinem Vorrat umlegen. */
+  movePoolEntry(id, toScope) {
+    const from = toScope === 'global' ? 'project' : 'global';
+    const list = this.poolEntries(from);
+    const entry = list.find((e) => e.id === id);
+    if (!entry) return false;
+    this.removePoolEntry(id, { scope: from });
+    if (toScope === 'global') {
+      saveGlobalPool([...loadGlobalPool(), entry]);
+      this.emit('pool-global');
+    } else {
+      this.mutate('Idee ins Projekt holen', (p) => { p.pool = [...(p.pool || []), entry]; }, { noSchedule: true });
+    }
+    return true;
+  },
+
+  /** Alle Einträge des allgemeinen Vorrats ins Projekt übernehmen (für neue Projekte). */
+  importGlobalPool() {
+    const list = loadGlobalPool();
+    if (!list.length) return 0;
+    this.mutate('Vorrat übernehmen', (p) => {
+      const have = new Set((p.pool || []).map((e) => e.id));
+      const add = list.filter((e) => !have.has(e.id)).map((e) => ({ ...e, id: e.id }));
+      p.pool = [...(p.pool || []), ...add];
+    }, { noSchedule: true });
+    return list.length;
+  },
+
+  poolEntry(id) {
+    return (this.project.pool || []).find((e) => e.id === id) || null;
+  },
+
+  /** Wie oft wurde der Eintrag schon in den Plan gelegt? */
+  placedCountFor(task) {
+    if (!task || !task.fromPool) return 0;
+    const e = this.poolEntry(task.fromPool);
+    return e ? (e.placedCount || 0) : 0;
+  },
+
+  /**
+   * Eintrag aus dem Sammelbecken in den Plan legen – erzeugt eine Aufgabe.
+   * Derselbe Eintrag kann mehrfach gelegt werden; der Zähler läuft mit.
+   */
+  placePoolEntry(poolId, { start = null, afterId = null, parentId = null, status = 'open', scope = 'project' } = {}) {
+    const entry = scope === 'global' ? loadGlobalPool().find((e) => e.id === poolId) : this.poolEntry(poolId);
+    if (!entry) return null;
+    let created = null;
+    this.mutate('Idee in den Plan legen', (p) => {
+      const cal = p.settings.calendar;
+      const s = snapToWorkday(start || p.settings.projectStart || todayIso(), cal, 1);
+      const t = newTask({
+        name: entry.text,
+        notes: entry.note || '',
+        color: POOL_COLOR,
+        fromPool: entry.id,
+        status,
+        start: s,
+        duration: 1,
+        parentId: parentId || null,
+      });
+      t.end = endFromDuration(s, 1, cal);
+      const e = (p.pool || []).find((x) => x.id === poolId);
+      if (e) { e.placedCount = (e.placedCount || 0) + 1; e.placedAt = new Date().toISOString(); }
+      const idx = afterId ? p.tasks.findIndex((x) => x.id === afterId) : -1;
+      if (idx >= 0) p.tasks.splice(idx + 1, 0, t);
+      else p.tasks.push(t);
+      created = t.id;
+      this.selectedId = t.id;
+    });
+    return created;
+  },
+
+  /* ───────── Zeilenhöhe ───────── */
+
+  setRowHeight(px) {
+    const v = Math.max(22, Math.min(60, Math.round(Number(px) || 30)));
+    this.mutate('Zeilenhöhe ändern', (p) => { p.settings.rowHeight = v; }, { noSchedule: true });
+    this.ui.rowH = v;
+    this.emit('change');
+    return v;
+  },
+
+  /* ───────── bereit zum Ablegen (Sammelbecken) ───────── */
+
+  arm(poolId, scope = 'project') {
+    this.ui.armedPool = poolId ? { id: poolId, scope } : null;
+    this.emit('armed');
+  },
+  disarm() { this.ui.armedPool = null; this.emit('armed'); },
+
   serialize() { return serializeProject(this.project); },
 
   /** IDs der gerade sichtbaren (nicht gefilterten, nicht eingeklappten) Aufgaben. */
@@ -455,6 +629,22 @@ export const store = {
 };
 
 /* ───────── Hilfen ───────── */
+
+/** Alle Unteraufgaben einer Sammelaufgabe um n Arbeitstage verschieben. */
+function shiftSubtree(project, id, deltaWorkdays) {
+  if (!deltaWorkdays) return 0;
+  const cal = project.settings.calendar;
+  const kids = descendantsOf(project, id).filter((k) => !isSummary(project, k));
+  for (const k of kids) {
+    if (!k.start) continue;
+    k.start = addWorkdays(k.start, deltaWorkdays, cal);
+    if (k.type === 'milestone') k.end = k.start;
+    else k.end = addWorkdays(k.end, deltaWorkdays, cal);
+    if (k.constraint && k.constraint.type === 'SNET') k.constraint = { type: 'SNET', date: k.start };
+    if (k.constraint && k.constraint.type === 'MSO') k.constraint = { type: 'MSO', date: k.start };
+  }
+  return kids.length;
+}
 
 function diffWorkdays(project, fromIso, toIso) {
   if (!fromIso || !toIso) return 0;

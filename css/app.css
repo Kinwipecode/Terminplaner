@@ -327,6 +327,33 @@ kbd { font-family: var(--mono); font-size: 11px; background: var(--bg-3); border
 .rc-row .sw { width: 22px; height: 22px; border-radius: 6px; border: none; padding: 0; background: none; cursor: pointer; }
 .rc-row .nm { flex: 1; }
 
+/* ─────────── Ideen-Sammelbecken ─────────── */
+:root { --pool: #14b8a6; }
+.pool-badge {
+  font-size: 9.5px; font-weight: 700; color: #fff; background: var(--pool);
+  border-radius: 20px; padding: 0 5px; line-height: 15px; flex: none;
+}
+.pool-badge.soft { color: var(--pool); background: transparent; border: 1px solid var(--pool); }
+
+.g-drop-line { position: absolute; left: var(--left-w); right: 0; height: 2px; background: var(--accent); z-index: 8; pointer-events: none; box-shadow: 0 0 0 1px var(--accent-soft); }
+.g-drop-tag {
+  position: absolute; background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 600;
+  padding: 1px 7px; border-radius: 5px; white-space: nowrap; z-index: 9; pointer-events: none;
+  transform: translateY(-100%); margin-top: -3px;
+}
+
+.armed-bar {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 42px; z-index: 90;
+  display: flex; align-items: center; gap: 10px; padding: 7px 14px;
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 30px;
+  box-shadow: var(--shadow-2); font-size: 12.5px; max-width: 80vw;
+}
+.armed-bar .ab-ico { color: var(--pool); font-size: 15px; }
+.armed-bar .ab-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Zeile als Ablageziel beim Ziehen aus dem Sammelbecken */
+table.tbl tr.drop-target td { background: var(--accent-soft) !important; box-shadow: inset 0 2px 0 var(--accent); }
+
 /* ─────────── Hinweise ─────────── */
 .toasts { position: fixed; right: 16px; bottom: 40px; display: flex; flex-direction: column; gap: 8px; z-index: 200; }
 .toast { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 14px; box-shadow: var(--shadow-2); font-size: 12.5px; min-width: 220px; max-width: 380px; animation: slidein .18s ease; }

@@ -14,9 +14,12 @@ import { el, toast, debounce, clear } from './ui/dom.js';
 import {
   modal, helpDialog, openProjectDialog, resourcesDialog, projectSettingsDialog,
   backupsDialog, promptDialog, confirmDialog, recoveryDialog, closeModal, themeDialog,
+  shiftTaskDialog, poolDialog,
 } from './ui/dialogs.js';
 import { initTheme, toggleLightDark } from './themes.js';
 import { openPrintDialog, ensurePrintLayout, loadPrintSettings } from './print.js';
+import { startPoolHub } from './poolhub.js';
+import { loadGlobalPool } from './pool.js';
 import { renderDetail } from './ui/editor.js';
 import { renderGantt, fitGantt, ganttScrollToToday } from './views/gantt.js';
 import { renderTable } from './views/table.js';
@@ -29,6 +32,40 @@ const VIEWS = ['gantt', 'table', 'calendar', 'board'];
 /* ───────── Thema ───────── */
 
 function toggleTheme() { toggleLightDark(); }
+
+/* ───────── Zeilenhöhe & „bereit zum Ablegen“ ───────── */
+
+function applyRowHeight() {
+  const px = Math.max(22, Math.min(60, Number(store.ui.rowH) || 30));
+  if (document.documentElement.style.getPropertyValue('--row-h') !== px + 'px') {
+    document.documentElement.style.setProperty('--row-h', px + 'px');
+  }
+}
+
+function renderArmedBar() {
+  const bar = document.getElementById('armed-bar');
+  if (!bar) return;
+  const a = store.ui.armedPool;
+  if (!a) { bar.hidden = true; clear(bar); return; }
+  const e = a.scope === 'global' ? loadGlobalPool().find((x) => x.id === a.id) : store.poolEntry(a.id);
+  clear(bar);
+  bar.appendChild(el('span', { class: 'ab-ico', text: '✎' }));
+  bar.appendChild(el('span', { class: 'ab-text', text: `„${e ? e.text : 'Idee'}“ ablegen – im Plan auf die gewünschte Stelle klicken (oder hineinziehen)` }));
+  bar.appendChild(el('button', { class: 'btn', text: 'Abbrechen (Esc)', onclick: () => store.disarm() }));
+  bar.hidden = false;
+}
+
+function openPoolWindow() {
+  const w = window.open('sideboard.html', 'terminplanung-ideen',
+    'width=430,height=880,menubar=no,toolbar=no,location=no,status=no,noopener=no');
+  if (!w) {
+    toast('Fenster wurde blockiert', 'warn', 'Bitte Pop-ups für diese Seite erlauben – oder die Ideenliste im Dialog benutzen.');
+    poolDialog(null, null);
+  } else {
+    w.focus();
+    toast('Ideen-Sammelbecken geöffnet', 'ok', 'Das Fenster lässt sich auf den zweiten Bildschirm ziehen.');
+  }
+}
 
 /* ───────── Zeichnen ───────── */
 
@@ -44,6 +81,7 @@ function requestRender() {
 
 function renderAll() {
   if (!store.project) return;
+  applyRowHeight();
   const view = store.ui.view;
   document.body.dataset.view = view;
   for (const v of VIEWS) {
@@ -110,13 +148,17 @@ function bindStorage() {
     updateSaveState();
     window.dispatchEvent(new CustomEvent('tplan:filestate'));
   });
-  store.on((reason) => {
+  store.on((reason, arg) => {
     if (reason === 'change') {
       storage.touch();
       store.ui.dirty = true;
       updateSaveState();
     }
     if (reason === 'load') { updateSaveState(); }
+    if (reason === 'armed') { renderArmedBar(); return; }
+    if (reason === 'open-shift') { shiftTaskDialog(store.selected); return; }
+    if (reason === 'open-pool') { poolDialog(arg, openPoolWindow); return; }
+    if (reason === 'pool-global') { requestRender(); return; }
     if (reason === 'select' || reason === 'open-detail') {
       const host = $('#detail');
       if (reason === 'open-detail' || !host.contains(document.activeElement)) renderDetail(host);
@@ -284,6 +326,9 @@ const actions = {
   'help': () => helpDialog(),
   'theme': () => themeDialog(),
   'print': () => openPrintDialog(),
+  'pool-window': () => openPoolWindow(),
+  'pool': () => poolDialog(null, openPoolWindow),
+  'shift': () => shiftTaskDialog(store.selected),
   'resources': () => resourcesDialog(),
   'project-settings': () => projectSettingsDialog(),
   'fit': () => { store.ui.fitDayW = null; fitGantt(); },
@@ -319,8 +364,28 @@ document.addEventListener('keydown', (e) => {
   if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); actions.open(); return; }
   if (mod && e.key.toLowerCase() === 'f') { e.preventDefault(); $('#filter-text').focus(); return; }
   if (e.key === 'F1') { e.preventDefault(); helpDialog(); return; }
-  if (e.key === 'Escape') { if (document.getElementById('modal-host').hidden) store.select(null); return; }
+  if (e.key === 'Escape') {
+    if (!document.getElementById('modal-host').hidden) return;
+    if (store.ui.armedPool) { store.disarm(); return; }
+    store.select(null);
+    return;
+  }
   if (inField()) return;
+  // Aufgaben mit Umschalt+Pfeiltasten verschieben
+  if (e.shiftKey && !e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    if (!store.selectedId) return;
+    e.preventDefault();
+    const dir = e.key === 'ArrowRight' ? 1 : -1;
+    store.shiftTask(store.selectedId, dir, (e.ctrlKey || e.metaKey) ? 'month' : 'day');
+    return;
+  }
+  if (e.shiftKey && !e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    if (!store.selectedId) return;
+    e.preventDefault();
+    const dir = e.key === 'ArrowDown' ? 1 : -1;
+    store.shiftTask(store.selectedId, dir, (e.ctrlKey || e.metaKey) ? 'month' : 'week');
+    return;
+  }
   if (e.key === 'Insert') { e.preventDefault(); store.addTask(); return; }
   if (e.key === 'Delete') { e.preventDefault(); if (store.selectedId) store.deleteTask(store.selectedId); return; }
   if (e.key === 'F2') { e.preventDefault(); const t = store.selected; if (t) promptDialog('Umbenennen', 'Neue Bezeichnung', t.name).then((v) => v && store.updateTask(t.id, { name: v }, 'Aufgabe umbenennen')); return; }
@@ -532,6 +597,9 @@ function boot() {
   initWelcome();
   store._render = requestRender;
   showApp(false);
+  startPoolHub();
+  applyRowHeight();
+  renderArmedBar();
   // Druckaufbau erzeugen, egal ob über den Drucken-Knopf oder Strg+P gedruckt wird
   window.addEventListener('beforeprint', () => {
     if (store.project) ensurePrintLayout(store.project, loadPrintSettings());

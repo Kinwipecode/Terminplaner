@@ -4,6 +4,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { todayIso, addWorkdays, endFromDuration, durationFromRange, normalizeCalendar, defaultCalendar, minIso, maxIso, diffDays, snapToWorkday } from './dateutil.js';
+import { normalizePool, newPoolEntry, POOL_COLOR } from './pool.js';
 
 export const FILE_FORMAT = 'terminplanung';
 export const FILE_VERSION = 1;
@@ -73,6 +74,7 @@ export function newTask(patch = {}) {
     notes: '',
     tags: [],
     collapsed: false,
+    fromPool: null,            // ID des Sammelbecken-Eintrags, falls daraus entstanden
   };
   Object.assign(t, patch);
   if (t.type === 'milestone') { t.duration = 0; t.end = t.start; }
@@ -110,9 +112,11 @@ export function emptyProject(name = 'Neues Projekt') {
       showDeps: true,
       autoPlan: true,
       zoom: 'week',
+      rowHeight: 30,            // Zeilenhöhe in Pixel (22 … 56)
     },
     resources: [],
     tasks: [],
+    pool: [],                   // Ideen-Sammelbecken (Aufgaben ohne Termin)
     views: {},
   };
 }
@@ -266,6 +270,7 @@ export function migrateProject(raw) {
   p.settings = Object.assign(p.settings, src.settings || {});
   p.settings.calendar = normalizeCalendar(p.settings.calendar);
   p.resources = Array.isArray(src.resources) ? src.resources.map((r) => newResource(r)) : [];
+  p.pool = normalizePool(src.pool);
   p.views = src.views || {};
   const known = new Set();
   p.tasks = (Array.isArray(src.tasks) ? src.tasks : []).map((t) => {
@@ -281,6 +286,7 @@ export function migrateProject(raw) {
     if (!STATUS[task.status]) task.status = task.progress >= 100 ? 'done' : 'open';
     if (!PRIORITY[task.priority]) task.priority = 'normal';
     if (task.type === 'milestone') { task.duration = 0; task.end = task.start; }
+    task.fromPool = t.fromPool || null;
     return task;
   });
   // Verwaiste Eltern/Abhängigkeiten entfernen
@@ -288,6 +294,7 @@ export function migrateProject(raw) {
   p.tasks.forEach((t) => {
     if (t.parentId && !ids.has(t.parentId)) t.parentId = null;
     t.deps = t.deps.filter((d) => ids.has(d.id) && d.id !== t.id);
+    if (t.fromPool && !p.pool.some((e) => e.id === t.fromPool)) t.fromPool = null;
   });
   // Zyklen in der Elternschaft auflösen
   p.tasks.forEach((t) => {
@@ -316,7 +323,11 @@ export function serializeProject(project) {
       start: t.start, end: t.end, duration: t.duration, progress: t.progress,
       status: t.status, priority: t.priority, assignees: t.assignees, deps: t.deps,
       constraint: t.constraint, deadline: t.deadline, color: t.color, notes: t.notes,
-      tags: t.tags, collapsed: t.collapsed,
+      tags: t.tags, collapsed: t.collapsed, fromPool: t.fromPool || null,
+    })),
+    pool: (project.pool || []).map((e) => ({
+      id: e.id, text: e.text, note: e.note, createdAt: e.createdAt,
+      placedCount: e.placedCount || 0, placedAt: e.placedAt, done: !!e.done,
     })),
     views: project.views,
   };
@@ -373,6 +384,17 @@ export function sampleProject() {
   link(b1, a3); link(b2, b1); link(b3, b2);
   link(c1, b2, 'SS', 1); link(c2, b3); link(c3, c2); link(c4, b1, 'SS', 2); link(c5, c3);
   link(d1, c5); link(d1, c4, 'FS', 0); link(d2, d1);
+
+  /* Ideen-Sammelbecken – Aufgaben ohne Termin, zum Ausprobieren */
+  const i1 = newPoolEntry({ text: 'Schulung für die Redaktion' });
+  const i2 = newPoolEntry({ text: 'Foto-Shooting Produktbilder' });
+  const i3 = newPoolEntry({ text: 'Barrierefreiheit prüfen', note: 'Kontrast, Tastaturbedienung, Screenreader', placedCount: 1 });
+  p.pool = [i1, i2, i3];
+  // eine Aufgabe, die schon aus dem Sammelbecken stammt (türkis, mit Zähler)
+  mk({
+    name: i3.text, start: addWorkdays(c5.end, 1, cal), duration: 3, parentId: g4.id,
+    assignees: [p2.id], color: POOL_COLOR, fromPool: i3.id,
+  });
 
   a1.progress = 100; a1.status = 'done';
   a2.progress = 100; a2.status = 'done';

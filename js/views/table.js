@@ -4,6 +4,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { el, clear, initials } from '../ui/dom.js';
+import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { contextMenu } from '../ui/menu.js';
 import { store } from '../store.js';
 import { STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, taskById, isSummary } from '../model.js';
@@ -122,17 +123,48 @@ export function renderTable(container) {
   const renderRow = (task) => {
     const depth = (() => { let d = 0, cur = task, g = 0; while (cur.parentId && g++ < 50) { cur = taskById(p, cur.parentId); if (!cur) break; d++; } return d; })();
     const tr = el('tr', { class: (store.selectedId === task.id ? 'is-sel ' : '') + (isSummary(p, task) ? 'is-group' : '') });
-    tr.addEventListener('mousedown', (e) => { if (!e.target.closest('input,select,button')) store.select(task.id); });
+    tr.addEventListener('mousedown', (e) => {
+      if (!e.target.closest('input,select,button')) {
+        if (store.ui.armedPool) {
+          e.preventDefault();
+          placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId });
+          return;
+        }
+        store.select(task.id);
+      }
+    });
     tr.addEventListener('dblclick', (e) => { if (!e.target.closest('input,select')) { store.select(task.id); store.emit('open-detail'); } });
     tr.addEventListener('contextmenu', (e) => {
       e.preventDefault(); store.select(task.id);
       contextMenu(e.clientX, e.clientY, [
         { label: 'Details zeigen', run: () => store.emit('open-detail') },
+        '-',
+        { label: 'Termin: 1 Tag später', run: () => store.shiftTask(task.id, 1, 'day') },
+        { label: 'Termin: 1 Woche später', run: () => store.shiftTask(task.id, 1, 'week') },
+        { label: 'Termin: 1 Monat später', run: () => store.shiftTask(task.id, 1, 'month') },
+        { label: 'Termin: 1 Tag früher', run: () => store.shiftTask(task.id, -1, 'day') },
+        { label: 'Termin: 1 Woche früher', run: () => store.shiftTask(task.id, -1, 'week') },
+        { label: 'Termin: 1 Monat früher', run: () => store.shiftTask(task.id, -1, 'month') },
+        { label: 'Termin verschieben…', run: () => store.emit('open-shift') },
+        '-',
         { label: 'Einrücken', run: () => store.indent(task.id) },
         { label: 'Ausrücken', run: () => store.outdent(task.id) },
         { label: 'Duplizieren', run: () => store.duplicateTask(task.id) },
         { label: 'Aufgabe löschen', danger: true, run: () => store.deleteTask(task.id) },
       ]);
+    });
+
+    // Ideen aus dem Sammelbecken hier ablegen
+    tr.addEventListener('dragover', (e) => { if (isPoolDrag(e)) { e.preventDefault(); e.stopPropagation(); tr.classList.add('drop-target'); } });
+    tr.addEventListener('dragleave', () => tr.classList.remove('drop-target'));
+    tr.addEventListener('drop', (e) => {
+      if (!isPoolDrag(e)) return;
+      const poolId = poolIdFromDrag(e);
+      tr.classList.remove('drop-target');
+      if (!poolId) return;
+      e.preventDefault();
+      e.stopPropagation();
+      placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId }, poolId);
     });
 
     // Nr. + Name
@@ -145,6 +177,10 @@ export function renderTable(container) {
     });
     nameTd.appendChild(nameInput);
     if (task.type === 'milestone') nameTd.insertBefore(el('span', { text: '◆ ', title: 'Meilenstein', style: { color: 'var(--accent-2)' } }), nameInput);
+    if (task.fromPool) {
+      const n = store.placedCountFor(task);
+      nameTd.appendChild(el('span', { class: 'pool-badge', style: { marginLeft: '6px' }, title: `Aus dem Ideen-Sammelbecken – ${n}× in den Plan gelegt`, text: `(${n})` }));
+    }
     tr.appendChild(nameTd);
 
     // Beginn / Ende
