@@ -110,6 +110,14 @@ export function helpDialog() {
         '<kbd>1</kbd>…<kbd>4</kbd> Ansicht wechseln · <kbd>Strg</kbd>+<kbd>S</kbd> sofort speichern · <kbd>Strg</kbd>+<kbd>P</kbd> drucken · <kbd>F1</kbd> Hilfe',
         '<b>Umschalt</b>+<kbd>←</kbd>/<kbd>→</kbd> Aufgabe einen Arbeitstag verschieben, <b>Umschalt</b>+<kbd>↑</kbd>/<kbd>↓</kbd> eine Woche (mit <kbd>Strg</kbd> dazu: ein Monat)',
       ]));
+      box.appendChild(sec('Maus und Ansicht im Gantt', [
+        '<b>◉ Heute</b> (oder <kbd>Leertaste</kbd>): springt zum heutigen Datum – auch wenn es außerhalb des Plans liegt.',
+        '<b>Strg</b> gedrückt halten und mit der <b>linken Maustaste ziehen</b> (oder die <b>mittlere Maustaste</b> ziehen): der Ausschnitt wandert – wie ein Hand-Werkzeug.',
+        '<b>Strg</b>+<b>Mausrad</b>: stufenlos zoomen, genau um den Mauszeiger herum.',
+        '<b>Umschalt</b>+<b>Mausrad</b>: seitlich rollen. Mausrad allein: senkrecht rollen.',
+        'Die Anzeige <b>Zoom … %</b> neben den Rasterknöpfen zeigt den Maßstab; ein Klick darauf setzt ihn zurück.',
+        '<b>⤢ Einpassen</b>: der ganze Zeitraum passt in die Fensterbreite.',
+      ]));
       box.appendChild(sec('Ideen-Sammelbecken', [
         'Links auf <b>Ideen</b>: öffnet ein eigenes Browserfenster – ideal für den zweiten Bildschirm.',
         'Dort Aufgaben <b>ohne Termin</b> aufschreiben. Dann in den Plan ziehen oder anklicken und im Plan auf die Stelle klicken.',

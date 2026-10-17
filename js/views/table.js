@@ -8,9 +8,15 @@ import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { contextMenu } from '../ui/menu.js';
 import { store } from '../store.js';
 import { STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, taskById, isSummary } from '../model.js';
-import { formatIso, endFromDuration, durationFromRange, snapToWorkday } from '../dateutil.js';
+import { formatIso, endFromDuration, durationFromRange, snapToWorkday, todayIso } from '../dateutil.js';
 
 const ui = { sortKey: 'wbs', sortDir: 1, groupBy: '' };
+
+/** Läuft die Aufgabe heute? (für die Markierung in der Liste) */
+function isTodayTask(task) {
+  const today = todayIso();
+  return !!task.start && !!task.end && task.start <= today && task.end >= today;
+}
 
 function header(cols, onSort) {
   const tr = el('tr');
@@ -122,7 +128,10 @@ export function renderTable(container) {
 
   const renderRow = (task) => {
     const depth = (() => { let d = 0, cur = task, g = 0; while (cur.parentId && g++ < 50) { cur = taskById(p, cur.parentId); if (!cur) break; d++; } return d; })();
-    const tr = el('tr', { class: (store.selectedId === task.id ? 'is-sel ' : '') + (isSummary(p, task) ? 'is-group' : '') });
+    const tr = el('tr', {
+      class: (store.selectedId === task.id ? 'is-sel ' : '') + (isSummary(p, task) ? 'is-group ' : '') + (isTodayTask(task) ? 'is-today' : ''),
+      dataset: { taskId: task.id },
+    });
     tr.addEventListener('mousedown', (e) => {
       if (!e.target.closest('input,select,button')) {
         if (store.ui.armedPool) {

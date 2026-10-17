@@ -21,7 +21,7 @@ import { openPrintDialog, ensurePrintLayout, loadPrintSettings } from './print.j
 import { startPoolHub } from './poolhub.js';
 import { loadGlobalPool } from './pool.js';
 import { renderDetail } from './ui/editor.js';
-import { renderGantt, fitGantt, ganttScrollToToday } from './views/gantt.js';
+import { renderGantt, fitGantt, ganttScrollToToday, ZOOM_DAY_W } from './views/gantt.js';
 import { renderTable } from './views/table.js';
 import { renderCalendar } from './views/calendar.js';
 import { renderBoard } from './views/board.js';
@@ -53,6 +53,39 @@ function renderArmedBar() {
   bar.appendChild(el('span', { class: 'ab-text', text: `„${e ? e.text : 'Idee'}“ ablegen – im Plan auf die gewünschte Stelle klicken (oder hineinziehen)` }));
   bar.appendChild(el('button', { class: 'btn', text: 'Abbrechen (Esc)', onclick: () => store.disarm() }));
   bar.hidden = false;
+}
+
+/* ───────── „Heute“ und Zoom-Anzeige ───────── */
+
+function goToday() {
+  if (!store.project) return;
+  const today = todayIso();
+  const view = store.ui.view;
+  if (view === 'gantt') {
+    ganttScrollToToday();
+    return;
+  }
+  if (view === 'calendar') {
+    store.setMonthAnchor(today);
+    toast('Kalender auf heute gestellt', 'ok', formatIso(today, 'long'));
+    return;
+  }
+  const tasks = store.visibleTasks();
+  const hit = tasks.find((t) => t.start <= today && t.end >= today)
+    || tasks.find((t) => t.start > today)
+    || tasks[tasks.length - 1];
+  if (!hit) return;
+  store.select(hit.id);
+  requestAnimationFrame(() => {
+    const node = document.querySelector(`[data-task-id="${hit.id}"]`);
+    if (node) node.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+  toast('Nächste Aufgabe ab heute', 'ok', hit.name);
+}
+
+function resetZoom() {
+  store.ui.fitDayW = null;
+  store.emit('change');
 }
 
 function openPoolWindow() {
@@ -111,7 +144,15 @@ function renderStatus() {
 
 function syncControls() {
   document.querySelectorAll('.railbtn[data-view]').forEach((b) => b.classList.toggle('is-active', b.dataset.view === store.ui.view));
-  document.querySelectorAll('#zoom-group button').forEach((b) => b.classList.toggle('is-active', b.dataset.zoom === store.ui.zoom));
+  const custom = store.ui.fitDayW;
+  document.querySelectorAll('#zoom-group button').forEach((b) => b.classList.toggle('is-active', b.dataset.zoom === store.ui.zoom && !custom));
+  const zi = $('#zoom-info');
+  if (zi) {
+    const base = ZOOM_DAY_W[store.ui.zoom] || 12;
+    const cur = custom || base;
+    zi.textContent = 'Zoom ' + Math.round((cur / base) * 100) + ' %';
+    zi.title = `Maßstab: ${cur.toFixed(1)} px je Tag\nStrg+Mausrad = stufenlos zoomen · Klick setzt zurück`;
+  }
   const title = $('#project-title');
   if (title && document.activeElement !== title) title.value = store.project.meta.name || 'Projekt';
   const ap = $('#auto-plan'); if (ap) ap.checked = store.ui.autoPlan;
@@ -332,6 +373,7 @@ const actions = {
   'resources': () => resourcesDialog(),
   'project-settings': () => projectSettingsDialog(),
   'fit': () => { store.ui.fitDayW = null; fitGantt(); },
+  'today': () => goToday(),
   'clear-filter': () => { store.ui.filter = { text: '', assignee: '', status: '' }; $('#filter-text').value = ''; $('#filter-assignee').value = ''; $('#filter-status').value = ''; store.emit('change'); },
   'backups': () => backupsDialog((text, backupName) => openProjectText(text, { fileName: storage.fileName, sourceLabel: backupName })),
   'scroll-today': () => ganttScrollToToday(),
@@ -418,6 +460,9 @@ function wireControls() {
   document.querySelectorAll('#zoom-group button').forEach((b) => b.addEventListener('click', () => {
     store.ui.zoom = b.dataset.zoom; store.ui.fitDayW = null; store.emit('change');
   }));
+
+  const zi = $('#zoom-info');
+  if (zi) zi.addEventListener('click', () => resetZoom());
 
   $('#project-title').addEventListener('change', async (e) => {
     const name = e.target.value.trim() || 'Projekt';
@@ -600,6 +645,15 @@ function boot() {
   startPoolHub();
   applyRowHeight();
   renderArmedBar();
+  // Strg gedrückt halten zeigt den „Greif“-Zeiger im Gantt (verschieben des Ausschnitts)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Control' || e.key === 'Meta') document.body.classList.add('ctrl-down');
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'Control' || e.key === 'Meta') document.body.classList.remove('ctrl-down');
+  });
+  window.addEventListener('blur', () => document.body.classList.remove('ctrl-down'));
+
   // Druckaufbau erzeugen, egal ob über den Drucken-Knopf oder Strg+P gedruckt wird
   window.addEventListener('beforeprint', () => {
     if (store.project) ensurePrintLayout(store.project, loadPrintSettings());

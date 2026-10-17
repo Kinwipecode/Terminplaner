@@ -9,7 +9,7 @@ import { contextMenu } from '../ui/menu.js';
 import { store } from '../store.js';
 import {
   addDays, diffDays, startOfWeek, formatIso, monthName, dowShort, isoWeek,
-  parseIso, snapToWorkday, endFromDuration, durationFromRange,
+  parseIso, snapToWorkday, endFromDuration, durationFromRange, todayIso,
 } from '../dateutil.js';
 import { STATUS, PRIORITY, isSummary, taskById, DEP_TYPES } from '../model.js';
 
@@ -17,11 +17,78 @@ export const ZOOM_DAY_W = { day: 30, week: 12, month: 4.6, quarter: 1.9 };
 
 const state = { from: '', to: '', dayW: 12, rows: [], rowIndex: new Map() };
 
+/* ───────── Maßstab, Ziehen mit der Maus (Pan), Zoom per Mausrad ───────── */
+
+let pan = null;              // { x, y, l, t, scroller } – laufendes Verschieben
+let activeScroller = null;   // der gerade gezeichnete Gantt-Bereich
+
+function leftWidth() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--left-w')) || 380;
+}
+
+function clampNum(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+/** Mit der Maus ziehen (Strg+linke Taste oder mittlere Taste). */
+function beginPan(scroller, ev) {
+  pan = { x: ev.clientX, y: ev.clientY, l: scroller.scrollLeft, t: scroller.scrollTop, scroller };
+  scroller.classList.add('is-panning');
+  document.body.style.cursor = 'grabbing';
+}
+
+function initPanHandlers() {
+  if (initPanHandlers.done) return;
+  initPanHandlers.done = true;
+  window.addEventListener('mousemove', (e) => {
+    if (!pan) return;
+    pan.scroller.scrollLeft = pan.l - (e.clientX - pan.x);
+    pan.scroller.scrollTop = pan.t - (e.clientY - pan.y);
+  });
+  window.addEventListener('mouseup', () => {
+    if (!pan) return;
+    pan.scroller.classList.remove('is-panning');
+    pan = null;
+    document.body.style.cursor = '';
+  });
+}
+
+/** Mausrad: Strg = zoomen (um den Mauszeiger herum), Umschalt = seitlich rollen. */
+function onWheel(scroller, e) {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const dayW = state.dayW;
+    if (!dayW) return;
+    const leftW = leftWidth();
+    const rect = scroller.getBoundingClientRect();
+    const xInView = e.clientX - rect.left;
+    const dayIdx = (xInView + scroller.scrollLeft - leftW) / dayW;
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    const next = clampNum(dayW * factor, 0.35, 90);
+    if (Math.abs(next - dayW) < 0.002) return;
+    store.ui.fitDayW = next;
+    store.ui.pendingScroll = { left: Math.max(0, dayIdx * next + leftW - xInView), top: scroller.scrollTop };
+    store.emit('change');
+    return;
+  }
+  if (e.shiftKey) {
+    e.preventDefault();
+    scroller.scrollLeft += e.deltaY;
+  }
+}
+
+/** Zum heutigen Datum springen (waagerecht mittig, senkrecht zur ersten heutigen Zeile). */
 export function ganttScrollToToday() {
-  const box = document.querySelector('.gantt');
+  const box = activeScroller || document.querySelector('.gantt');
   if (!box || !state.dayW) return;
-  const x = diffDays(state.from, new Date().toISOString().slice(0, 10)) * state.dayW;
-  box.scrollLeft = Math.max(0, x - box.clientWidth / 2 + 400);
+  const today = todayIso();
+  const leftW = leftWidth();
+  const xTrack = diffDays(state.from, today) * state.dayW;
+  const trackVisible = Math.max(60, box.clientWidth - leftW);
+  box.scrollLeft = Math.max(0, xTrack - trackVisible / 2);
+  const rows = state.rows || [];
+  const rh = store.ui.rowH || 30;
+  let idx = rows.findIndex((t) => t.start <= today && t.end >= today);
+  if (idx < 0) idx = rows.findIndex((t) => t.start > today);
+  box.scrollTop = idx > 0 ? Math.max(0, idx * rh - rh * 2) : 0;
 }
 
 export function fitGantt() {
@@ -335,13 +402,19 @@ export function renderGantt(container) {
   const box = container.querySelector('.gantt');
   const scroll = box ? { l: box.scrollLeft, t: box.scrollTop } : { l: 0, t: 0 };
   clear(container);
+  // Beim Zoomen mit dem Mausrad die Blickposition beibehalten
+  if (store.ui.pendingScroll) {
+    scroll.l = store.ui.pendingScroll.left;
+    scroll.t = store.ui.pendingScroll.top;
+    store.ui.pendingScroll = null;
+  }
 
   const project = store.project;
   const tasks = store.visibleTasks();
   const rows = tasks;
   const RH = store.ui.rowH || 30;   // Zeilenhöhe (im Setup einstellbar)
 
-  // Zeitraum bestimmen
+  // Zeitraum bestimmen – „heute“ ist immer mit dabei, damit der Heute-Knopf wirkt
   let min = project.settings.projectStart;
   let max = project.settings.projectStart;
   for (const t of project.tasks) {
@@ -349,6 +422,9 @@ export function renderGantt(container) {
     if (t.start && t.start < min) min = t.start;
     if (t.end && t.end > max) max = t.end;
   }
+  const nowIso = todayIso();
+  if (nowIso < min) min = nowIso;
+  if (nowIso > max) max = nowIso;
   min = addDays(min, -7); max = addDays(max, 14);
   const from = startOfWeek(min);
   const to = endOfWeek(max);
@@ -383,6 +459,7 @@ export function renderGantt(container) {
     row.appendChild(track);
     row.addEventListener('mousedown', (e) => {
       if (e.target.closest('.g-twist') || e.target.closest('.bar') || e.target.closest('.ms-diamond')) return;
+      if (e.ctrlKey || e.metaKey) return;   // Strg = Ausschnitt verschieben (Pan)
       if (store.ui.armedPool) { e.preventDefault(); placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId }); return; }
       store.select(task.id);
     });
@@ -511,6 +588,16 @@ export function renderGantt(container) {
     const t = targetAt(e);
     if (t) placeArmed({ start: t.date, afterId: t.afterId, parentId: t.parentId });
   });
+  /* ── Maus: Strg+Ziehen verschiebt den Ausschnitt, Strg+Mausrad zoomt ── */
+  activeScroller = scroller;
+  initPanHandlers();
+  scroller.addEventListener('mousedown', (e) => {
+    if (!(e.ctrlKey || e.metaKey || e.button === 1)) return;
+    e.preventDefault();
+    beginPan(scroller, e);
+  });
+  scroller.addEventListener('wheel', (e) => onWheel(scroller, e), { passive: false });
+
   if (!rows.length) {
     scroller.appendChild(el('div', { class: 'g-empty' },
       el('p', { text: 'Noch keine Aufgaben.' }),

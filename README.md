@@ -61,6 +61,18 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
 - Im Detailbereich rechts die Knöpfe `− 1 Monat … + 1 Monat` oder **Verschieben…** für einen
   eigenen Betrag (z. B. 3 Wochen) mit Vorschau des neuen Termins.
 
+**Gantt-Bedienung mit der Maus**
+
+| Eingabe | Wirkung |
+|---|---|
+| **Strg** + linke Maustaste ziehen (oder mittlere Maustaste ziehen) | Ausschnitt verschieben – wie ein Hand-Werkzeug |
+| **Strg** + Mausrad | stufenlos zoomen, genau um den Mauszeiger herum |
+| **Umschalt** + Mausrad | seitlich rollen |
+| Mausrad | senkrecht rollen |
+| **◉ Heute** oder `Leertaste` | zum heutigen Datum springen (auch wenn es außerhalb des Plans liegt) |
+| **⤢ Einpassen** | ganzer Zeitraum passt in die Fensterbreite |
+| Klick auf **Zoom … %** | Maßstab zurücksetzen |
+
 **Ideen-Sammelbecken in eigenem Fenster** (links auf **Ideen**)
 
 ![Ideen-Sammelbecken](docs/screenshot-ideen.png)
@@ -175,7 +187,7 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | **Umschalt**+`↑` / `↓` | Termin um eine Woche verschieben |
 | **Umschalt**+`Strg`+`←` / `→` / `↑` / `↓` | Termin um einen Monat verschieben |
 | `1` … `4` | Gantt / Tabelle / Kalender / Board |
-| `Leertaste` | im Gantt zu „Heute“ springen |
+| `Leertaste` | zu „Heute“ springen (wie der Knopf **◉ Heute**) |
 | `Strg`+`P` | drucken bzw. PDF erzeugen (Druckaufbau entsteht automatisch) |
 | `F1` | Kurzanleitung |
 

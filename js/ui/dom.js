@@ -88,6 +88,7 @@ export function initials(name) {
 export function drag(node, { onStart, onMove, onEnd }) {
   const down = (ev) => {
     if (ev.button !== 0) return;
+    if (ev.ctrlKey || ev.metaKey) return;   // Strg = Ausschnitt verschieben (Pan)
     ev.preventDefault();
     const start = { x: ev.clientX, y: ev.clientY, ev };
     const move = (e) => onMove && onMove(e, { dx: e.clientX - start.x, dy: e.clientY - start.y, start });

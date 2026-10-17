@@ -24,7 +24,7 @@ export function renderBoard(container) {
     const body = el('div', { class: 'col-body' });
 
     for (const t of list) {
-      const card = el('div', { class: 'card', draggable: 'true', style: { borderLeftColor: t.color || STATUS[t.status].color } });
+      const card = el('div', { class: 'card', draggable: 'true', dataset: { taskId: t.id }, style: { borderLeftColor: t.color || STATUS[t.status].color } });
       card.appendChild(el('div', { class: 'card-title', text: (t.type === 'milestone' ? '◆ ' : '') + t.name }));
       const meta = el('div', { class: 'card-meta' });
       if (t.wbs) meta.appendChild(el('span', { text: '#' + t.wbs }));

@@ -37,6 +37,26 @@ Links in der Leiste umschalten (oder `1` … `4`).
 - **Doppelklick auf den Namen** benennt direkt um.
 - Die rote Linie ist **heute**; Wochenenden und Feiertage sind schattiert.
 
+**Bedienung mit der Maus und der „Heute“-Knopf**
+
+| Eingabe | Wirkung |
+|---|---|
+| **◉ Heute** (Werkzeugleiste) oder `Leertaste` | springt zum heutigen Datum. Im Gantt wird heute mittig gezeigt und zur ersten Aufgabe gescrollt, die heute läuft; im Kalender springt der Monat auf heute; in Tabelle und Board wird die erste Aufgabe ab heute angesteuert und markiert. |
+| **Strg** gedrückt + linke Maustaste ziehen | **Ausschnitt verschieben** (Hand-Werkzeug). Der Zeiger wird zum Greifer, sobald Strg gedrückt ist. |
+| **mittlere Maustaste** ziehen | dasselbe Verschieben, ohne Strg. |
+| **Strg** + **Mausrad** | **stufenlos zoomen** – und zwar um den Mauszeiger herum: der Tag unter dem Zeiger bleibt stehen. |
+| **Umschalt** + **Mausrad** | seitlich rollen (waagerecht). |
+| **Mausrad** allein | senkrecht rollen. |
+| Klick auf die Anzeige **Zoom … %** | Maßstab zurücksetzen (entspricht dem gewählten Raster). |
+| **⤢ Einpassen** | der ganze Zeitraum passt in die Fensterbreite. |
+
+Der Maßstab lässt sich also auf drei Wegen einstellen: die Rasterknöpfe **Tag/Woche/Monat/Quartal**
+(grobe Stufen), **Strg+Mausrad** (stufenlos) oder **Einpassen**. Die Anzeige daneben nennt immer den
+aktuellen Wert, z. B. „Zoom 143 %“ – 100 % ist die Stufe des gewählten Rasters.
+
+Wichtig: Beim Ziehen mit **Strg** werden Balken **nicht** verschoben – Strg ist immer die
+Ansicht-Steuerung. Zum Verschieben von Terminen also ohne Strg ziehen (oder die Tastatur benutzen).
+
 ### Tabelle
 Alle Felder, direkt bearbeitbar: Bezeichnung, Beginn, Ende, Dauer (Arbeitstage), Fortschritt,
 Status, Priorität, Wer, Vorgänger, Ziel. Spaltenköpfe sortieren, oben **Gruppieren** nach
@@ -151,7 +171,29 @@ Farbe gesetzt ist.
 | `F1` | Kurzanleitung |
 | `Esc` | Dialog schließen / Auswahl aufheben / Ablegen abbrechen |
 
-## 10. Termine verschieben
+## 10. Ansicht steuern: Heute, Verschieben des Ausschnitts, Zoom
+
+**◉ Heute** in der Werkzeugleiste (oder `Leertaste`) springt immer zum heutigen Datum – auch wenn
+heute außerhalb des geplanten Zeitraums liegt (der Zeitstrahl enthält „heute“ immer). Je nach
+Ansicht passiert dabei:
+
+- **Gantt**: heute wird in die Mitte geholt und zur ersten Aufgabe gescrollt, die heute läuft.
+- **Kalender**: der Monat springt auf heute.
+- **Tabelle / Board**: die erste Aufgabe ab heute wird angesteuert, markiert und ausgewählt.
+
+**Ausschnitt verschieben (Hand-Werkzeug):** `Strg` gedrückt halten und mit der linken Maustaste
+ziehen – oder die mittlere Maustaste ziehen. Der Zeiger wird zum Greifer, sobald `Strg` gedrückt ist.
+Achtung: mit `Strg` werden Balken nicht verschoben; zum Ändern von Terminen ohne `Strg` ziehen.
+
+**Zoom:**
+
+- `Strg` + **Mausrad**: stufenlos zoomen, um den Mauszeiger herum (der Tag unter dem Zeiger bleibt stehen).
+- Rasterknöpfe **Tag / Woche / Monat / Quartal**: grobe Stufen.
+- **⤢ Einpassen**: der ganze Zeitraum passt in die Fensterbreite.
+- Anzeige **Zoom … %** daneben: 100 % = Stufe des gewählten Rasters; ein Klick setzt zurück.
+- `Umschalt` + Mausrad rollt seitlich, das Mausrad allein senkrecht.
+
+## 11. Termine verschieben
 
 Drei Wege, alle mit demselben Ergebnis:
 
@@ -172,13 +214,13 @@ Geregelt wird dabei immer:
   im Verschieben-Fenster). Ist sie aus, bleibt alles stehen und die App meldet nur Widersprüche.
 - Sammelaufgaben verschieben alle ihre Unteraufgaben mit.
 
-## 11. Zeilenhöhe
+## 12. Zeilenhöhe
 
 **Setup** → *Zeilenhöhe in Listen und Gantt*: **kompakt** (24 px), **normal** (30 px),
 **geräumig** (38 px) oder **sehr groß** (46 px). Die Einstellung wirkt sofort in Gantt, Tabelle,
 Kalender und Board und wird **im Projekt gespeichert** – beim nächsten Öffnen ist sie wieder da.
 
-## 12. Ideen-Sammelbecken (zweites Fenster)
+## 13. Ideen-Sammelbecken (zweites Fenster)
 
 Der Gedanke: Aufgaben, die es gibt, aber noch keinen Termin haben, sollen nicht verloren gehen.
 Sie stehen in einem eigenen Fenster, das man auf den zweiten Bildschirm schieben kann.
@@ -218,7 +260,7 @@ wandert der Vorrat ins Projekt.
 allgemeinen Vorrat trotzdem bearbeiten; das Projekt-Sammelbecken braucht das Planungsfenster
 (denn die Daten gehören zur Projektdatei).
 
-## 13. Farblayout der Oberfläche
+## 14. Farblayout der Oberfläche
 
 Links auf **Farbe** (oder oben auf **◐**, oder im Setup-Fenster auf **Farblayout…**).
 Es öffnet sich eine Auswahl mit neun fertigen Layouts – jedes mit echter Vorschau in seinen
@@ -244,7 +286,7 @@ blau = offen, grau = niedrige Priorität). Dadurch sehen Pläne in jedem Layout 
 nur die Flächen und Linien ändern sich. Der **Ausdruck ist unabhängig vom Layout immer hell**,
 damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
 
-## 14. Drucken und PDF erzeugen
+## 15. Drucken und PDF erzeugen
 
 Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
 auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
@@ -292,7 +334,7 @@ Tabelle 1 · Legende 1“), samt Hinweisen, wenn es viele Blätter werden.
 **Drucken ohne Dialog prüfen**: Mit **Vorschau bauen** wird der Aufbau erzeugt, ohne dass der
 Druckdialog aufgeht – man kann ihn dann in Ruhe ansehen (z. B. mit der Druckvorschau des Browsers).
 
-## 15. Häufige Fragen
+## 16. Häufige Fragen
 
 **Wo liegt meine Datei?** Der Hinweis oben rechts nennt den Speicherort (Ordnerpfad bzw.
 „Browser-Speicher“). Im Ordner-Modus ist es eine normale Datei, die man kopieren, sichern oder

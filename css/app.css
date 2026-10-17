@@ -327,6 +327,15 @@ kbd { font-family: var(--mono); font-size: 11px; background: var(--bg-3); border
 .rc-row .sw { width: 22px; height: 22px; border-radius: 6px; border: none; padding: 0; background: none; cursor: pointer; }
 .rc-row .nm { flex: 1; }
 
+/* ─────────── Gantt: Ausschnitt verschieben und zoomen ─────────── */
+.gantt { cursor: default; }
+body.ctrl-down .gantt { cursor: grab; }
+.gantt.is-panning { cursor: grabbing !important; user-select: none; }
+.gantt.is-panning * { cursor: grabbing !important; }
+#zoom-info { cursor: pointer; user-select: none; }
+#zoom-info:hover { color: var(--accent); }
+table.tbl tr.is-today td:first-child { box-shadow: inset 3px 0 0 var(--today); }
+
 /* ─────────── Ideen-Sammelbecken ─────────── */
 :root { --pool: #14b8a6; }
 .pool-badge {

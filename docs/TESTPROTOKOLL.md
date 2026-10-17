@@ -144,7 +144,24 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | **Fenster ohne Hauptfenster** | ✅ meldet „○ kein Planungsfenster“, allgemeiner Vorrat bleibt bearbeitbar (Codepfad) |
 | Keine Fehler | ✅ Fehlerprotokoll bei allen Durchläufen leer |
 
-## 10. Offene Punkte / nicht geprüft
+## 10. Heute-Knopf, Ausschnitt verschieben, Zoom mit der Maus
+
+| Prüfung | Ergebnis |
+|---|---|
+| Knopf **◉ Heute** in der Werkzeugleiste | ✅ vorhanden, wirkt in allen vier Ansichten |
+| Gantt: heute wird angesteuert | ✅ aus scrollLeft 776 zurück auf 0, die Heute-Linie liegt im sichtbaren Zeitstreifen (x=679 bei Fenster 84…1264) |
+| Gantt: „heute“ immer im Zeitstrahl | ✅ der Zeitraum wird um „heute“ erweitert (Beispiel: Plan ab 19.10., heute 17.10. → Strahl beginnt am 10.10.) |
+| Kalender | ✅ Knopf setzt den Monat auf **Oktober 2026**, eine Zelle ist als heute markiert |
+| Tabelle / Board | ✅ erste Aufgabe ab heute wird ausgewählt („Konzept & Planung“), Zeilen mit „heute“ bekommen einen roten Rand (im Beispiel 0, da alle Aufgaben später beginnen) |
+| **Strg + linke Maustaste ziehen** | ✅ Ausschnitt wandert (scrollLeft 300 → 310, scrollTop 100 → 160 bei Zug −150/−60 px); Zeiger ist währenddessen `grabbing`, danach wieder normal |
+| **Strg + Ziehen auf einem Balken** | ✅ Termin bleibt unverändert (04.11. → 04.11.) – Strg ist reine Ansicht-Steuerung |
+| **Strg + Mausrad** | ✅ stufenloser Zoom: Maßstab 12 → 17,2 px je Tag, Anzeige „Zoom 143 %“, Tagesraster misst 17,2 px |
+| Zoom um den Mauszeiger | ✅ Blickposition wird so nachgeführt, dass der Tag unter dem Zeiger stehen bleibt (`pendingScroll`) |
+| Klick auf **Zoom … %** | ✅ setzt auf die Rasterstufe zurück („Zoom 100 %“, Maßstab wieder 12 px) |
+| **Umschalt + Mausrad** | ✅ rollt seitlich (eigener Zweig im Rad-Handler) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 11. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

@@ -128,13 +128,15 @@
     </label>
 
     <span class="sep"></span>
-    <div class="segmented" id="zoom-group" title="Zeitraster">
+    <div class="segmented" id="zoom-group" title="Zeitraster – mit Strg+Mausrad stufenlos zoomen">
       <button data-zoom="day">Tag</button>
       <button data-zoom="week" class="is-active">Woche</button>
       <button data-zoom="month">Monat</button>
       <button data-zoom="quarter">Quartal</button>
     </div>
-    <button class="btn" data-action="fit" title="Zeitraum einpassen">⤢ Einpassen</button>
+    <span id="zoom-info" class="hint" style="min-width:74px" title="Aktueller Maßstab der Zeitachse">Zoom 100 %</span>
+    <button class="btn" data-action="today" title="Zum heutigen Datum springen (Leertaste)">◉ Heute</button>
+    <button class="btn" data-action="fit" title="Gesamten Zeitraum einpassen">⤢ Einpassen</button>
 
     <span class="sep"></span>
     <div class="search">
