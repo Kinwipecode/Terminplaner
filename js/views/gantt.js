@@ -28,9 +28,9 @@ function leftWidth() {
 
 function clampNum(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
-/** Mit der Maus ziehen (Strg+linke Taste oder mittlere Taste). */
-function beginPan(scroller, ev) {
-  pan = { x: ev.clientX, y: ev.clientY, l: scroller.scrollLeft, t: scroller.scrollTop, scroller };
+/** Mit der Maus ziehen (Strg+linke Taste oder mittlere Taste) – kurzer Klick wählt aus. */
+function beginPan(scroller, ev, clickToggle = false) {
+  pan = { x: ev.clientX, y: ev.clientY, l: scroller.scrollLeft, t: scroller.scrollTop, scroller, moved: false, clickToggle };
   scroller.classList.add('is-panning');
   document.body.style.cursor = 'grabbing';
 }
@@ -40,14 +40,25 @@ function initPanHandlers() {
   initPanHandlers.done = true;
   window.addEventListener('mousemove', (e) => {
     if (!pan) return;
+    if (Math.abs(e.clientX - pan.x) > 4 || Math.abs(e.clientY - pan.y) > 4) pan.moved = true;
     pan.scroller.scrollLeft = pan.l - (e.clientX - pan.x);
     pan.scroller.scrollTop = pan.t - (e.clientY - pan.y);
   });
-  window.addEventListener('mouseup', () => {
+  window.addEventListener('mouseup', (e) => {
     if (!pan) return;
+    const wasClick = !pan.moved && pan.clickToggle;
     pan.scroller.classList.remove('is-panning');
+    const finished = pan;
     pan = null;
     document.body.style.cursor = '';
+    if (wasClick) {
+      // Strg+Klick ohne Ziehen: Auswahl umschalten (wie im Explorer)
+      const node = document.elementFromPoint(e.clientX, e.clientY);
+      const row = node && node.closest ? node.closest('[data-task-id]') : null;
+      if (row) store.select(row.dataset.taskId, 'toggle');
+      else store.clearSelection();
+    }
+    void finished;
   });
 }
 
@@ -367,20 +378,35 @@ function attachDrag(node, task, range, dayW, mode) {
 }
 
 /* ───────── Kontextmenü einer Zeile ───────── */
+
+/** Einträge, die es nur bei Mehrfachauswahl gibt. */
+export function multiMenuItems(task) {
+  const n = store.selectionCount();
+  if (n < 2 || !store.isSelected(task.id)) return [];
+  return [
+    { label: `${n} Aufgaben duplizieren`, hint: 'Strg+D', run: () => store.emit('action-duplicate') },
+    { label: `${n} Aufgaben kopieren`, hint: 'Strg+C', run: () => store.emit('action-copy') },
+    store.hasClipboard ? { label: 'Einfügen', hint: 'Strg+V', run: () => store.emit('action-paste') } : null,
+    { label: `${n} Aufgaben löschen`, danger: true, hint: 'Entf', run: () => store.emit('action-delete-selection') },
+    '-',
+  ].filter(Boolean);
+}
+
 function rowMenu(ev, task) {
   const p = store.project;
-  store.select(task.id);
+  if (!store.isSelected(task.id)) store.select(task.id);
   const n = store.placedCountFor(task);
   contextMenu(ev.clientX, ev.clientY, [
+    ...multiMenuItems(task),
     { label: 'Aufgabe hinzufügen', hint: 'Einfg', run: () => store.addTask({}, task.id) },
     { label: 'Unteraufgabe hinzufügen', run: () => { const id = store.addTask({ parentId: task.id, start: task.start }, task.id); store.indent(id); } },
     { label: 'Duplizieren', run: () => store.duplicateTask(task.id) },
     '-',
     { label: 'Termin: 1 Tag später', hint: 'Umschalt+→', run: () => store.shiftTask(task.id, 1, 'day') },
-    { label: 'Termin: 1 Woche später', hint: 'Umschalt+↓', run: () => store.shiftTask(task.id, 1, 'week') },
+    { label: 'Termin: 1 Woche später', hint: 'Umschalt+Strg+↓', run: () => store.shiftTask(task.id, 1, 'week') },
     { label: 'Termin: 1 Monat später', hint: 'Umschalt+Strg+→', run: () => store.shiftTask(task.id, 1, 'month') },
     { label: 'Termin: 1 Tag früher', hint: 'Umschalt+←', run: () => store.shiftTask(task.id, -1, 'day') },
-    { label: 'Termin: 1 Woche früher', hint: 'Umschalt+↑', run: () => store.shiftTask(task.id, -1, 'week') },
+    { label: 'Termin: 1 Woche früher', hint: 'Umschalt+Strg+↑', run: () => store.shiftTask(task.id, -1, 'week') },
     { label: 'Termin: 1 Monat früher', hint: 'Umschalt+Strg+←', run: () => store.shiftTask(task.id, -1, 'month') },
     { label: 'Termin verschieben…', run: () => store.emit('open-shift') },
     '-',
@@ -451,7 +477,11 @@ export function renderGantt(container) {
   rows.forEach((task, i) => {
     const depth = (() => { let d = 0, cur = task; let g = 0; while (cur.parentId && g++ < 50) { cur = taskById(project2, cur.parentId); if (!cur) break; d++; } return d; })();
     const hasKids = project2.tasks.some((x) => x.parentId === task.id);
-    const row = el('div', { class: 'g-row' + (store.selectedId === task.id ? ' is-sel' : '') });
+    const sel = store.isSelected(task.id);
+    const row = el('div', {
+      class: 'g-row' + (sel ? (store.selectedId === task.id ? ' is-sel' : ' is-multi') : ''),
+      dataset: { taskId: task.id },
+    });
     row.appendChild(leftCell(task, depth, hasKids));
     const track = el('div', { class: 'g-track', style: { width: trackW + 'px' } });
     const isSum = hasKids || task.type === 'summary';
@@ -461,7 +491,7 @@ export function renderGantt(container) {
       if (e.target.closest('.g-twist') || e.target.closest('.bar') || e.target.closest('.ms-diamond')) return;
       if (e.ctrlKey || e.metaKey) return;   // Strg = Ausschnitt verschieben (Pan)
       if (store.ui.armedPool) { e.preventDefault(); placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId }); return; }
-      store.select(task.id);
+      store.select(task.id, e.shiftKey ? 'range' : 'replace');
     });
     row.addEventListener('contextmenu', (e) => { e.preventDefault(); rowMenu(e, task); });
     body.appendChild(row);
@@ -594,7 +624,8 @@ export function renderGantt(container) {
   scroller.addEventListener('mousedown', (e) => {
     if (!(e.ctrlKey || e.metaKey || e.button === 1)) return;
     e.preventDefault();
-    beginPan(scroller, e);
+    // Strg+Klick (ohne Ziehen) schaltet die Auswahl um, Strg+Ziehen verschiebt den Ausschnitt
+    beginPan(scroller, e, e.button === 0 && (e.ctrlKey || e.metaKey));
   });
   scroller.addEventListener('wheel', (e) => onWheel(scroller, e), { passive: false });
 

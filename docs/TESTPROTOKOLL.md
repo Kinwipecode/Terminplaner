@@ -161,7 +161,33 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | **Umschalt + Mausrad** | ✅ rollt seitlich (eigener Zweig im Rad-Handler) |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 11. Offene Punkte / nicht geprüft
+## 11. Mehrfachauswahl (wie im Explorer)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Klick auf eine Zeile | ✅ genau 1 markiert, sie wird der Anker („Zielgruppen-Workshop“) |
+| **Umschalt+Klick** 3 Zeilen weiter | ✅ 4 markiert (`1.2`, `1.3`, `2`, `2.1`) – Bereich vom Anker bis zum Klick |
+| **Strg+Klick** außerhalb des Bereichs | ✅ 5 markiert, `3` kommt dazu |
+| **Strg+Klick** auf dieselbe Zeile nochmal | ✅ 4 markiert – wieder herausgenommen |
+| **Umschalt+Klick** auf eine Zeile innerhalb | ✅ Bereich wird neu aufgespannt (2 markiert) |
+| **Strg+A** | ✅ 18 von 18 markiert |
+| `Esc` | ✅ Auswahl leer |
+| **Umschalt+↓** zweimal (ab `1.1`) | ✅ 3 markiert (`1.1`, `1.2`, `1.3`) |
+| **Umschalt+↑** (verkleinern) | ✅ 2, dann 1 markiert; noch einmal: Bereich wächst über den Anker hinaus (`1`, `1.1`) |
+| Tabelle: Klick + **Umschalt+Klick** + **Strg+Klick** | ✅ 3 → 4 → 3 markiert, 3 Zeilen farblich hervorgehoben |
+| Gantt: **Strg+Klick** | ✅ schaltet beim Loslassen um (kurzer Klick) – Ziehen mit Strg verschiebt weiterhin nur den Ausschnitt |
+| Statuszeile | ✅ „4 markiert · Entf löscht · Strg+C kopiert · Strg+D dupliziert“ |
+| Detailbereich | ✅ Sammelbearbeitung mit Aktionen, Terminverschiebung, Status, Priorität, Fortschritt, Farbe und Liste der markierten Aufgaben |
+| `Entf` (3 markiert) | ✅ Rückfrage „3 Aufgaben löschen“, danach 18 → 15 Aufgaben, Auswahl leer |
+| **Strg+Z** | ✅ 15 → 18 Aufgaben, Aufgaben und Verknüpfungen wieder da |
+| **Strg+C** (Auswahl `1` + `1.1`) | ✅ 4 Aufgaben in der Zwischenablage (Sammelaufgabe samt 3 Unteraufgaben) |
+| **Strg+V** | ✅ 18 → 22 Aufgaben, die Einfügung ist markiert, Unteraufgaben bleiben Kinder |
+| **Strg+D** | ✅ 22 → 26 Aufgaben, Kopien heißen „… (Kopie)“ |
+| **Strg+Umschalt+↓** | ✅ Termin 23.10. → 30.10. (eine Woche) |
+| **Umschalt+→** | ✅ Termin 30.10. → 02.11. (ein Arbeitstag, Wochenende übersprungen) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 12. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

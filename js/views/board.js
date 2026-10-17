@@ -24,7 +24,12 @@ export function renderBoard(container) {
     const body = el('div', { class: 'col-body' });
 
     for (const t of list) {
-      const card = el('div', { class: 'card', draggable: 'true', dataset: { taskId: t.id }, style: { borderLeftColor: t.color || STATUS[t.status].color } });
+      const card = el('div', {
+        class: 'card' + (store.isSelected(t.id) ? (store.selectedId === t.id ? ' is-sel' : ' is-multi') : ''),
+        draggable: 'true',
+        dataset: { taskId: t.id },
+        style: { borderLeftColor: t.color || STATUS[t.status].color },
+      });
       card.appendChild(el('div', { class: 'card-title', text: (t.type === 'milestone' ? '◆ ' : '') + t.name }));
       const meta = el('div', { class: 'card-meta' });
       if (t.wbs) meta.appendChild(el('span', { text: '#' + t.wbs }));
@@ -41,7 +46,10 @@ export function renderBoard(container) {
         const bar = el('div', { class: 'mini-bar', style: { marginTop: '6px' } }, el('i', { style: { width: t.progress + '%', background: STATUS[t.status].color } }));
         card.appendChild(bar);
       }
-      card.addEventListener('click', () => { store.select(t.id); store.emit('open-detail'); });
+      card.addEventListener('click', (e) => {
+        store.select(t.id, e.shiftKey ? 'range' : ((e.ctrlKey || e.metaKey) ? 'toggle' : 'replace'));
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey) store.emit('open-detail');
+      });
       card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed = 'move'; card.classList.add('is-dragging'); });
       card.addEventListener('dragend', () => card.classList.remove('is-dragging'));
       body.appendChild(card);

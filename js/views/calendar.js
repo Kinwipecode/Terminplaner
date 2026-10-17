@@ -66,13 +66,18 @@ export function renderCalendar(container) {
     for (const t of (byDay.get(day) || [])) {
       const color = t.color || (STATUS[t.status] || STATUS.open).color;
       const ev = el('div', {
-        class: 'cal-ev' + (t.type === 'milestone' ? ' is-ms' : '') + (t.status === 'done' ? ' is-done' : ''),
+        class: 'cal-ev' + (t.type === 'milestone' ? ' is-ms' : '') + (t.status === 'done' ? ' is-done' : '')
+          + (store.isSelected(t.id) ? (store.selectedId === t.id ? ' is-sel' : ' is-multi') : ''),
         draggable: 'true',
         style: { borderLeftColor: color },
         title: `${t.name}\n${t.start} – ${t.end} · ${t.progress}%`,
         text: (t.type === 'milestone' ? '◆ ' : '') + t.name,
       });
-      ev.addEventListener('click', () => { store.select(t.id); store.emit('open-detail'); });
+      ev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        store.select(t.id, e.shiftKey ? 'range' : ((e.ctrlKey || e.metaKey) ? 'toggle' : 'replace'));
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey) store.emit('open-detail');
+      });
       ev.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', t.id); e.dataTransfer.effectAllowed = 'move'; ev.classList.add('is-dragging'); });
       ev.addEventListener('dragend', () => ev.classList.remove('is-dragging'));
       cell.appendChild(ev);

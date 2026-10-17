@@ -55,11 +55,29 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
 
 **Aufgaben verschieben – schnell und genau**
 
-- **Umschalt**+`←`/`→` verschiebt die ausgewählte Aufgabe um einen Arbeitstag, **Umschalt**+`↑`/`↓`
+- **Umschalt**+`←`/`→` verschiebt die ausgewählte Aufgabe um einen Arbeitstag, **Umschalt**+`Strg`+`↑`/`↓`
   um eine Woche (mit `Strg` dazu: einen Monat).
 - Rechtsklick auf eine Zeile → „Termin: 1 Tag/Woche/Monat später bzw. früher“.
 - Im Detailbereich rechts die Knöpfe `− 1 Monat … + 1 Monat` oder **Verschieben…** für einen
   eigenen Betrag (z. B. 3 Wochen) mit Vorschau des neuen Termins.
+
+**Mehrere Aufgaben markieren** – wie im Explorer
+
+| Eingabe | Wirkung |
+|---|---|
+| **Klick** | diese eine Aufgabe markieren (Anker) |
+| **Strg** + **Klick** | einzelne Aufgabe zur Auswahl hinzufügen bzw. herausnehmen |
+| **Umschalt** + **Klick** | alles **von der Anker-Aufgabe bis hierher** markieren |
+| **Umschalt** + `↑`/`↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
+| **Strg** + `A` | alle sichtbaren Aufgaben markieren |
+| `Entf` | Auswahl löschen (mit Rückfrage, `Strg`+`Z` holt sie zurück) |
+| **Strg** + `C` / `V` / `D` | Auswahl kopieren / einfügen / duplizieren |
+| `Esc` | Auswahl aufheben |
+
+Sind mehrere Aufgaben markiert, zeigt der Detailbereich rechts eine **Sammelbearbeitung**: Status,
+Priorität, Fortschritt, Farbe und Terminverschiebung für alle auf einmal. Markiert wird in allen vier
+Ansichten; Rechtsklick auf eine markierte Aufgabe zeigt die Mehrfach-Einträge oben im Menü. „Kopieren“
+legt die Auswahl zusätzlich als Text in die Windows-Zwischenablage (für Excel).
 
 **Gantt-Bedienung mit der Maus**
 
@@ -184,8 +202,15 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
 | `Alt`+`↑` / `Alt`+`↓` | Zeile nach oben / unten |
 | **Umschalt**+`←` / `→` | Termin um einen Arbeitstag verschieben |
-| **Umschalt**+`↑` / `↓` | Termin um eine Woche verschieben |
-| **Umschalt**+`Strg`+`←` / `→` / `↑` / `↓` | Termin um einen Monat verschieben |
+| **Umschalt**+`Strg`+`←` / `→` | Termin um einen Monat verschieben |
+| **Umschalt**+`Strg`+`↑` / `↓` | Termin um eine Woche verschieben |
+| **Umschalt**+`↑` / `↓` | Auswahl erweitern bzw. verkleinern (wie im Explorer) |
+| **Strg**+`A` | alle sichtbaren Aufgaben markieren |
+| **Strg**+`Klick` | einzelne Aufgabe zur Auswahl hinzufügen/entfernen |
+| **Umschalt**+`Klick` | Bereich von der Anker-Aufgabe bis hierher markieren |
+| **Strg**+`C` / `Strg`+`V` / **Strg**+`D` | Auswahl kopieren / einfügen / duplizieren |
+| `Entf` | markierte Aufgaben löschen (mit Rückfrage) |
+| `Esc` | Auswahl aufheben |
 | `1` … `4` | Gantt / Tabelle / Kalender / Board |
 | `Leertaste` | zu „Heute“ springen (wie der Knopf **◉ Heute**) |
 | `Strg`+`P` | drucken bzw. PDF erzeugen (Druckaufbau entsteht automatisch) |

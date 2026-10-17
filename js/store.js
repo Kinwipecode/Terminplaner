@@ -27,6 +27,8 @@ export const store = {
   undoStack: [],
   redoStack: [],
   selectedId: null,
+  selectedIds: new Set(),
+  clipboard: null,      // kopierte Aufgaben (projektintern)
   ui: {
     view: 'gantt',
     zoom: 'week',
@@ -58,6 +60,7 @@ export const store = {
     this.project = project;
     if (resetUndo) { this.undoStack = []; this.redoStack = []; }
     this.selectedId = null;
+    this.selectedIds = new Set();
     this.ui.autoPlan = project.settings.autoPlan !== false;
     this.ui.showCritical = !!project.settings.showCritical;
     this.ui.showDeps = project.settings.showDeps !== false;
@@ -95,22 +98,36 @@ export const store = {
       throw e;
     }
     if (result === false) { this.project = before; return; } // abgebrochen
-    this.undoStack.push({ label, snapshot: before, selectedId: this.selectedId });
+    this.undoStack.push({ label, snapshot: before, selectedId: this.selectedId, selectedIds: new Set(this.selectedIds) });
     if (this.undoStack.length > MAX_UNDO) this.undoStack.shift();
     this.redoStack = [];
     sortTasks(this.project);
     renumberWbs(this.project);
+    this.pruneSelection();
     if (!noSchedule) this.reschedule();
     if (!silent) this.emit('change');
     return result;
   },
 
+  /** Auswahl auf noch vorhandene Aufgaben begrenzen. */
+  pruneSelection() {
+    const ids = new Set(this.project.tasks.map((t) => t.id));
+    const next = new Set([...this.selectedIds].filter((id) => ids.has(id)));
+    if (next.size !== this.selectedIds.size) this.selectedIds = next;
+    if (this.selectedId && !ids.has(this.selectedId)) {
+      this.selectedId = this.selectedInOrder().slice(-1)[0] ? this.selectedInOrder().slice(-1)[0].id : null;
+    }
+    return this.selectedIds;
+  },
+
   undo() {
     if (!this.undoStack.length) return false;
     const entry = this.undoStack.pop();
-    this.redoStack.push({ label: entry.label, snapshot: cloneProject(this.project), selectedId: this.selectedId });
+    this.redoStack.push({ label: entry.label, snapshot: cloneProject(this.project), selectedId: this.selectedId, selectedIds: new Set(this.selectedIds) });
     this.project = entry.snapshot;
     this.selectedId = taskById(this.project, entry.selectedId) ? entry.selectedId : null;
+    this.selectedIds = new Set([...(entry.selectedIds || [])].filter((id) => taskById(this.project, id)));
+    this.pruneSelection();
     this.reschedule();
     this.emit('change');
     return entry.label;
@@ -119,9 +136,11 @@ export const store = {
   redo() {
     if (!this.redoStack.length) return false;
     const entry = this.redoStack.pop();
-    this.undoStack.push({ label: entry.label, snapshot: cloneProject(this.project), selectedId: this.selectedId });
+    this.undoStack.push({ label: entry.label, snapshot: cloneProject(this.project), selectedId: this.selectedId, selectedIds: new Set(this.selectedIds) });
     this.project = entry.snapshot;
     this.selectedId = taskById(this.project, entry.selectedId) ? entry.selectedId : null;
+    this.selectedIds = new Set([...(entry.selectedIds || [])].filter((id) => taskById(this.project, id)));
+    this.pruneSelection();
     this.reschedule();
     this.emit('change');
     return entry.label;
@@ -131,10 +150,220 @@ export const store = {
   get canRedo() { return this.redoStack.length > 0; },
   get selected() { return this.selectedId ? taskById(this.project, this.selectedId) : null; },
 
-  select(id) {
-    this.selectedId = id || null;
+  /* ───────── Auswahl (wie im Explorer: Klick, Strg+Klick, Umschalt+Klick) ───────── */
+
+  /** Nur diese eine Aufgabe auswählen (nach dem Anlegen). */
+  _only(id) { this.selectedId = id || null; this.selectedIds = id ? new Set([id]) : new Set(); },
+
+  isSelected(id) { return this.selectedIds.has(id); },
+  selectionCount() { return this.selectedIds.size; },
+  selectedTasks() { return this.project.tasks.filter((t) => this.selectedIds.has(t.id)); },
+  /** Auswahl als Baumreihenfolge (wie angezeigt). */
+  selectedInOrder() {
+    return this.visibleTasks().filter((t) => this.selectedIds.has(t.id));
+  },
+
+  /**
+   * Auswahl ändern.
+   * @param {string|null} id
+   * @param {'replace'|'toggle'|'range'|'range-add'} mode
+   */
+  select(id, mode = 'replace') {
+    if (!id) {
+      this.selectedIds = new Set();
+      this.selectedId = null;
+      this.emit('select');
+      return;
+    }
+    if (mode === 'toggle') {
+      const next = new Set(this.selectedIds);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      this.selectedIds = next;
+      this.selectedId = next.has(id) ? id : (this.selectedInOrder().slice(-1)[0] || {}).id || null;
+    } else if (mode === 'range' || mode === 'range-add') {
+      const order = this.visibleTasks().map((t) => t.id);
+      const anchor = (this.selectedId && order.includes(this.selectedId)) ? this.selectedId : id;
+      const a = order.indexOf(anchor);
+      const b = order.indexOf(id);
+      if (a < 0 || b < 0) {
+        this.selectedIds = new Set([id]);
+      } else {
+        const [s, e] = a < b ? [a, b] : [b, a];
+        const range = order.slice(s, e + 1);
+        this.selectedIds = mode === 'range-add' ? new Set([...this.selectedIds, ...range]) : new Set(range);
+      }
+      this.selectedId = anchor;   // Anker bleibt für weitere Umschalt-Klicks
+    } else {
+      this.selectedIds = new Set([id]);
+      this.selectedId = id;
+    }
     this.emit('select');
   },
+
+  selectAll() {
+    const ids = this.visibleTasks().map((t) => t.id);
+    this.selectedIds = new Set(ids);
+    if (!this.selectedId || !this.selectedIds.has(this.selectedId)) this.selectedId = ids[0] || null;
+    this.emit('select');
+  },
+
+  clearSelection() { this.select(null); },
+
+  /** Auswahl um eine Zeile erweitern/verkleinern (Umschalt+Pfeil). */
+  extendSelection(direction) {
+    const order = this.visibleTasks();
+    if (!order.length) return false;
+    const anchor = this.selectedId || (this.selectedIds.size ? [...this.selectedIds][0] : null);
+    const last = this.selectedInOrder().slice(-1)[0];
+    const baseId = last ? last.id : anchor;   // die bewegliche Kante ist das zuletzt markierte Feld
+    const idx = order.findIndex((t) => t.id === baseId);
+    if (idx < 0) { this.select(order[0].id); return true; }
+    const next = order[idx + direction];
+    if (!next) return false;
+    const fromIdx = order.findIndex((t) => t.id === anchor);
+    const [s, e] = fromIdx < 0 ? [idx + direction, idx + direction]
+      : (fromIdx < idx + direction ? [fromIdx, idx + direction] : [idx + direction, fromIdx]);
+    this.selectedIds = new Set(order.slice(s, e + 1).map((t) => t.id));
+    this.emit('select');
+    return true;
+  },
+
+  /** Auswahl löschen (mit allen Unteraufgaben). Gibt die Anzahl zurück. */
+  deleteSelected() {
+    const ids = [...this.selectedIds];
+    if (!ids.length) return 0;
+    let count = 0;
+    this.mutate('Aufgaben löschen', (p) => {
+      const kill = new Set();
+      for (const id of ids) {
+        if (!taskById(p, id)) continue;
+        kill.add(id);
+        for (const d of descendantsOf(p, id)) kill.add(d.id);
+      }
+      count = kill.size;
+      p.tasks = p.tasks.filter((t) => !kill.has(t.id));
+      for (const t of p.tasks) t.deps = (t.deps || []).filter((d) => !kill.has(d.id));
+    });
+    this.selectedIds = new Set();
+    this.selectedId = null;
+    this.emit('select');
+    return count;
+  },
+
+  /** Auswahl duplizieren – Unteraufgaben kommen mit. */
+  duplicateSelected() {
+    const roots = this.selectionRoots();
+    if (!roots.length) return 0;
+    let count = 0;
+    this.mutate('Aufgaben duplizieren', (p) => {
+      const inserted = [];
+      for (const root of roots) {
+        const copies = cloneSubtree(p, root, (t) => `${t.name} (Kopie)`);
+        if (copies.length) inserted.push(...copies);
+      }
+      if (!inserted.length) return false;
+      count = inserted.length;
+      const lastIdx = Math.max(...roots.map((r) => p.tasks.findIndex((t) => t.id === r.id)));
+      p.tasks.splice(lastIdx + 1, 0, ...inserted);
+      this.selectedIds = new Set(inserted.map((t) => t.id));
+      this.selectedId = inserted[0].id;
+    });
+    this.emit('select');
+    return count;
+  },
+
+  /** Ausgewählte Aufgaben ohne ihre mitausgewählten Vorfahren. */
+  selectionRoots() {
+    const sel = this.selectedIds;
+    return this.project.tasks.filter((t) => {
+      if (!sel.has(t.id)) return false;
+      let cur = t.parentId, guard = 0;
+      while (cur && guard++ < 60) {
+        if (sel.has(cur)) return false;
+        cur = (taskById(this.project, cur) || {}).parentId;
+      }
+      return true;
+    });
+  },
+
+  /** Auswahl in die Zwischenablage (intern + Text für Excel). */
+  copySelection() {
+    const roots = this.selectionRoots();
+    if (!roots.length) return 0;
+    const collected = [];
+    const add = (t) => {
+      collected.push(t);
+      for (const k of childrenOf(this.project, t.id)) add(k);
+    };
+    roots.forEach(add);
+    this.clipboard = {
+      kind: 'terminplanung-aufgaben',
+      at: new Date().toISOString(),
+      tasks: collected.map((t) => ({
+        id: t.id, parentId: t.parentId, name: t.name, type: t.type,
+        start: t.start, end: t.end, duration: t.duration, progress: t.progress,
+        status: t.status, priority: t.priority, assignees: t.assignees.slice(),
+        deps: t.deps.map((d) => ({ ...d })), constraint: t.constraint,
+        deadline: t.deadline, color: t.color, notes: t.notes, tags: t.tags.slice(),
+        fromPool: t.fromPool || null,
+      })),
+    };
+    // zusätzlich als Text (Tabulator-getrennt) in die Systemablage
+    const header = ['Nr.', 'Aufgabe', 'Beginn', 'Ende', 'Dauer', 'Fortschritt', 'Status', 'Wer'];
+    const lines = [header.join('\t')];
+    for (const t of collected) {
+      lines.push([t.wbs || '', t.name, t.start, t.end, t.duration, t.progress + '%',
+        (STATUS[t.status] || {}).label || t.status,
+        (t.assignees || []).map((a) => (this.project.resources.find((r) => r.id === a) || {}).name).filter(Boolean).join(', ')].join('\t'));
+    }
+    try { navigator.clipboard.writeText(lines.join('\n')); } catch { /* egal */ }
+    return collected.length;
+  },
+
+  /** Zwischenablage als neue Aufgaben einfügen (nach der Auswahl bzw. am Ende). */
+  pasteClipboard() {
+    const clip = this.clipboard;
+    if (!clip || !clip.tasks || !clip.tasks.length) return 0;
+    let count = 0;
+    this.mutate('Aufgaben einfügen', (p) => {
+      const idMap = new Map();
+      const copies = clip.tasks.map((src) => {
+        const t = newTask(Object.assign({}, src, { id: undefined, deps: [] }));
+        t.id = uid();
+        idMap.set(src.id, t.id);
+        return t;
+      });
+      copies.forEach((t, i) => {
+        const src = clip.tasks[i];
+        t.parentId = src.parentId && idMap.has(src.parentId) ? idMap.get(src.parentId) : null;
+        t.deps = (src.deps || [])
+          .filter((d) => idMap.has(d.id))
+          .map((d) => ({ id: idMap.get(d.id), type: d.type, lag: d.lag }));
+      });
+      const roots = copies.filter((t) => !t.parentId);
+      const lastSelected = this.selectedInOrder().slice(-1)[0];
+      const at = lastSelected ? p.tasks.findIndex((x) => x.id === lastSelected.id) + 1 : p.tasks.length;
+      p.tasks.splice(at, 0, ...roots);
+      const byParent = new Map();
+      for (const t of copies) {
+        if (!t.parentId) continue;
+        if (!byParent.has(t.parentId)) byParent.set(t.parentId, []);
+        byParent.get(t.parentId).push(t);
+      }
+      for (const [pid, kids] of byParent) {
+        const idx = p.tasks.findIndex((x) => x.id === pid);
+        p.tasks.splice(idx + 1, 0, ...kids);
+      }
+      count = copies.length;
+      this.selectedIds = new Set(copies.map((t) => t.id));
+      this.selectedId = copies[0].id;
+    });
+    this.emit('select');
+    return count;
+  },
+
+  /** Auswahl in den Papierkorb-Sinn: löschen ohne Rückfrage (Rückgängig möglich). */
+  get hasClipboard() { return !!(this.clipboard && this.clipboard.tasks.length); },
 
   /* ───────── Aufgaben ───────── */
 
@@ -157,7 +386,7 @@ export const store = {
       if (t.type === 'milestone') { t.duration = 0; t.end = t.start; }
       p.tasks.splice(this._insertIndex(p, after), 0, t);
       created = t.id;
-      this.selectedId = t.id;
+      this._only(t.id);
     });
     return created;
   },
@@ -176,7 +405,7 @@ export const store = {
       });
       p.tasks.splice(this._insertIndex(p, after), 0, t);
       created = t.id;
-      this.selectedId = t.id;
+      this._only(t.id);
     });
     return created;
   },
@@ -185,13 +414,7 @@ export const store = {
     this.mutate(label, (p) => {
       const t = taskById(p, id);
       if (!t) return false;
-      Object.assign(t, patch);
-      if (patch.type === 'milestone') { t.duration = 0; t.end = t.start; }
-      if (patch.start && patch.duration != null) { /* Termine werden neu berechnet */ }
-      // Status und Fortschritt synchron halten
-      if (patch.status === 'done' && t.progress < 100) t.progress = 100;
-      if (patch.progress === 100 && t.status !== 'done') t.status = 'done';
-      if (patch.progress != null && patch.progress < 100 && t.status === 'done') t.status = 'running';
+      applyTaskPatch(t, patch);
     });
   },
 
@@ -199,9 +422,36 @@ export const store = {
     this.mutate(label, (p) => {
       for (const id of ids) {
         const t = taskById(p, id);
-        if (t) Object.assign(t, patch);
+        if (t) applyTaskPatch(t, patch);
       }
     });
+  },
+
+  /** Alle ausgewählten Aufgaben um Tage/Wochen/Monate verschieben. */
+  shiftSelected(amount, unit = 'day') {
+    const roots = this.selectionRoots();
+    const n = Number(amount) || 0;
+    if (!roots.length || !n) return 0;
+    let done = 0;
+    const word = { day: 'Tag(e)', week: 'Woche(n)', month: 'Monat(e)' }[unit] || 'Tag(e)';
+    this.mutate(`${roots.length} Aufgaben ${n > 0 ? '+' : '−'}${Math.abs(n)} ${word}`, (p) => {
+      for (const root of roots) {
+        const t = taskById(p, root.id);
+        if (!t) continue;
+        const cal = p.settings.calendar;
+        const step = unit === 'month' ? 0 : (unit === 'week' ? 7 : 1);
+        const nsRaw = unit === 'month' ? addMonths(t.start, n) : addDays(t.start, n * step);
+        const ns = snapToWorkday(nsRaw, cal, n > 0 ? 1 : -1);
+        if (isSummary(p, t)) { shiftSubtree(p, t.id, diffWorkdays(p, t.start, ns)); done++; continue; }
+        const dur = t.type === 'milestone' ? 0 : Math.max(1, t.duration || 1);
+        t.start = ns;
+        t.end = t.type === 'milestone' ? ns : endFromDuration(ns, dur, cal);
+        if (t.constraint && t.constraint.type === 'MSO') t.constraint = { type: 'MSO', date: ns };
+        else t.constraint = { type: 'SNET', date: ns };
+        done++;
+      }
+    });
+    return done;
   },
 
   deleteTask(id) {
@@ -214,6 +464,7 @@ export const store = {
       p.tasks = p.tasks.filter((x) => !kill.has(x.id));
       for (const rest of p.tasks) rest.deps = (rest.deps || []).filter((d) => !kill.has(d.id));
       if (kill.has(this.selectedId)) this.selectedId = null;
+      this.selectedIds = new Set([...this.selectedIds].filter((x) => !kill.has(x)));
     });
     return name;
   },
@@ -229,7 +480,7 @@ export const store = {
       copy.id = uid();
       p.tasks.splice(this._insertIndex(p, id), 0, copy);
       created = copy.id;
-      this.selectedId = copy.id;
+      this._only(copy.id);
     });
     return created;
   },
@@ -560,7 +811,7 @@ export const store = {
       if (idx >= 0) p.tasks.splice(idx + 1, 0, t);
       else p.tasks.push(t);
       created = t.id;
-      this.selectedId = t.id;
+      this._only(t.id);
     });
     return created;
   },
@@ -629,6 +880,38 @@ export const store = {
 };
 
 /* ───────── Hilfen ───────── */
+
+/** Eine Änderung auf eine Aufgabe anwenden – Status und Fortschritt bleiben stimmig. */
+function applyTaskPatch(t, patch) {
+  Object.assign(t, patch);
+  if (patch.type === 'milestone') { t.duration = 0; t.end = t.start; }
+  if (patch.status === 'done' && t.progress < 100) t.progress = 100;
+  if (patch.progress === 100 && t.status !== 'done') t.status = 'done';
+  if (patch.progress != null && patch.progress < 100 && t.status === 'done') t.status = 'running';
+  if (patch.progress != null && patch.progress > 0 && patch.progress < 100 && t.status === 'open') t.status = 'running';
+}
+
+/**
+ * Aufgabe samt Unteraufgaben kopieren.
+ * @param {object} project
+ * @param {object} root
+ * @param {(t:object)=>string} nameFor – Name der Kopie
+ * @returns {Array<object>} Kopien in Baumreihenfolge
+ */
+function cloneSubtree(project, root, nameFor = (t) => t.name) {
+  const out = [];
+  const walk = (src, parentId) => {
+    const copy = newTask(Object.assign({}, src, { id: undefined, deps: [], wbs: undefined }));
+    copy.id = uid();
+    copy.name = nameFor(src);
+    copy.parentId = parentId;
+    copy.deps = (src.deps || []).map((d) => ({ ...d }));
+    out.push(copy);
+    for (const kid of childrenOf(project, src.id)) walk(kid, copy.id);
+  };
+  walk(root, root.parentId || null);
+  return out;
+}
 
 /** Alle Unteraufgaben einer Sammelaufgabe um n Arbeitstage verschieben. */
 function shiftSubtree(project, id, deltaWorkdays) {

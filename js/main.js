@@ -139,6 +139,12 @@ function renderStatus() {
   $('#stat-count').textContent = `${s.total} Aufgabe${s.total === 1 ? '' : 'n'}${s.late ? ` · ${s.late} über Ziel` : ''}`;
   $('#stat-range').textContent = s.from ? `${formatIso(s.from)} – ${formatIso(s.to)} (${s.spanDays} Tage)` : '–';
   $('#stat-progress').textContent = `${s.progress} % erledigt · ${s.done} fertig`;
+  const sel = store.selectionCount();
+  const selEl = $('#stat-sel');
+  if (selEl) {
+    selEl.hidden = sel < 2;
+    if (sel >= 2) selEl.textContent = `${sel} markiert · Entf löscht · Strg+C kopiert · Strg+D dupliziert`;
+  }
   $('#stat-file').textContent = storage.fileName || 'keine Datei';
 }
 
@@ -197,6 +203,10 @@ function bindStorage() {
     }
     if (reason === 'load') { updateSaveState(); }
     if (reason === 'armed') { renderArmedBar(); return; }
+    if (reason === 'action-copy') { copySelection(); return; }
+    if (reason === 'action-paste') { pasteSelection(); return; }
+    if (reason === 'action-duplicate') { duplicateSelection(); return; }
+    if (reason === 'action-delete-selection') { deleteSelection(); return; }
     if (reason === 'open-shift') { shiftTaskDialog(store.selected); return; }
     if (reason === 'open-pool') { poolDialog(arg, openPoolWindow); return; }
     if (reason === 'pool-global') { requestRender(); return; }
@@ -377,7 +387,47 @@ const actions = {
   'clear-filter': () => { store.ui.filter = { text: '', assignee: '', status: '' }; $('#filter-text').value = ''; $('#filter-assignee').value = ''; $('#filter-status').value = ''; store.emit('change'); },
   'backups': () => backupsDialog((text, backupName) => openProjectText(text, { fileName: storage.fileName, sourceLabel: backupName })),
   'scroll-today': () => ganttScrollToToday(),
+  'select-all': () => store.selectAll(),
+  'clear-selection': () => store.clearSelection(),
+  'duplicate-selection': () => duplicateSelection(),
+  'copy-selection': () => copySelection(),
+  'paste-selection': () => pasteSelection(),
+  'delete-selection': () => deleteSelection(),
 };
+
+/* ───────── Mehrfachauswahl: Aktionen ───────── */
+
+async function deleteSelection() {
+  const n = store.selectionCount();
+  if (!n) return;
+  if (n === 1) {
+    store.deleteTask(store.selectedId);
+    toast('Aufgabe gelöscht', 'ok', 'Mit Strg+Z zurückholen.', 2600);
+    return;
+  }
+  const ok = await confirmDialog(`${n} Aufgaben löschen`, 'Die markierten Aufgaben werden gelöscht – Unteraufgaben kommen mit.', 'Löschen', { danger: true });
+  if (!ok) return;
+  const count = store.deleteSelected();
+  toast(`${count} Aufgaben gelöscht`, 'ok', 'Mit Strg+Z zurückholen.', 3000);
+}
+
+function copySelection() {
+  const n = store.copySelection();
+  if (!n) { toast('Nichts markiert', 'warn', 'Erst Aufgaben markieren.', 2400); return; }
+  toast(`${n} Aufgaben kopiert`, 'ok', 'Mit Strg+V wieder einfügen – auch in ein anderes Projekt.', 3200);
+}
+
+function pasteSelection() {
+  if (!store.hasClipboard) { toast('Zwischenablage leer', 'warn', 'Erst mit Strg+C kopieren.', 2400); return; }
+  const n = store.pasteClipboard();
+  if (n) toast(`${n} Aufgaben eingefügt`, 'ok', 'Sie stehen hinter der Auswahl und sind markiert.', 3000);
+}
+
+function duplicateSelection() {
+  const n = store.duplicateSelected();
+  if (n) toast(`${n} Aufgaben dupliziert`, 'ok', 'Die Kopien stehen hinter den Originalen.', 3000);
+  else toast('Nichts markiert', 'warn', 'Erst Aufgaben markieren.', 2400);
+}
 
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
@@ -413,23 +463,34 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (inField()) return;
+  if (mod && e.key.toLowerCase() === 'a') { e.preventDefault(); store.selectAll(); return; }
+  if (mod && e.key.toLowerCase() === 'c') { e.preventDefault(); copySelection(); return; }
+  if (mod && e.key.toLowerCase() === 'v') { e.preventDefault(); pasteSelection(); return; }
+  if (mod && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateSelection(); return; }
   // Aufgaben mit Umschalt+Pfeiltasten verschieben
   if (e.shiftKey && !e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     if (!store.selectedId) return;
     e.preventDefault();
     const dir = e.key === 'ArrowRight' ? 1 : -1;
-    store.shiftTask(store.selectedId, dir, (e.ctrlKey || e.metaKey) ? 'month' : 'day');
+    const unit = mod ? 'month' : 'day';
+    if (store.selectionCount() > 1) store.shiftSelected(dir, unit);
+    else store.shiftTask(store.selectedId, dir, unit);
     return;
   }
+  // Umschalt+Auf/Ab erweitert die Auswahl (wie im Explorer); mit Strg: eine Woche verschieben
   if (e.shiftKey && !e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-    if (!store.selectedId) return;
     e.preventDefault();
     const dir = e.key === 'ArrowDown' ? 1 : -1;
-    store.shiftTask(store.selectedId, dir, (e.ctrlKey || e.metaKey) ? 'month' : 'week');
+    if (mod) {
+      if (store.selectionCount() > 1) store.shiftSelected(dir, 'week');
+      else if (store.selectedId) store.shiftTask(store.selectedId, dir, 'week');
+      return;
+    }
+    store.extendSelection(dir);
     return;
   }
   if (e.key === 'Insert') { e.preventDefault(); store.addTask(); return; }
-  if (e.key === 'Delete') { e.preventDefault(); if (store.selectedId) store.deleteTask(store.selectedId); return; }
+  if (e.key === 'Delete') { e.preventDefault(); deleteSelection(); return; }
   if (e.key === 'F2') { e.preventDefault(); const t = store.selected; if (t) promptDialog('Umbenennen', 'Neue Bezeichnung', t.name).then((v) => v && store.updateTask(t.id, { name: v }, 'Aufgabe umbenennen')); return; }
   if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); if (store.selectedId) store.indent(store.selectedId); return; }
   if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); if (store.selectedId) store.outdent(store.selectedId); return; }

@@ -8,8 +8,93 @@ import { store } from '../store.js';
 import { STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, DEP_TYPES, CONSTRAINT_TYPES, PALETTE, taskById, descendantsOf } from '../model.js';
 import { formatIso, endFromDuration, durationFromRange, snapToWorkday, workdaysBetween } from '../dateutil.js';
 
+/* ───────── Mehrfachauswahl: Änderungen für alle markierten Aufgaben ───────── */
+
+function renderMulti(host) {
+  host.hidden = false;
+  const tasks = store.selectedInOrder();
+  const ids = tasks.map((t) => t.id);
+  const p = store.project;
+
+  host.appendChild(el('div', { class: 'detail-head' },
+    el('h3', { text: `${ids.length} Aufgaben ausgewählt` }),
+    el('button', { class: 'iconbtn', title: 'Auswahl aufheben (Esc)', text: '✕', onclick: () => store.clearSelection() })));
+
+  const body = el('div', { class: 'detail-body' });
+  host.appendChild(body);
+  const field = (label, ...kids) => el('div', { class: 'field' }, el('label', { text: label }), ...kids);
+
+  body.appendChild(el('div', { class: 'warnbox', style: { color: 'var(--fg-2)', background: 'var(--bg-3)', borderColor: 'var(--line)' },
+    text: 'Änderungen hier gelten für alle markierten Aufgaben. Unteraufgaben werden mitgenommen.' }));
+
+  /* Aktionen */
+  const acts = el('div', { class: 'chip-row' });
+  acts.appendChild(el('button', { class: 'pick', text: '⧉ Duplizieren', title: 'Kopien direkt hinter den Originalen (Strg+D)', onclick: () => store.emit('action-duplicate') }));
+  acts.appendChild(el('button', { class: 'pick', text: '⧉ Kopieren', title: 'In die Zwischenablage (Strg+C)', onclick: () => store.emit('action-copy') }));
+  acts.appendChild(el('button', { class: 'pick', text: '📋 Einfügen', title: 'Kopierte Aufgaben einfügen (Strg+V)', onclick: () => store.emit('action-paste') }));
+  acts.appendChild(el('button', { class: 'pick', text: '🗑 Löschen', title: 'Alle markierten löschen (Entf)', onclick: () => store.emit('action-delete-selection') }));
+  acts.appendChild(el('button', { class: 'pick', text: '✕ Auswahl aufheben', onclick: () => store.clearSelection() }));
+  body.appendChild(field('Aktionen', acts));
+
+  /* Termin verschieben – für alle */
+  const shiftRow = el('div', { class: 'chip-row' });
+  const sh = (label, amount, unit, title) => el('button', { class: 'pick', text: label, title, onclick: () => store.shiftSelected(amount, unit) });
+  shiftRow.appendChild(sh('− 1 Monat', -1, 'month', 'Alle einen Monat früher'));
+  shiftRow.appendChild(sh('− 1 Woche', -1, 'week', 'Alle eine Woche früher'));
+  shiftRow.appendChild(sh('− 1 Tag', -1, 'day', 'Alle einen Arbeitstag früher'));
+  shiftRow.appendChild(sh('+ 1 Tag', 1, 'day', 'Alle einen Arbeitstag später'));
+  shiftRow.appendChild(sh('+ 1 Woche', 1, 'week', 'Alle eine Woche später'));
+  shiftRow.appendChild(sh('+ 1 Monat', 1, 'month', 'Alle einen Monat später'));
+  body.appendChild(field('Termin verschieben (alle)', shiftRow));
+
+  /* Status / Priorität */
+  const stSel = el('select', { onchange: (e) => { if (e.target.value) store.updateMany(ids, { status: e.target.value }, 'Status für Auswahl'); } },
+    el('option', { value: '', text: '– unverändert –' }),
+    ...STATUS_ORDER.map((s) => el('option', { value: s, text: STATUS[s].label })));
+  const prSel = el('select', { onchange: (e) => { if (e.target.value) store.updateMany(ids, { priority: e.target.value }, 'Priorität für Auswahl'); } },
+    el('option', { value: '', text: '– unverändert –' }),
+    ...PRIORITY_ORDER.map((s) => el('option', { value: s, text: PRIORITY[s].label })));
+  body.appendChild(el('div', { class: 'grid2' },
+    field('Status', stSel),
+    field('Priorität', prSel)));
+
+  /* Fortschritt in Stufen */
+  const progRow = el('div', { class: 'chip-row' });
+  for (const v of [0, 25, 50, 75, 100]) {
+    progRow.appendChild(el('button', { class: 'pick', text: v + ' %', onclick: () => store.updateMany(ids, { progress: v }, 'Fortschritt für Auswahl') }));
+  }
+  body.appendChild(field('Fortschritt setzen', progRow));
+
+  /* Farbe */
+  const colors = el('div', { class: 'chip-row' });
+  for (const c of PALETTE) {
+    colors.appendChild(el('button', { class: 'pick', style: { background: c, width: '26px', height: '22px', padding: '0' }, title: c, onclick: () => store.updateMany(ids, { color: c }, 'Farbe für Auswahl') }));
+  }
+  colors.appendChild(el('button', { class: 'pick', text: 'automatisch', onclick: () => store.updateMany(ids, { color: null }, 'Farbe für Auswahl') }));
+  body.appendChild(field('Farbe', colors));
+
+  /* Liste der markierten Aufgaben */
+  const list = el('div', { class: 'dep-list' });
+  for (const t of tasks) {
+    list.appendChild(el('div', { class: 'dep-item' },
+      el('span', { class: 't', text: `${t.wbs ? t.wbs + ' ' : ''}${t.name}` }),
+      el('button', { class: 'iconbtn', title: 'Nur diese markieren', text: '◎', onclick: () => store.select(t.id) }),
+      el('button', { class: 'iconbtn', title: 'Aus Auswahl entfernen', text: '✕', onclick: () => store.select(t.id, 'toggle') })));
+  }
+  body.appendChild(field('Markiert', list));
+
+  body.appendChild(el('div', { class: 'hint', text: 'Tipp: Im Explorer-Stil markieren – Klick, Strg+Klick für einzelne, Umschalt+Klick für einen Bereich. Strg+A markiert alles.' }));
+  void p;
+}
+
 export function renderDetail(host) {
   clear(host);
+  if (store.selectionCount() > 1) { renderMulti(host); return; }
+  renderSingle(host);
+}
+
+/** Detailbereich für genau eine Aufgabe. */
+function renderSingle(host) {
   const task = store.selected;
   if (!task) {
     host.hidden = true;

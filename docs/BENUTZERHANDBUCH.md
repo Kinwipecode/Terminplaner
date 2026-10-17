@@ -163,8 +163,12 @@ Farbe gesetzt ist.
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
 | `Alt`+`↑` / `Alt`+`↓` | Zeile verschieben |
 | **Umschalt**+`←` / `→` | Termin um **einen Arbeitstag** verschieben |
-| **Umschalt**+`↑` / `↓` | Termin um **eine Woche** verschieben |
-| **Umschalt**+`Strg`+Pfeile | Termin um **einen Monat** verschieben |
+| **Umschalt**+`Strg`+`↑` / `↓` | Termin um **eine Woche** verschieben |
+| **Umschalt**+`Strg`+`←` / `→` | Termin um **einen Monat** verschieben |
+| **Umschalt**+`↑` / `↓` | Auswahl erweitern bzw. verkleinern |
+| **Strg**+`A` | alle sichtbaren Aufgaben markieren |
+| **Strg**+`C` / `Strg`+`V` / **Strg**+`D` | Auswahl kopieren / einfügen / duplizieren |
+| `Entf` | markierte Aufgaben löschen |
 | `1` … `4` | Ansicht wechseln |
 | `Leertaste` | zu „Heute“ springen |
 | `Strg`+`P` | drucken bzw. PDF erzeugen |
@@ -198,7 +202,7 @@ Achtung: mit `Strg` werden Balken nicht verschoben; zum Ändern von Terminen ohn
 Drei Wege, alle mit demselben Ergebnis:
 
 1. **Tastatur**: Aufgabe auswählen, dann `Umschalt`+`←`/`→` (ein Arbeitstag),
-   `Umschalt`+`↑`/`↓` (eine Woche) oder mit `Strg` dazu (ein Monat).
+   `Umschalt`+`Strg`+`↑`/`↓` (eine Woche) oder `Umschalt`+`Strg`+`←`/`→` (ein Monat).
 2. **Rechtsklick** auf eine Zeile (Gantt oder Tabelle) → *Termin: 1 Tag/Woche/Monat
    später bzw. früher* oder **Termin verschieben…**.
 3. **Detailbereich** rechts: die Knöpfe `− 1 Monat` bis `+ 1 Monat`, oder **Verschieben…** für
@@ -214,13 +218,63 @@ Geregelt wird dabei immer:
   im Verschieben-Fenster). Ist sie aus, bleibt alles stehen und die App meldet nur Widersprüche.
 - Sammelaufgaben verschieben alle ihre Unteraufgaben mit.
 
-## 12. Zeilenhöhe
+## 12. Mehrere Aufgaben markieren (wie im Explorer)
+
+Es lassen sich beliebig viele Aufgaben gleichzeitig markieren – zum Löschen, Kopieren oder um Status,
+Priorität, Fortschritt und Farbe für alle in einem Rutsch zu setzen.
+
+| Eingabe | Wirkung |
+|---|---|
+| **Klick** | markiert genau diese Aufgabe (sie wird der **Anker**) |
+| **Strg**+**Klick** | fügt eine einzelne Aufgabe hinzu bzw. nimmt sie wieder heraus |
+| **Umschalt**+**Klick** | markiert alles **von der Anker-Aufgabe bis hierher** |
+| **Strg**+**Umschalt**+**Klick** | diesen Bereich zur bestehenden Auswahl hinzufügen |
+| **Umschalt**+`↑` / `↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
+| **Strg**+`A` | alle sichtbaren Aufgaben markieren (auch bei aktivem Filter) |
+| `Esc` oder Klick ins Leere | Auswahl aufheben |
+| **Strg**+`C` | Auswahl kopieren |
+| **Strg**+`V` | kopierte Aufgaben als neue Aufgaben einfügen |
+| **Strg**+`D` | Auswahl duplizieren – die Kopien stehen hinter den Originalen |
+| `Entf` | Auswahl löschen (mit Rückfrage; `Strg`+`Z` holt sie zurück) |
+
+Markiert wird in **allen vier Ansichten**: im Gantt, in der Tabelle, im Kalender und im Board.
+Ein Rechtsklick auf eine markierte Aufgabe stellt die Mehrfach-Einträge oben ins Menü.
+
+**Sammelbearbeitung im Detailbereich**
+
+Sind mehrere Aufgaben markiert, zeigt der Bereich rechts statt der Einzelheiten eine
+Sammelbearbeitung:
+
+- **Aktionen**: Duplizieren, Kopieren, Einfügen, Löschen, Auswahl aufheben
+- **Termin verschieben (alle)**: ± 1 Tag / 1 Woche / 1 Monat für die ganze Auswahl
+- **Status**, **Priorität**: „– unverändert –“ lässt die Aufgaben, wie sie sind
+- **Fortschritt setzen**: 0 / 25 / 50 / 75 / 100 %
+- **Farbe**: eine Farbe für alle oder wieder „automatisch“
+- **Markiert**: die Liste der markierten Aufgaben, jede einzeln entfernbar (✕) oder allein
+  auswählbar (◎)
+
+Die Statuszeile unten zeigt jederzeit „*n* markiert“ samt der wichtigsten Kürzel.
+
+**Gut zu wissen**
+
+- **Löschen** fragt bei mehreren Aufgaben nach und lässt sich mit `Strg`+`Z` rückgängig machen.
+  Unteraufgaben markierter Sammelaufgaben werden mitgelöscht.
+- **Duplizieren** nimmt Unteraufgaben mit und hängt „(Kopie)“ an den Namen.
+- **Kopieren** legt die Auswahl zusätzlich als Text in die Windows-Zwischenablage (Tabulator-
+  getrennt), sodass sie sich z. B. in Excel einfügen lässt. Innerhalb der App bleiben die
+  Verknüpfungen zwischen den kopierten Aufgaben erhalten; Verknüpfungen zu Aufgaben außerhalb
+  der Auswahl entfallen.
+- **Verschieben** gilt nur für die markierten Aufgaben – Unteraufgaben einer markierten
+  Sammelaufgabe wandern automatisch mit, auch wenn sie selbst nicht markiert sind.
+  Beim **Ziehen mit der Maus** bewegt sich dagegen nur der gegriffene Balken.
+
+## 13. Zeilenhöhe
 
 **Setup** → *Zeilenhöhe in Listen und Gantt*: **kompakt** (24 px), **normal** (30 px),
 **geräumig** (38 px) oder **sehr groß** (46 px). Die Einstellung wirkt sofort in Gantt, Tabelle,
 Kalender und Board und wird **im Projekt gespeichert** – beim nächsten Öffnen ist sie wieder da.
 
-## 13. Ideen-Sammelbecken (zweites Fenster)
+## 14. Ideen-Sammelbecken (zweites Fenster)
 
 Der Gedanke: Aufgaben, die es gibt, aber noch keinen Termin haben, sollen nicht verloren gehen.
 Sie stehen in einem eigenen Fenster, das man auf den zweiten Bildschirm schieben kann.
@@ -260,7 +314,7 @@ wandert der Vorrat ins Projekt.
 allgemeinen Vorrat trotzdem bearbeiten; das Projekt-Sammelbecken braucht das Planungsfenster
 (denn die Daten gehören zur Projektdatei).
 
-## 14. Farblayout der Oberfläche
+## 15. Farblayout der Oberfläche
 
 Links auf **Farbe** (oder oben auf **◐**, oder im Setup-Fenster auf **Farblayout…**).
 Es öffnet sich eine Auswahl mit neun fertigen Layouts – jedes mit echter Vorschau in seinen
@@ -286,7 +340,7 @@ blau = offen, grau = niedrige Priorität). Dadurch sehen Pläne in jedem Layout 
 nur die Flächen und Linien ändern sich. Der **Ausdruck ist unabhängig vom Layout immer hell**,
 damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
 
-## 15. Drucken und PDF erzeugen
+## 16. Drucken und PDF erzeugen
 
 Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
 auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
@@ -334,7 +388,7 @@ Tabelle 1 · Legende 1“), samt Hinweisen, wenn es viele Blätter werden.
 **Drucken ohne Dialog prüfen**: Mit **Vorschau bauen** wird der Aufbau erzeugt, ohne dass der
 Druckdialog aufgeht – man kann ihn dann in Ruhe ansehen (z. B. mit der Druckvorschau des Browsers).
 
-## 16. Häufige Fragen
+## 17. Häufige Fragen
 
 **Wo liegt meine Datei?** Der Hinweis oben rechts nennt den Speicherort (Ordnerpfad bzw.
 „Browser-Speicher“). Im Ordner-Modus ist es eine normale Datei, die man kopieren, sichern oder

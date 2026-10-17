@@ -6,6 +6,7 @@
 import { el, clear, initials } from '../ui/dom.js';
 import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { contextMenu } from '../ui/menu.js';
+import { multiMenuItems } from './gantt.js';
 import { store } from '../store.js';
 import { STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, taskById, isSummary } from '../model.js';
 import { formatIso, endFromDuration, durationFromRange, snapToWorkday, todayIso } from '../dateutil.js';
@@ -70,8 +71,10 @@ export function renderTable(container) {
   bar.appendChild(el('button', { class: 'btn', text: 'Alt+← Ausrücken', onclick: () => store.outdent(store.selectedId) }));
   bar.appendChild(el('button', { class: 'btn', text: '↑ Hoch', onclick: () => store.moveRow(store.selectedId, -1) }));
   bar.appendChild(el('button', { class: 'btn', text: '↓ Runter', onclick: () => store.moveRow(store.selectedId, 1) }));
-  bar.appendChild(el('button', { class: 'btn', text: '⧉ Duplizieren', onclick: () => store.duplicateTask(store.selectedId) }));
-  bar.appendChild(el('button', { class: 'btn btn-danger', text: 'Löschen', onclick: () => store.deleteTask(store.selectedId) }));
+  bar.appendChild(el('button', { class: 'btn', text: '⧉ Duplizieren', title: 'Markierte Aufgaben duplizieren (Strg+D)', onclick: () => store.emit('action-duplicate') }));
+  bar.appendChild(el('button', { class: 'btn', text: '⧉ Kopieren', title: 'Markierte Aufgaben kopieren (Strg+C)', onclick: () => store.emit('action-copy') }));
+  bar.appendChild(el('button', { class: 'btn', text: '📋 Einfügen', title: 'Kopierte Aufgaben einfügen (Strg+V)', onclick: () => store.emit('action-paste') }));
+  bar.appendChild(el('button', { class: 'btn btn-danger', text: 'Löschen', title: 'Markierte Aufgaben löschen (Entf)', onclick: () => store.emit('action-delete-selection') }));
   bar.appendChild(el('span', { class: 'sep' }));
   bar.appendChild(el('span', { class: 'hint', text: 'Gruppieren:' }));
   const gsel = el('select', { class: 'mini', onchange: (e) => { ui.groupBy = e.target.value; store.emit('change'); } },
@@ -128,8 +131,9 @@ export function renderTable(container) {
 
   const renderRow = (task) => {
     const depth = (() => { let d = 0, cur = task, g = 0; while (cur.parentId && g++ < 50) { cur = taskById(p, cur.parentId); if (!cur) break; d++; } return d; })();
+    const sel = store.isSelected(task.id);
     const tr = el('tr', {
-      class: (store.selectedId === task.id ? 'is-sel ' : '') + (isSummary(p, task) ? 'is-group ' : '') + (isTodayTask(task) ? 'is-today' : ''),
+      class: (sel ? (store.selectedId === task.id ? 'is-sel ' : 'is-multi ') : '') + (isSummary(p, task) ? 'is-group ' : '') + (isTodayTask(task) ? 'is-today' : ''),
       dataset: { taskId: task.id },
     });
     tr.addEventListener('mousedown', (e) => {
@@ -139,13 +143,15 @@ export function renderTable(container) {
           placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId });
           return;
         }
-        store.select(task.id);
+        store.select(task.id, e.shiftKey ? 'range' : ((e.ctrlKey || e.metaKey) ? 'toggle' : 'replace'));
       }
     });
     tr.addEventListener('dblclick', (e) => { if (!e.target.closest('input,select')) { store.select(task.id); store.emit('open-detail'); } });
     tr.addEventListener('contextmenu', (e) => {
-      e.preventDefault(); store.select(task.id);
+      e.preventDefault();
+      if (!store.isSelected(task.id)) store.select(task.id);
       contextMenu(e.clientX, e.clientY, [
+        ...multiMenuItems(task),
         { label: 'Details zeigen', run: () => store.emit('open-detail') },
         '-',
         { label: 'Termin: 1 Tag später', run: () => store.shiftTask(task.id, 1, 'day') },
