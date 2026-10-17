@@ -13,3 +13,8 @@ Backups/
 
 # Persönliche Projektdateien – Beispielprojekt bleibt absichtlich drin
 /*.tplan.json
+
+# Python-Zwischendateien
+tools/__pycache__/
+__pycache__/
+*.pyc
