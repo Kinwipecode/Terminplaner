@@ -1,0 +1,526 @@
+{
+  "format": "terminplanung",
+  "version": 1,
+  "meta": {
+    "name": "Beispielprojekt – Website-Neulaufbau",
+    "description": "Beispielplan zum Ausprobieren. Zeilen ziehen, Abhängigkeiten ändern, Ansichten wechseln.",
+    "created": "2026-10-17T09:10:55.089Z",
+    "modified": "2026-10-17T09:10:55.090Z",
+    "author": ""
+  },
+  "settings": {
+    "projectStart": "2026-10-19",
+    "calendar": {
+      "workdays": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "holidays": [],
+      "extraWorkdays": []
+    },
+    "defaultView": "gantt",
+    "showCritical": false,
+    "showDeps": true,
+    "autoPlan": true,
+    "zoom": "week"
+  },
+  "resources": [
+    {
+      "id": "rmvc6fg4x11f4z",
+      "name": "Anna Weber",
+      "type": "person",
+      "email": "anna@example.org",
+      "color": "#6366f1",
+      "capacity": 100
+    },
+    {
+      "id": "rmvc6fg4x2lj59",
+      "name": "Ben Krause",
+      "type": "person",
+      "email": "ben@example.org",
+      "color": "#22c55e",
+      "capacity": 100
+    },
+    {
+      "id": "rmvc6fg4x3z8gq",
+      "name": "Clara Sander",
+      "type": "person",
+      "email": "clara@example.org",
+      "color": "#f59e0b",
+      "capacity": 100
+    },
+    {
+      "id": "rmvc6fg4x47r23",
+      "name": "Extern: Agentur",
+      "type": "team",
+      "email": "",
+      "color": "#ec4899",
+      "capacity": 100
+    }
+  ],
+  "tasks": [
+    {
+      "id": "tmvc6fg4x5raqg",
+      "parentId": null,
+      "wbs": "1",
+      "name": "Konzept & Planung",
+      "type": "summary",
+      "start": "2026-10-19",
+      "end": "2026-10-19",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4x6age2",
+      "parentId": "tmvc6fg4x5raqg",
+      "wbs": "1.1",
+      "name": "Anforderungen sammeln",
+      "type": "task",
+      "start": "2026-10-19",
+      "end": "2026-10-22",
+      "duration": 4,
+      "progress": 100,
+      "status": "done",
+      "priority": "high",
+      "assignees": [
+        "rmvc6fg4x11f4z"
+      ],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4x7p6d5",
+      "parentId": "tmvc6fg4x5raqg",
+      "wbs": "1.2",
+      "name": "Zielgruppen-Workshop",
+      "type": "task",
+      "start": "2026-10-23",
+      "end": "2026-10-26",
+      "duration": 2,
+      "progress": 100,
+      "status": "done",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x11f4z",
+        "rmvc6fg4x2lj59"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4x6age2",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4x8w0rz",
+      "parentId": "tmvc6fg4x5raqg",
+      "wbs": "1.3",
+      "name": "Konzept freigegeben",
+      "type": "milestone",
+      "start": "2026-10-27",
+      "end": "2026-10-27",
+      "duration": 0,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [
+        {
+          "id": "tmvc6fg4x7p6d5",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": "#8b5cf6",
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4x9f5gv",
+      "parentId": null,
+      "wbs": "2",
+      "name": "Design",
+      "type": "summary",
+      "start": "2026-10-27",
+      "end": "2026-10-27",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4xay576",
+      "parentId": "tmvc6fg4x9f5gv",
+      "wbs": "2.1",
+      "name": "Wireframes",
+      "type": "task",
+      "start": "2026-10-27",
+      "end": "2026-11-02",
+      "duration": 5,
+      "progress": 100,
+      "status": "done",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x47r23"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4x8w0rz",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": "#ec4899",
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4xbaeq4",
+      "parentId": "tmvc6fg4x9f5gv",
+      "wbs": "2.2",
+      "name": "Screendesign",
+      "type": "task",
+      "start": "2026-11-03",
+      "end": "2026-11-12",
+      "duration": 8,
+      "progress": 65,
+      "status": "running",
+      "priority": "high",
+      "assignees": [
+        "rmvc6fg4x47r23"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4xay576",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": "#ec4899",
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4xceiv9",
+      "parentId": "tmvc6fg4x9f5gv",
+      "wbs": "2.3",
+      "name": "Design-Review",
+      "type": "task",
+      "start": "2026-11-13",
+      "end": "2026-11-13",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x11f4z"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4xbaeq4",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4xdbgk0",
+      "parentId": null,
+      "wbs": "3",
+      "name": "Umsetzung",
+      "type": "summary",
+      "start": "2026-10-27",
+      "end": "2026-10-27",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4ye1k75",
+      "parentId": "tmvc6fg4xdbgk0",
+      "wbs": "3.1",
+      "name": "Datenmodell & API",
+      "type": "task",
+      "start": "2026-11-03",
+      "end": "2026-11-10",
+      "duration": 6,
+      "progress": 40,
+      "status": "running",
+      "priority": "critical",
+      "assignees": [
+        "rmvc6fg4x2lj59"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4xbaeq4",
+          "type": "SS",
+          "lag": 1
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4yfk4v1",
+      "parentId": "tmvc6fg4xdbgk0",
+      "wbs": "3.2",
+      "name": "Frontend-Grundgerüst",
+      "type": "task",
+      "start": "2026-11-16",
+      "end": "2026-11-20",
+      "duration": 5,
+      "progress": 10,
+      "status": "running",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x2lj59"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4xceiv9",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4yg11y4",
+      "parentId": "tmvc6fg4xdbgk0",
+      "wbs": "3.3",
+      "name": "Seiten einbauen",
+      "type": "task",
+      "start": "2026-11-23",
+      "end": "2026-12-04",
+      "duration": 10,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x2lj59",
+        "rmvc6fg4x3z8gq"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4yfk4v1",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4yhq434",
+      "parentId": "tmvc6fg4xdbgk0",
+      "wbs": "3.4",
+      "name": "Redaktion Inhalte",
+      "type": "task",
+      "start": "2026-11-03",
+      "end": "2026-11-18",
+      "duration": 12,
+      "progress": 20,
+      "status": "running",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x3z8gq"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4xay576",
+          "type": "SS",
+          "lag": 2
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": "#f59e0b",
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4yibxo3",
+      "parentId": "tmvc6fg4xdbgk0",
+      "wbs": "3.5",
+      "name": "Tests & Fehlerbehebung",
+      "type": "task",
+      "start": "2026-12-07",
+      "end": "2026-12-11",
+      "duration": 5,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [
+        "rmvc6fg4x2lj59",
+        "rmvc6fg4x3z8gq"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4yg11y4",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4yjfq7d",
+      "parentId": null,
+      "wbs": "4",
+      "name": "Abschluss",
+      "type": "summary",
+      "start": "2026-10-27",
+      "end": "2026-10-27",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4ykviv1",
+      "parentId": "tmvc6fg4yjfq7d",
+      "wbs": "4.1",
+      "name": "Abnahme mit Kunde",
+      "type": "task",
+      "start": "2026-12-14",
+      "end": "2026-12-14",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "high",
+      "assignees": [
+        "rmvc6fg4x11f4z"
+      ],
+      "deps": [
+        {
+          "id": "tmvc6fg4yibxo3",
+          "type": "FS",
+          "lag": 0
+        },
+        {
+          "id": "tmvc6fg4yhq434",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc6fg4ylbnem",
+      "parentId": "tmvc6fg4yjfq7d",
+      "wbs": "4.2",
+      "name": "Live-Schaltung",
+      "type": "milestone",
+      "start": "2026-12-15",
+      "end": "2026-12-15",
+      "duration": 0,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [
+        {
+          "id": "tmvc6fg4ykviv1",
+          "type": "FS",
+          "lag": 0
+        }
+      ],
+      "constraint": null,
+      "deadline": null,
+      "color": "#22c55e",
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    }
+  ],
+  "views": {}
+}

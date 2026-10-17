@@ -1,0 +1,15 @@
+# Betriebssystem-Kram
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Sicherungskopien der App (liegen neben der Projektdatei, nicht ins Repository)
+Backups/
+
+# Persönliche Projektdateien – Beispielprojekt bleibt absichtlich drin
+/*.tplan.json
