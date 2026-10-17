@@ -150,6 +150,19 @@ export const store = {
   get canRedo() { return this.redoStack.length > 0; },
   get selected() { return this.selectedId ? taskById(this.project, this.selectedId) : null; },
 
+  /** Projekt schließen – die App bleibt offen (Startbildschirm). */
+  close() {
+    this.project = null;
+    this.selectedId = null;
+    this.selectedIds = new Set();
+    this.undoStack = [];
+    this.redoStack = [];
+    this.clipboard = null;
+    this.ui.dirty = false;
+    this.ui.saving = false;
+    this.emit('close');
+  },
+
   /* ───────── Auswahl (wie im Explorer: Klick, Strg+Klick, Umschalt+Klick) ───────── */
 
   /** Nur diese eine Aufgabe auswählen (nach dem Anlegen). */

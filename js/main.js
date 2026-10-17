@@ -202,6 +202,13 @@ function bindStorage() {
       updateSaveState();
     }
     if (reason === 'load') { updateSaveState(); }
+    if (reason === 'close') {
+      store.ui.armedPool = null;
+      renderArmedBar();
+      const host = $('#detail');
+      if (host) { host.hidden = true; host.innerHTML = ''; }
+      return;
+    }
     if (reason === 'armed') { renderArmedBar(); return; }
     if (reason === 'action-copy') { copySelection(); return; }
     if (reason === 'action-paste') { pasteSelection(); return; }
@@ -241,6 +248,34 @@ function activateProject(project, { fileName = null } = {}) {
   requestRender();
   renderStatus();
   updateSaveState();
+}
+
+/** Projekt schließen: alles speichern, Autospeichern anhalten, zurück zur Startseite. */
+async function closeProject() {
+  if (!store.project) return;
+  const name = store.project.meta.name;
+
+  // Letzte Änderungen noch wegschreiben – schließen darf nichts verlieren
+  if (storage.isReady) {
+    try { await storage.flush(); } catch { /* egal */ }
+  }
+  if (storage.lastError && storage.isDirty) {
+    const go = await confirmDialog('Projekt schließen',
+      `„${name}“ konnte nicht gespeichert werden:\n${storage.lastError.message || storage.lastError}\n\nTrotzdem schließen? Nicht Gespeichertes geht verloren.`,
+      'Trotzdem schließen', { danger: true });
+    if (!go) return;
+  }
+
+  storage.stop();          // für dieses Projekt nichts mehr automatisch schreiben
+  storage.markClean();
+  store.close();           // Projekt aus dem Arbeitsspeicher nehmen
+  storage.fileName = null;
+  storage.lastSaved = null;
+  showApp(false);
+  updateSaveState();
+  renderArmedBar();
+  toast('Projekt geschlossen', 'ok', `„${name}“ ist gespeichert. Die App bleibt offen – über „Weiter mit …“, 📂 oder ＋ geht es weiter.`, 4600);
+  initWelcome();
 }
 
 async function openProjectText(text, { fileName = null, sourceLabel = '' } = {}) {
@@ -367,6 +402,7 @@ const actions = {
   'add-group': () => store.addGroup(),
   'undo': () => { const l = store.undo(); if (l) toast('Rückgängig: ' + l, 'ok', '', 1800); },
   'redo': () => { const l = store.redo(); if (l) toast('Wiederholt: ' + l, 'ok', '', 1800); },
+  'close-project': () => closeProject(),
   'new': () => newProject(),
   'open': () => openProjectDialog((name, backup) => {
     if (backup && backup.text) openProjectText(backup.text, { fileName: storage.fileName, sourceLabel: 'Sicherung' });

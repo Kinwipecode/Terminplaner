@@ -221,7 +221,22 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | **⇄ hoch/quer tauschen** | ✅ 400 × 300 → 300 × 400 mm |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 13. Offene Punkte / nicht geprüft
+## 13. Projekt schließen (ohne die App zu schließen)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Knopf `🚪` in der Leiste | ✅ vorhanden, Titel „Projekt schließen – zurück zur Startseite (die App bleibt offen)“ |
+| Vorher eine Änderung (Aufgabe angelegt), `dirty` = true | ✅ 19 Aufgaben, Änderung offen |
+| Klick auf `🚪` | ✅ Startbildschirm erscheint, `#app` versteckt, kein Fehler |
+| Zustand danach | ✅ `store.project` = null, Autospeicher-Intervall beendet, `dirty` = false, Dateiname geleert |
+| Letzte Änderung wirklich in der Datei | ✅ gelesen aus `Beispielprojekt-Website-Neulaufbau.tplan.json`: 19 Aufgaben, „Testaufgabe …“ enthalten |
+| Startbildschirm | ✅ Kasten „Weiter mit „Beispielprojekt-Website-Neulaufbau“ · Browser-Speicher · zuletzt 17.10.2026 20:05“ |
+| **Fortsetzen** | ✅ Projekt wieder offen, 19 Aufgaben, Autospeichern wieder aktiv, Dateiname gesetzt |
+| Zweites Schließen (ohne Änderung) | ✅ sauber, keine Fehler |
+| Nach dem Schließen | ✅ kein Schreibvorgang mehr (Dateiname leer ⇒ `flush()` steigt aus) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 14. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

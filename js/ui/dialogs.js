@@ -108,7 +108,9 @@ export function helpDialog() {
         '<kbd>Einfg</kbd> neue Aufgabe · <kbd>Entf</kbd> löschen · <kbd>F2</kbd> umbenennen',
         '<kbd>Alt</kbd>+<kbd>→</kbd> einrücken · <kbd>Alt</kbd>+<kbd>←</kbd> ausrücken · <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> Zeile verschieben',
         '<kbd>1</kbd>…<kbd>4</kbd> Ansicht wechseln · <kbd>Strg</kbd>+<kbd>S</kbd> sofort speichern · <kbd>Strg</kbd>+<kbd>P</kbd> drucken · <kbd>F1</kbd> Hilfe',
-        '<b>Umschalt</b>+<kbd>←</kbd>/<kbd>→</kbd> Aufgabe einen Arbeitstag verschieben, <b>Umschalt</b>+<kbd>↑</kbd>/<kbd>↓</kbd> eine Woche (mit <kbd>Strg</kbd> dazu: ein Monat)',
+        '<b>Umschalt</b>+<kbd>←</kbd>/<kbd>→</kbd> Aufgabe einen Arbeitstag verschieben · <b>Umschalt</b>+<kbd>Strg</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> eine Woche · <b>Umschalt</b>+<kbd>Strg</kbd>+<kbd>←</kbd>/<kbd>→</kbd> einen Monat',
+        'Mehrere Aufgaben markieren: <b>Klick</b>, <b>Strg</b>+<b>Klick</b> für einzelne, <b>Umschalt</b>+<b>Klick</b> für einen Bereich · <kbd>Strg</kbd>+<kbd>A</kbd> alles · <kbd>Entf</kbd> löschen · <kbd>Strg</kbd>+<kbd>C</kbd>/<kbd>V</kbd>/<kbd>D</kbd> kopieren/einfügen/duplizieren',
+        '<b>Umschalt</b>+<kbd>↑</kbd>/<kbd>↓</kbd> Auswahl erweitern bzw. verkleinern (wie im Explorer)',
       ]));
       box.appendChild(sec('Maus und Ansicht im Gantt', [
         '<b>◉ Heute</b> (oder <kbd>Leertaste</kbd>): springt zum heutigen Datum – auch wenn es außerhalb des Plans liegt.',
@@ -131,16 +133,19 @@ export function helpDialog() {
         'Der Ausdruck bleibt unabhängig davon immer hell und druckerfreundlich.',
       ]));
       box.appendChild(sec('Drucken und PDF', [
-        'Links auf <b>Drucken</b> (oder oben auf <b>🖨</b>, oder <kbd>Strg</kbd>+<kbd>P</kbd>): Blattformat wählen (A4/A3, hoch oder quer), Inhalt zusammenklicken, Seitenzahl wird laufend angezeigt.',
+        'Links auf <b>Drucken</b> (oder oben auf <b>🖨</b>, oder <kbd>Strg</kbd>+<kbd>P</kbd>): Blattformat wählen (A4/A3 hoch oder quer – oder <b>eigenes Maß</b> in Millimetern), Inhalt zusammenklicken, Seitenzahl wird laufend angezeigt.',
+        '<b>🔍 Vorschau anzeigen</b>: die fertigen Blätter am Bildschirm ansehen (Blattwechsel, Zoom, Einpassen) – gedruckt wird erst auf Klick.',
         'Im Druckdialog als Drucker <b>„Microsoft Print to PDF“</b> wählen → man erhält eine PDF-Datei im eingestellten Blattformat.',
         'Ränder auf „Standard“ lassen, <b>Hintergrundgrafiken</b> einschalten, damit die Balken farbig bleiben.',
         'Reicht der Platz nicht, entstehen weitere Blätter: links wiederholen sich die Aufgaben, die Zeitachse läuft nach rechts weiter.',
       ]));
       box.appendChild(sec('Speichern & Datei', [
+        'Oben in der Leiste: <b>＋</b> neues Projekt · <b>📂</b> Projekt öffnen · <b>🚪</b> Projekt schließen (zurück zur Startseite, die App bleibt offen) · <b>💾</b> jetzt speichern · <b>⤓</b> herunterladen.',
         'Speicherort über den Hinweis oben rechts ändern (z. B. anderer Ordner).',
         'Sicherungskopien liegen im Unterordner <code>Backups</code> – wiederherstellbar über 💾 → Sicherungen.',
         'Projektdatei weitergeben: einfach die <code>.tplan.json</code> kopieren oder per ⤓ herunterladen.',
         'Änderungen während des Arbeitens werden in die Datei geschrieben; schließt du den Tab, wird vorher noch einmal gespeichert.',
+        '<b>Projekt schließen</b> speichert zuletzt noch einmal und hält das automatische Speichern an – erst dann kommt der Startbildschirm.',
       ]));
     },
   });

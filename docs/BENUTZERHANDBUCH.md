@@ -145,6 +145,10 @@ Farbe gesetzt ist.
 - **Herunterladen**: `⤓` legt eine Kopie in den Download-Ordner.
 - **Öffnen**: `📂` zeigt die Projektdateien des aktuellen Speicherorts, `⤓`/Drag & Drop liest
   eine Datei von beliebiger Stelle ein.
+- **Schließen**: `🚪` in der Leiste oben schließt das **Projekt**, nicht die App – vorher wird
+  noch einmal gespeichert und das automatische Speichern angehalten. Danach erscheint der
+  Startbildschirm; dort geht es über **Fortsetzen**, `📂` oder `＋` weiter. Praktisch, wenn du
+  zwischen mehreren Projekten wechselst oder den Rechner jemand anderem überlässt.
 - **Speicherort wechseln**: oben rechts auf den Hinweis klicken.
 - **Nach einem Absturz**: Beim nächsten Start meldet die App, dass ein Schreibvorgang nicht
   abgeschlossen wurde, und bietet Datei bzw. Sicherungen an.

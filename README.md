@@ -171,6 +171,9 @@ Zusätzlich:
   Datei bzw. Sicherungen an.
 - **Schließen**: Beim Tab-Wechsel, beim Schließen und alle 30 Sekunden wird geschrieben.
   Bei einem Speicherfehler fragt der Browser vor dem Schließen nach.
+- **Projekt schließen ohne die App zu schließen**: `🚪` in der Leiste oben schreibt den letzten
+  Stand weg, hält das automatische Speichern an und zeigt den Startbildschirm – von dort geht es
+  über **Fortsetzen**, `📂` oder `＋` weiter. Nichts geht verloren, die App bleibt offen.
 - **Speicherzustand** oben in der Mitte: grün = gespeichert, gelb = wird gleich gespeichert,
   blau = speichert gerade, rot = Fehler. Der Hinweis rechts daneben nennt den Speicherort und
   öffnet beim Anklicken die Auswahl (Ordner wechseln, Browser-Speicher, nur herunterladen).
