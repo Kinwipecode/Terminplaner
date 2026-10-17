@@ -162,5 +162,8 @@ einen Ordner nach einem Neustart einmal bestätigt werden – ein Klick auf **Fo
 **Excel/andere Programme?** Die Projektdatei ist JSON. Der Umweg über die Tabelle (Kopieren und
 in Excel einfügen) ist am einfachsten; ein CSV-Export ist als Erweiterung vorgesehen.
 
+**Warum sehe ich nach dem Bearbeiten der Dateien meine Änderung nicht?** Der Browser merkt sich
+CSS- und JavaScript-Dateien. Beim lokalen Arbeiten einmal mit `Strg`+`F5` neu laden.
+
 **Meilenstein lässt sich nicht verlängern?** Richtig – Meilensteine haben keine Dauer. Über
 **Art** im Detailbereich lässt sich die Aufgabe wieder in eine normale Aufgabe umwandeln.

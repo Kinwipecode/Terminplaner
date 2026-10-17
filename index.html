@@ -167,6 +167,28 @@
 <div id="drop-hint" class="drop-hint" hidden><div>Projektdatei hier ablegen, um sie zu öffnen</div></div>
 <input type="file" id="file-input" accept=".json,.tplan,application/json" hidden>
 
+<script>
+// Hinweis, wenn die Datei direkt per Doppelklick geöffnet wurde:
+// Browser laden JavaScript-Module von file:// nicht (Sicherheitsregel).
+if (location.protocol === 'file:') {
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.innerHTML =
+      '<div style="max-width:640px;margin:12vh auto;padding:28px 32px;border:1px solid #2a3140;border-radius:16px;'
+      + 'background:#151922;color:#e8ebf2;font:14px/1.6 system-ui,Segoe UI,sans-serif">'
+      + '<h1 style="margin:0 0 8px;font-size:22px">Bitte über einen kleinen Webserver öffnen</h1>'
+      + '<p style="color:#a8b1c2;margin:0 0 16px">Wenn man <code>index.html</code> direkt per Doppelklick öffnet, '
+      + 'blockiert der Browser aus Sicherheitsgründen die JavaScript-Module der App. Es gibt zwei einfache Wege:</p>'
+      + '<ol style="color:#a8b1c2;padding-left:20px">'
+      + '<li><b style="color:#e8ebf2">Windows:</b> <code>start.bat</code> doppelklicken. '
+      + 'Linux/macOS: <code>./start.sh</code> ausführen. Die App öffnet sich dann automatisch.</li>'
+      + '<li><b style="color:#e8ebf2">Ohne Installation:</b> die Dateien auf GitHub Pages legen '
+      + '(Settings → Pages → Deploy from a branch) und die Adresse im Browser aufrufen.</li>'
+      + '</ol>'
+      + '<p style="color:#6d7688;font-size:12.5px;margin-top:18px">Hinweis: Auch das automatische Speichern in einen '
+      + 'Ordner braucht <code>https</code> oder <code>localhost</code>.</p></div>';
+  });
+}
+</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
