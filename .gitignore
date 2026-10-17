@@ -11,6 +11,9 @@ desktop.ini
 # Sicherungskopien der App (liegen neben der Projektdatei, nicht ins Repository)
 Backups/
 
+# Arbeitsordner der App mit eigenen Projektdateien – gehört nicht ins Repository
+Projekte/
+
 # Persönliche Projektdateien – Beispielprojekt bleibt absichtlich drin
 /*.tplan.json
 
