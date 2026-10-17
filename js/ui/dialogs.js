@@ -6,6 +6,7 @@
 import { el, clear, toast, initials } from './dom.js';
 import { store } from '../store.js';
 import { storage, slugify } from '../storage.js';
+import { THEMES, applyTheme, currentThemeId, toggleLightDark } from '../themes.js';
 import { formatDateTime, formatIso, dowLong, todayIso, addDays, parseIso } from '../dateutil.js';
 import { PALETTE, DEP_TYPES, CONSTRAINT_TYPES, newTask, taskById, flatTasks } from '../model.js';
 
@@ -106,7 +107,18 @@ export function helpDialog() {
         '<kbd>Strg</kbd>+<kbd>Z</kbd> rückgängig · <kbd>Strg</kbd>+<kbd>Y</kbd> wiederholen',
         '<kbd>Einfg</kbd> neue Aufgabe · <kbd>Entf</kbd> löschen · <kbd>F2</kbd> umbenennen',
         '<kbd>Alt</kbd>+<kbd>→</kbd> einrücken · <kbd>Alt</kbd>+<kbd>←</kbd> ausrücken · <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> Zeile verschieben',
-        '<kbd>1</kbd>…<kbd>4</kbd> Ansicht wechseln · <kbd>Strg</kbd>+<kbd>S</kbd> sofort speichern · <kbd>F1</kbd> Hilfe',
+        '<kbd>1</kbd>…<kbd>4</kbd> Ansicht wechseln · <kbd>Strg</kbd>+<kbd>S</kbd> sofort speichern · <kbd>Strg</kbd>+<kbd>P</kbd> drucken · <kbd>F1</kbd> Hilfe',
+      ]));
+      box.appendChild(sec('Farblayout', [
+        'Links auf <b>Farbe</b> oder oben auf <b>◐</b>: neun fertige Farblayouts, ein Klick genügt – Nachtblau, Anthrazit, Tiefsee, Violettnacht, Hoher Kontrast, Tageslicht, Nordlicht, Papier, Sonnenschein.',
+        'Die Wahl wird gemerkt und gilt beim nächsten Start weiter.',
+        'Der Ausdruck bleibt unabhängig davon immer hell und druckerfreundlich.',
+      ]));
+      box.appendChild(sec('Drucken und PDF', [
+        'Links auf <b>Drucken</b> (oder oben auf <b>🖨</b>, oder <kbd>Strg</kbd>+<kbd>P</kbd>): Blattformat wählen (A4/A3, hoch oder quer), Inhalt zusammenklicken, Seitenzahl wird laufend angezeigt.',
+        'Im Druckdialog als Drucker <b>„Microsoft Print to PDF“</b> wählen → man erhält eine PDF-Datei im eingestellten Blattformat.',
+        'Ränder auf „Standard“ lassen, <b>Hintergrundgrafiken</b> einschalten, damit die Balken farbig bleiben.',
+        'Reicht der Platz nicht, entstehen weitere Blätter: links wiederholen sich die Aufgaben, die Zeitachse läuft nach rechts weiter.',
       ]));
       box.appendChild(sec('Speichern & Datei', [
         'Speicherort über den Hinweis oben rechts ändern (z. B. anderer Ordner).',
@@ -247,6 +259,7 @@ export function projectSettingsDialog() {
         holList));
     },
     footer: (bar, close) => {
+      bar.appendChild(el('button', { class: 'btn', text: 'Farblayout…', onclick: () => { close(); themeDialog(); } }));
       bar.appendChild(el('button', { class: 'btn', text: 'Abbrechen', onclick: close }));
       bar.appendChild(el('button', { class: 'btn btn-primary', text: 'Übernehmen', onclick: async () => {
         const p2 = store.project;
@@ -317,6 +330,66 @@ export function pickPredecessorDialog(excludeIds, onPick) {
     footer: (bar, close) => bar.appendChild(el('button', { class: 'btn', text: 'Abbrechen', onclick: close })),
   });
   setTimeout(() => input.focus(), 30);
+}
+
+/* ───────── Farblayout wählen ───────── */
+
+function themePreview(themeId) {
+  const p = el('div', { class: 'tc-preview', dataset: { theme: themeId } });
+  p.appendChild(el('div', { class: 'tp-top' },
+    el('span', { class: 'tp-dot' }),
+    el('span', { class: 'tp-line', style: { width: '34%' } })));
+  const panel = el('div', { class: 'tp-panel' });
+  panel.appendChild(el('div', { class: 'tp-row' },
+    el('span', { class: 'tp-name', style: { width: '20%' } }),
+    el('span', { class: 'tp-bar', style: { width: '42%', background: 'var(--accent)' } })));
+  panel.appendChild(el('div', { class: 'tp-row' },
+    el('span', { class: 'tp-name', style: { width: '14%' } }),
+    el('span', { class: 'tp-bar', style: { width: '24%', background: 'var(--ok)' } }),
+    el('span', { class: 'tp-bar', style: { width: '16%', background: 'var(--warn)' } })));
+  panel.appendChild(el('div', { class: 'tp-row' },
+    el('span', { class: 'tp-name', style: { width: '28%' } }),
+    el('span', { class: 'tp-bar', style: { width: '18%', background: 'var(--danger)' } })));
+  p.appendChild(panel);
+  p.appendChild(el('div', { class: 'tp-foot' },
+    el('span', { class: 'tp-chip', style: { background: 'var(--accent)' } }),
+    el('span', { class: 'tp-chip', style: { background: 'var(--accent-2)' } }),
+    el('span', { class: 'tp-chip', style: { background: 'var(--fg-2)' } }),
+    el('span', { class: 'tp-chip', style: { background: 'var(--line)' } })));
+  return p;
+}
+
+export function themeDialog() {
+  let renderGrid = () => {};
+  modal({
+    title: 'Farblayout der Oberfläche',
+    body: (box) => {
+      box.appendChild(el('p', { class: 'hint', text: 'Ein Klick genügt. Die Wahl wird gemerkt und gilt für alle Projekte – auch beim nächsten Start.' }));
+      const grid = el('div', { class: 'theme-grid' });
+      renderGrid = () => {
+        clear(grid);
+        for (const t of THEMES) {
+          const active = t.id === currentThemeId();
+          const card = el('button', {
+            class: 'theme-card' + (active ? ' is-active' : ''),
+            onclick: () => { applyTheme(t.id); renderGrid(); },
+          });
+          card.appendChild(themePreview(t.id));
+          card.appendChild(el('div', { class: 'theme-meta' },
+            el('div', { class: 'tm-name' }, el('span', { text: t.name }), el('span', { class: 'tm-tag', text: t.mode })),
+            el('div', { class: 'tm-desc', text: t.desc })));
+          grid.appendChild(card);
+        }
+      };
+      renderGrid();
+      box.appendChild(grid);
+      box.appendChild(el('p', { class: 'hint', text: 'Die Balkenfarben behalten immer ihre Bedeutung (grün = erledigt, rot = blockiert, blau = offen). Der Ausdruck ist unabhängig vom Layout immer hell und druckerfreundlich.' }));
+    },
+    footer: (bar, close) => {
+      bar.appendChild(el('button', { class: 'btn', text: 'Hell ⇄ Dunkel', title: 'Schnell zwischen hell und dunkel wechseln', onclick: () => { toggleLightDark(); renderGrid(); } }));
+      bar.appendChild(el('button', { class: 'btn btn-primary', text: 'Fertig', onclick: close }));
+    },
+  });
 }
 
 /* ───────── Beispiel-/Wiederherstellungs-Hinweis ───────── */

@@ -1,0 +1,76 @@
+{
+  "format": "terminplanung",
+  "version": 1,
+  "meta": {
+    "name": "Mein Projekt 001",
+    "description": "",
+    "created": "2026-10-17T09:41:28.535Z",
+    "modified": "2026-10-17T09:45:54.411Z",
+    "author": ""
+  },
+  "settings": {
+    "projectStart": "2026-10-19",
+    "calendar": {
+      "workdays": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "holidays": [],
+      "extraWorkdays": []
+    },
+    "defaultView": "gantt",
+    "showCritical": false,
+    "showDeps": true,
+    "autoPlan": true,
+    "zoom": "day"
+  },
+  "resources": [],
+  "tasks": [
+    {
+      "id": "tmvc7jgyu2g1en",
+      "parentId": null,
+      "wbs": "1",
+      "name": "1",
+      "type": "task",
+      "start": "2026-10-19",
+      "end": "2026-10-27",
+      "duration": 7,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    },
+    {
+      "id": "tmvc7lpbb3c6gb",
+      "parentId": null,
+      "wbs": "2",
+      "name": "Neue Sammelaufgabe",
+      "type": "summary",
+      "start": "2026-10-20",
+      "end": "2026-10-20",
+      "duration": 1,
+      "progress": 0,
+      "status": "open",
+      "priority": "normal",
+      "assignees": [],
+      "deps": [],
+      "constraint": null,
+      "deadline": null,
+      "color": null,
+      "notes": "",
+      "tags": [],
+      "collapsed": false
+    }
+  ],
+  "views": {}
+}

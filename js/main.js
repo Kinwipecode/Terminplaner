@@ -13,8 +13,10 @@ import { formatIso, relativeTime, todayIso, formatDateTime } from './dateutil.js
 import { el, toast, debounce, clear } from './ui/dom.js';
 import {
   modal, helpDialog, openProjectDialog, resourcesDialog, projectSettingsDialog,
-  backupsDialog, promptDialog, confirmDialog, recoveryDialog, closeModal,
+  backupsDialog, promptDialog, confirmDialog, recoveryDialog, closeModal, themeDialog,
 } from './ui/dialogs.js';
+import { initTheme, toggleLightDark } from './themes.js';
+import { openPrintDialog, ensurePrintLayout, loadPrintSettings } from './print.js';
 import { renderDetail } from './ui/editor.js';
 import { renderGantt, fitGantt, ganttScrollToToday } from './views/gantt.js';
 import { renderTable } from './views/table.js';
@@ -26,15 +28,7 @@ const VIEWS = ['gantt', 'table', 'calendar', 'board'];
 
 /* ───────── Thema ───────── */
 
-function initTheme() {
-  const saved = localStorage.getItem('tplan.theme');
-  setTheme(saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
-}
-function setTheme(t) {
-  document.documentElement.dataset.theme = t;
-  localStorage.setItem('tplan.theme', t);
-}
-function toggleTheme() { setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); }
+function toggleTheme() { toggleLightDark(); }
 
 /* ───────── Zeichnen ───────── */
 
@@ -288,7 +282,8 @@ const actions = {
   'save-now': () => saveNow(),
   'export': () => exportDownload(),
   'help': () => helpDialog(),
-  'theme': () => toggleTheme(),
+  'theme': () => themeDialog(),
+  'print': () => openPrintDialog(),
   'resources': () => resourcesDialog(),
   'project-settings': () => projectSettingsDialog(),
   'fit': () => { store.ui.fitDayW = null; fitGantt(); },
@@ -537,8 +532,12 @@ function boot() {
   initWelcome();
   store._render = requestRender;
   showApp(false);
+  // Druckaufbau erzeugen, egal ob über den Drucken-Knopf oder Strg+P gedruckt wird
+  window.addEventListener('beforeprint', () => {
+    if (store.project) ensurePrintLayout(store.project, loadPrintSettings());
+  });
   // Für Fortgeschrittene / Fehlersuche in der Browser-Konsole
-  window.tplan = { store, storage, render: requestRender };
+  window.tplan = { store, storage, render: requestRender, print: openPrintDialog };
 }
 
 boot();

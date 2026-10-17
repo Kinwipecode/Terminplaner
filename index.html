@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="nacht">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,16 @@
 <meta name="description" content="Terminplanung – Projektplanung im Browser: Gantt, Tabelle, Kalender, Board. Speichert automatisch in eine Projektdatei.">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236366f1'/%3E%3Crect x='7' y='9' width='12' height='4' rx='2' fill='white'/%3E%3Crect x='12' y='16' width='13' height='4' rx='2' fill='white' opacity='.75'/%3E%3Crect x='9' y='23' width='8' height='4' rx='2' fill='white' opacity='.5'/%3E%3C/svg%3E">
+<script>
+  /* Farblayout schon vor dem ersten Zeichnen setzen (verhindert kurzes Aufblitzen) */
+  try {
+    var t = localStorage.getItem('tplan.theme');
+    if (t) document.documentElement.dataset.theme = (t === 'dark' ? 'nacht' : t === 'light' ? 'hell' : t);
+  } catch (e) { /* egal */ }
+</script>
+<link rel="stylesheet" href="css/themes.css">
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/print.css">
 </head>
 <body data-view="gantt">
 
@@ -80,9 +89,10 @@
       <button class="iconbtn" data-action="open" title="Projekt öffnen (Strg+O)">📂</button>
       <button class="iconbtn" data-action="save-now" title="Jetzt speichern (Strg+S)">💾</button>
       <button class="iconbtn" data-action="export" title="Als Datei herunterladen">⤓</button>
+      <button class="iconbtn" data-action="print" title="Drucken / PDF erzeugen (Strg+P)">🖨</button>
       <span class="sep"></span>
       <button class="iconbtn" data-action="help" title="Kurzanleitung (F1)">?</button>
-      <button class="iconbtn" data-action="theme" title="Hell/Dunkel">◐</button>
+      <button class="iconbtn" data-action="theme" title="Farblayout wählen">◐</button>
     </div>
   </header>
 
@@ -93,6 +103,8 @@
     <button class="railbtn" data-view="calendar" title="Kalender (3)"><span class="ri">▦</span><span class="rl">Kalender</span></button>
     <button class="railbtn" data-view="board" title="Board (4)"><span class="ri">▥</span><span class="rl">Board</span></button>
     <div class="rail-spacer"></div>
+    <button class="railbtn" data-action="print" title="Drucken / PDF erzeugen"><span class="ri">🖨</span><span class="rl">Drucken</span></button>
+    <button class="railbtn" data-action="theme" title="Farblayout der Oberfläche"><span class="ri">◑</span><span class="rl">Farbe</span></button>
     <button class="railbtn" data-action="resources" title="Ressourcen / Beteiligte"><span class="ri">☺</span><span class="rl">Team</span></button>
     <button class="railbtn" data-action="project-settings" title="Projekt-Einstellungen"><span class="ri">⚙</span><span class="rl">Setup</span></button>
   </nav>
@@ -166,6 +178,9 @@
 <div id="toasts" class="toasts"></div>
 <div id="drop-hint" class="drop-hint" hidden><div>Projektdatei hier ablegen, um sie zu öffnen</div></div>
 <input type="file" id="file-input" accept=".json,.tplan,application/json" hidden>
+
+<!-- Fertige Druckseiten (nur auf Papier sichtbar) -->
+<div id="print-root"></div>
 
 <script>
 // Hinweis, wenn die Datei direkt per Doppelklick geöffnet wurde:

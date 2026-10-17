@@ -144,10 +144,85 @@ Farbe gesetzt ist.
 | `Alt`+`↑` / `Alt`+`↓` | Zeile verschieben |
 | `1` … `4` | Ansicht wechseln |
 | `Leertaste` | zu „Heute“ springen |
+| `Strg`+`P` | drucken bzw. PDF erzeugen |
 | `F1` | Kurzanleitung |
 | `Esc` | Dialog schließen / Auswahl aufheben |
 
-## 10. Häufige Fragen
+## 10. Farblayout der Oberfläche
+
+Links auf **Farbe** (oder oben auf **◐**, oder im Setup-Fenster auf **Farblayout…**).
+Es öffnet sich eine Auswahl mit neun fertigen Layouts – jedes mit echter Vorschau in seinen
+eigenen Farben. **Ein Klick** übernimmt es, **Fertig** schließt.
+
+| Layout | Charakter |
+|---|---|
+| **Nachtblau** | Standard. Tiefes Blau, ruhige Flächen, kräftiger Indigo-Akzent. |
+| **Anthrazit** | Neutrales Grau, Bernstein-Akzent – tritt optisch zurück. |
+| **Tiefsee** | Petrol und Türkis, sehr gute Trennung von Balken und Raster. |
+| **Violettnacht** | Dunkles Violett, weiche Kontraste. |
+| **Hoher Kontrast** | Schwarz mit Gelb, weiße Schrift – für Beamer und schwache Augen. |
+| **Tageslicht** | Helles, neutrales Blaugrau. Gut bei Tageslicht. |
+| **Nordlicht** | Kühles Blaugrau, sehr zurückhaltend. |
+| **Papier** | Warmes Weiß wie Papier, brauner Akzent – augenschonend am Abend. |
+| **Sonnenschein** | Warmes Hellgelb mit Orange, freundlich und sehr hell. |
+
+Mit **Hell ⇄ Dunkel** wechselt man schnell hin und her; die App merkt sich das zuletzt benutzte
+dunkle Layout. Die Wahl gilt für alle Projekte und bleibt beim nächsten Start erhalten.
+
+Wichtig: Die **Balkenfarben behalten immer ihre Bedeutung** (grün = erledigt, rot = blockiert,
+blau = offen, grau = niedrige Priorität). Dadurch sehen Pläne in jedem Layout gleich aus –
+nur die Flächen und Linien ändern sich. Der **Ausdruck ist unabhängig vom Layout immer hell**,
+damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
+
+## 11. Drucken und PDF erzeugen
+
+Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
+auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
+
+**Blattformat**: A4 oder A3, je **hoch** oder **quer**. Die Seiten werden exakt in Millimetern
+gebaut; es gibt keine halben Blätter, keine abgeschnittenen Zeilen und keine Überläufe.
+
+**Inhalt** (frei kombinierbar):
+
+| Teil | Inhalt |
+|---|---|
+| **Deckblatt** | Projekttitel, Beschreibung, Kennzahlen (Zeitraum, Aufgaben, Fortschritt, Beteiligte, Arbeitstage) und Fortschrittsbalken der Hauptgruppen |
+| **Gantt-Diagramm** | Zeitachse mit Balken, Meilensteinen, Fortschritt, Abhängigkeitspfeilen, Wochenend-Schattierung und Aufgabenliste links |
+| **Tabelle** | Aufgabenliste mit Haupt- oder allen Spalten |
+| **Kalender** | ein Monat je Blatt |
+| **Board** | Karten nach Status in vier Spalten |
+| **Legende** | Farben, Zeichen, Abhängigkeitsarten, Angaben zum Ausdruck und Blattübersicht |
+
+**Weitere Einstellungen**: Zeitraum (gesamtes Projekt / ab heute / eigener Zeitraum),
+Zeitraster (Tage/Wochen/Monate), Feinheit (grob/mittel/fein), Einzelheiten
+(Abhängigkeitspfeile, Fortschritt, Wochenenden, kritischer Pfad, Zieltermine), Spaltenumfang,
+und ob alle oder nur die gefilterten Aufgaben gedruckt werden.
+
+Die **Blattzahl wird laufend angezeigt** (z. B. „7 Blatt A4 hoch · Deckblatt 1 · Gantt 4 ·
+Tabelle 1 · Legende 1“), samt Hinweisen, wenn es viele Blätter werden.
+
+**Passt der Inhalt nicht auf ein Blatt**, entstehen weitere Blätter:
+
+- **Gantt**: die Aufgabenliste wiederholt sich auf jedem Blatt links, die Zeitachse läuft nach
+  rechts weiter. Auf jedem Blatt steht im Kopf, welcher Zeitraum und welche Aufgabengruppe zu sehen ist.
+- **Tabelle**: läuft nach unten weiter, die Spaltenköpfe wiederholen sich.
+- **Kalender**: ein Monat je Blatt. **Board**: läuft nach unten weiter.
+
+**So entsteht die PDF-Datei** (Windows):
+
+1. **Drucken / PDF erzeugen** anklicken – der Druckdialog des Browsers öffnet sich.
+2. Als Drucker **„Microsoft Print to PDF“** wählen (oder einen anderen PDF-Drucker).
+3. Papierformat prüfen: es wird automatisch auf das eingestellte Format gesetzt
+   („Papierformat: A4/A3“ und „Layout: Hochformat/Querformat“).
+4. Ränder auf **Standard** (oder **Keine**) lassen, **Hintergrundgrafiken** einschalten –
+   sonst bleiben die Balken weiß.
+5. **Speichern** → Dateiname und Ort wählen. Der Dateiname ist bereits sinnvoll vorbelegt
+   (Projektname und Datum).
+
+**Drucken ohne Dialog prüfen**: Mit **Vorschau bauen** wird der Aufbau erzeugt, ohne dass der
+Druckdialog aufgeht – man kann ihn dann in Ruhe ansehen (z. B. mit der Druckvorschau des Browsers).
+
+## 12. Häufige Fragen
 
 **Wo liegt meine Datei?** Der Hinweis oben rechts nennt den Speicherort (Ordnerpfad bzw.
 „Browser-Speicher“). Im Ordner-Modus ist es eine normale Datei, die man kopieren, sichern oder
@@ -168,6 +243,23 @@ in Excel einfügen) ist am einfachsten; ein CSV-Export ist als Erweiterung vorge
 
 **Warum sehe ich nach dem Bearbeiten der Dateien meine Änderung nicht?** Der Browser merkt sich
 CSS- und JavaScript-Dateien. Beim lokalen Arbeiten einmal mit `Strg`+`F5` neu laden.
+
+**Im PDF sind die Balken weiß.** Im Druckdialog unter „Weitere Einstellungen“ die
+**Hintergrundgrafiken** einschalten (Chrome: „Hintergrundgrafiken“, Edge: „Hintergrundgrafiken“).
+Ohne diese Option drucken Browser keine Flächenfarben.
+
+**Mein Plan passt nicht auf ein Blatt.** Dann entstehen automatisch weitere Blätter – das ist
+gewollt und wird vorher angezeigt. Weniger Blätter erreicht man mit: größerem Blatt (A3),
+gröberem Zeitraster (Monate), gröberer Feinheit, kürzerem Zeitraum, weniger Inhaltsteilen
+(z. B. nur Gantt + Legende) oder der Beschränkung auf gefilterte Aufgaben.
+
+**Gilt das Farblayout pro Projekt oder für alles?** Für alles – es ist eine Einstellung der App,
+kein Bestandteil der Projektdatei. So bleibt ein Plan bei jedem Nutzer gleich und die Datei
+bleibt frei von Aussehensfragen.
+
+**Kann ich ein eigenes Farblayout bauen?** Ja, über `css/themes.css`: dort einen Block nach dem
+Muster der anderen ergänzen und in `js/themes.js` einen Eintrag mit Name und Beschreibung
+hinzufügen – schon erscheint es in der Auswahl.
 
 **Meilenstein lässt sich nicht verlängern?** Richtig – Meilensteine haben keine Dauer. Über
 **Art** im Detailbereich lässt sich die Aufgabe wieder in eine normale Aufgabe umwandeln.

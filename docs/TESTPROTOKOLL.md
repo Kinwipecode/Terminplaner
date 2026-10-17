@@ -79,7 +79,45 @@ gelesen. Die Zahlen stammen aus den Ausgaben der Prüfskripte.
 | `Terminstart.bat` startet den Server wirklich | ✅ über die Batchdatei gestartet, danach `http://127.0.0.1:8777/` mit 200 und den no-store-Kopfzeilen erreichbar |
 | Rückfall ohne Python | ✅ Batchdatei versucht `py`, dann `npx http-server`, sonst Hinweis mit Download-Adresse (Codepfad, auf diesem Rechner nicht auslösbar – Python ist vorhanden) |
 
-## 7. Offene Punkte / nicht geprüft
+## 7. Farblayouts
+
+| Prüfung | Ergebnis |
+|---|---|
+| Auswahl öffnet sich | ✅ Dialog „Farblayout der Oberfläche“, **9 Karten** (Nachtblau, Anthrazit, Tiefsee, Violettnacht, Hoher Kontrast, Tageslicht, Nordlicht, Papier, Sonnenschein) |
+| Vorschau je Karte | ✅ jede Karte malt sich mit den eigenen Farben (`data-theme` am Vorschau-Element) |
+| Klick übernimmt sofort | ✅ „Papier“ angeklickt → `data-theme="papier"`, `--bg` = `#faf7f2`, Körperhintergrund `rgb(250,247,242)` |
+| Auswahl bleibt erhalten | ✅ nach hartem Neuladen (`ignoreCache`) startet die App wieder in „Papier“ |
+| Kein Aufblitzen beim Start | ✅ Layout wird im Kopf der Seite noch vor dem Zeichnen gesetzt |
+| Vorrang der Farbvariablen | ✅ geprüft: die Layoutblöcke überschreiben die Standardwerte zuverlässig (Selektoren `[data-theme]` **und** `html[data-theme]`) |
+| Keine Fehler | ✅ Fehlerprotokoll leer, alle vier Ansichten weiterhin vollständig |
+
+## 8. Drucken / PDF (Kernanforderung)
+
+Geprüft mit dem Beispielprojekt (17 Aufgaben, 19.10.–16.12.2026, Zeitraster Wochen/mittel).
+Die PDF-Dateien wurden echt erzeugt (Chromium `Page.printToPDF`, Blattgröße aus der `@page`-Regel)
+und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Druckdialog | ✅ Blattformat, Inhalt, Zeitraum, Raster, Feinheit, Einzelheiten, Spalten, Aufgabenauswahl |
+| Blattzahl-Vorschau | ✅ z. B. „4 Blatt A4 quer (297 × 210 mm) · Deckblatt 1 · Gantt 1 · Tabelle 1 · Legende 1“ – stimmt mit den tatsächlich gebauten Blättern überein |
+| Seitengröße auf dem Bildschirm | ✅ jedes Blatt misst 1123 × 794 px = **297 × 210 mm** (A4 quer), alle acht Blätter gleich |
+| `@page`-Regel | ✅ `@page { size: 297mm 210mm; margin: 0; }` – wird beim Formatwechsel umgesetzt |
+| **PDF A4 quer** (Deckblatt+Gantt+Tabelle+Legende) | ✅ **4 Seiten**, Papiergröße **841,92 × 594,96 pt** = A4 quer |
+| **PDF A3 quer** (Tagesraster fein) | ✅ **5 Seiten**, Papiergröße **1191,12 × 841,92 pt** = A3 quer |
+| **PDF A4 hoch** (Tagesraster fein) | ✅ **7 Seiten** (davon 4 Gantt-Blätter), Papiergröße **594,96 × 841,92 pt** = A4 hoch |
+| Mehrblättriges Gantt | ✅ links wiederholt sich die Aufgabenliste, die Zeitachse läuft nach rechts weiter; Kopf nennt Zeitraum und Aufgabengruppe („Aufgaben 1/1, Zeitachse 2/4“) |
+| Zeitachse endet am Projektende | ✅ letztes Blatt wird am Projektschluss abgeschnitten (19.10.2026–20.12.2026) statt leer weiterzulaufen |
+| Deckblatt | ✅ Titel, Beschreibung, 10 Kennzahlen, Fortschrittsbalken der Hauptgruppen, Fußzeile ohne Überlappung |
+| Gantt-Blatt | ✅ Balken mit Fortschritt, Meilenstein-Rauten, Abhängigkeitspfeile, Wochenend-Schattierung, Wochen-/Monatskopf, Aufgabenliste mit Nummer, Daten, Dauer, Fortschritt und Person |
+| Tabellenblatt | ✅ Nummer, eingerückter Name, Beginn, Ende, Dauer, Fortschrittsbalken, Status mit Farbpunkt, Wer; Sammelaufgaben fett mit grauem Grund |
+| Kalenderblatt | ✅ ein Monat je Blatt, Wochenend- und Nachbarmonats-Zellen, Meilenstein-Rauten, Terminliste je Tag |
+| Board-Blatt | ✅ vier Statusspalten mit Karten (Datum, Fortschritt, Person) |
+| Legendenblatt | ✅ Status, Priorität, Balken und Zeichen, Abhängigkeitsarten, Angaben zum Ausdruck, Blattübersicht mit Seitenzahlen |
+| Strg+P des Browsers | ✅ baut den Aufbau automatisch mit den zuletzt gewählten Einstellungen (`beforeprint`) |
+| Keine Fehler | ✅ Fehlerprotokoll bei allen Durchläufen leer |
+
+## 9. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit
@@ -87,6 +125,12 @@ gelesen. Die Zahlen stammen aus den Ausgaben der Prüfskripte.
   muss aber von Hand einmal durchgeklickt werden.
 - **Firefox/Safari**: Der Rückfall auf Browser-Speicher bzw. `localStorage` ist implementiert,
   in diesen Browsern aber noch nicht durchgeklickt.
+- **Windows-Druckdialog**: Der Systemdialog („Microsoft Print to PDF“) lässt sich nicht
+  automatisiert bedienen. Geprüft wurde deshalb über die Druckfunktion des Browsers
+  (`Page.printToPDF`), die dieselbe Druckvorlage und dieselbe Blattgröße benutzt – die
+  Papiergrößen im erzeugten PDF stimmen mit A4/A3 überein (§ 8). Ein echter Klick auf
+  „Speichern“ im Systemdialog steht noch aus.
 - **Große Pläne**: geprüft mit 17 Aufgaben. Die Darstellung zeichnet bei jeder Änderung neu;
-  ab etwa 1.000 Zeilen ist mit spürbarer Verzögerung zu rechnen.
-- **CSV-/Excel-Ausgabe, Drucken/PDF, Kalender-Abo (ICS)**: noch nicht enthalten.
+  ab etwa 1.000 Zeilen ist mit spürbarer Verzögerung zu rechnen. Beim Drucken werden alle
+  Blätter auf einmal aufgebaut – bei sehr vielen Blättern (über 40) erscheint ein Hinweis.
+- **CSV-/Excel-Ausgabe und Kalender-Abo (ICS)**: noch nicht enthalten. Drucken/PDF ist umgesetzt.

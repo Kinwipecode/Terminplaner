@@ -30,6 +30,29 @@ Abhängigkeiten. Läuft als statische Seite auf **GitHub Pages** oder lokal aus 
 - Arbeitskalender: Arbeitstage und Feiertage frei einstellbar (Dauer wird in Arbeitstagen gerechnet)
 - Beteiligte mit Farben, Auslastung und Zuweisung mehrerer Personen
 
+**Neun fertige Farblayouts** (links auf **Farbe** oder oben auf **◐**)
+
+Ein Klick genügt – die Auswahl wird gemerkt und gilt beim nächsten Start weiter:
+
+| Dunkel | Hell |
+|---|---|
+| Nachtblau · Anthrazit · Tiefsee · Violettnacht · Hoher Kontrast | Tageslicht · Nordlicht · Papier · Sonnenschein |
+
+Jedes Layout setzt Flächen, Linien, Text und Akzentfarben neu. Die Balkenfarben behalten ihre
+Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar bleiben.
+
+**Drucken und PDF** (links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`)
+
+![Druckausgabe](docs/screenshot-druck.png)
+
+- Blattformat **A4 oder A3**, je hoch oder quer – die Seiten werden exakt in Millimetern aufgebaut,
+  es gibt keine halben Blätter und keine abgeschnittenen Zeilen.
+- Inhalte frei zusammenklicken: **Deckblatt, Gantt-Diagramm, Tabelle, Kalender, Board, Legende**.
+- Zeitraum, Zeitraster (Tage/Wochen/Monate) und Feinheit einstellbar; die Blattzahl wird laufend angezeigt.
+- Reicht der Platz nicht, entstehen weitere Blätter: die Aufgabenliste wiederholt sich links,
+  die Zeitachse läuft nach rechts weiter.
+- Im Druckdialog **„Microsoft Print to PDF“** wählen → fertige PDF-Datei im gewählten Format.
+
 **Speichern ohne Nachdenken** (siehe unten)
 
 - Automatisches Speichern ~0,7 s nach jeder Änderung, zusätzlich alle 30 s und beim Schließen
@@ -125,6 +148,7 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Alt`+`↑` / `Alt`+`↓` | Zeile nach oben / unten |
 | `1` … `4` | Gantt / Tabelle / Kalender / Board |
 | `Leertaste` | im Gantt zu „Heute“ springen |
+| `Strg`+`P` | drucken bzw. PDF erzeugen (Druckaufbau entsteht automatisch) |
 | `F1` | Kurzanleitung |
 
 ## Aufbau des Projekts
@@ -133,13 +157,17 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 index.html            Oberfläche
 Terminstart.bat       Start per Doppelklick (Windows) – start.bat macht dasselbe
 start.sh              Start unter Linux/macOS
-css/app.css           Aussehen (helles und dunkles Thema)
+css/app.css           Aussehen der Oberfläche (benutzt die Farbvariablen)
+css/themes.css        die neun Farblayouts
+css/print.css         Druckvorlage (A4/A3, Millimetermaße)
 js/
   main.js             Start, Werkzeugleiste, Tastenkürzel, Speicherzustand
   model.js            Datenmodell, Prüfen/Reparieren von Dateien, Beispielprojekt
   scheduler.js        Terminberechnung, Abhängigkeiten, kritischer Pfad
   store.js            Zustand, Änderungen, Rückgängig/Wiederholen
   storage.js          Speichern (Ordner / Browser / Notfall), Autospeichern, Sicherungen
+  print.js            Aufbau der Druckseiten und der Druckdialog
+  themes.js           Farblayouts: Namen, Auswahl, merken
   dateutil.js         Datums- und Arbeitstagsrechnung
   ui/                 Dialoge, Detailbereich, Kontextmenü, kleine Helfer
   views/              gantt.js · table.js · calendar.js · board.js
