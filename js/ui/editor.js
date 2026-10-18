@@ -3,6 +3,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { el, clear, initials, toast } from './dom.js';
+import { isDetailDetached } from './detailwindow.js';
 import { pickPredecessorDialog } from './dialogs.js';
 import { store } from '../store.js';
 import { STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, DEP_TYPES, CONSTRAINT_TYPES, PALETTE, taskById, descendantsOf } from '../model.js';
@@ -97,6 +98,13 @@ export function renderDetail(host) {
 function renderSingle(host) {
   const task = store.selected;
   if (!task) {
+    // Im eigenen Fenster nie einfach leer wirken lassen (dort ist der Bereich die ganze Seite).
+    if (isDetailDetached()) {
+      host.hidden = false;
+      host.appendChild(el('div', { class: 'detail-body' },
+        el('div', { class: 'hint', text: 'Keine Aufgabe markiert – im Planungsfenster eine Zeile anklicken.' })));
+      return;
+    }
     host.hidden = true;
     return;
   }

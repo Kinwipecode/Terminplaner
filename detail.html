@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="nacht">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detailbereich – Terminplanung</title>
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314b8a6'/%3E%3Crect x='8' y='9' width='16' height='3' rx='1.5' fill='white'/%3E%3Crect x='8' y='15' width='12' height='3' rx='1.5' fill='white' opacity='.8'/%3E%3Crect x='8' y='21' width='14' height='3' rx='1.5' fill='white' opacity='.6'/%3E%3C/svg%3E">
+<script>
+  try {
+    var t = localStorage.getItem('tplan.theme');
+    if (t) document.documentElement.dataset.theme = (t === 'dark' ? 'nacht' : t === 'light' ? 'hell' : t);
+  } catch (e) { /* egal */ }
+</script>
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body class="detailwin">
+
+<div class="dwin-note">
+  <b>Detailbereich</b> – hier steht alles zur markierten Aufgabe. Dieses Fenster geht von selbst auf,
+  sobald im Planungsfenster eine Aufgabe markiert wird, und lässt sich frei ziehen – z. B. auf einen
+  zweiten Bildschirm; die Stelle wird gemerkt. <b>Schließen ist ungefährlich:</b> beim nächsten
+  Markieren ist es wieder da. Ganz abschalten lässt es sich mit <b>🗗 Detail</b> links im
+  Planungsfenster – dann steht der Bereich wieder rechts im Plan.
+  <span id="dwin-ver" class="dwin-ver"></span>
+</div>
+
+<main id="dwin"></main>
+
+<script type="module">
+  // Versionsnummer auch im eigenen Fenster zeigen
+  import { versionLabel } from './js/version.js';
+  document.getElementById('dwin-ver').textContent = versionLabel();
+</script>
+
+</body>
+</html>

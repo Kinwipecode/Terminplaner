@@ -18,6 +18,11 @@ Browser. Läuft sie schon, wird nur das Browserfenster geholt.
 > **Kein Ordner gewählt?** Dann speichert die App im Browser-Speicher weiter und sagt das oben
 > rechts. Über den Hinweis lässt sich jederzeit ein Ordner nachwählen.
 
+**Welche Version läuft?** Die Nummer steht **unten rechts in der Statuszeile** („Version 01“),
+außerdem auf dem Startbildschirm, unten in der Kurzanleitung und im Detailfenster. Sie hilft, wenn
+du zwei Stände vergleichst – z. B. die eigene Kopie gegen die veröffentlichte Seite: passen die
+Nummern nicht zusammen, ist eine davon älter.
+
 ## 2. Die vier Ansichten
 
 Links in der Leiste umschalten (oder `1` … `4`).
@@ -83,6 +88,12 @@ Einrücken (`Alt`+`→`) macht aus einer Zeile eine Unteraufgabe der Zeile darü
 (`Alt`+`←`) hebt das wieder auf. Die Nummerierung (`1`, `1.1`, `1.2`, `2`, …) wird automatisch
 vergeben. Fortschritt und Status einer Sammelaufgabe sind der gewichtete Durchschnitt ihrer
 Unteraufgaben.
+
+**Wohin eine neue Aufgabe kommt:** immer auf dieselbe Ebene wie die gerade markierte Zeile – ist
+die markierte Zeile eine Sammelaufgabe, entsteht die neue Aufgabe also *daneben*, nicht darin.
+Eine Unteraufgabe machen Sie anschließend mit `Alt`+`→` bzw. über **＋ Unteraufgabe** im
+Detailbereich oder **Unteraufgabe hinzufügen** im Kontextmenü. Ohne Markierung (Esc) landet die
+neue Aufgabe am Ende des Plans, ganz außen.
 
 ## 4. Abhängigkeiten
 
@@ -336,7 +347,40 @@ wandert der Vorrat ins Projekt.
 allgemeinen Vorrat trotzdem bearbeiten; das Projekt-Sammelbecken braucht das Planungsfenster
 (denn die Daten gehören zur Projektdatei).
 
-## 15. Farblayout der Oberfläche
+## 15. Detailbereich in einem eigenen Fenster (zweiter Bildschirm)
+
+Der Detailbereich (alles zur markierten Aufgabe) steht **standardmäßig in einem eigenen
+Browserfenster** – so hat der Plan im Hauptfenster den ganzen Bildschirm. Das Fenster lässt sich
+frei ziehen, z. B. auf einen zweiten Bildschirm; die Stelle wird gemerkt.
+
+**So läuft es ab:**
+
+1. Beim **ersten Markieren einer Aufgabe** geht das Fenster von selbst auf und zeigt sie.
+2. Danach folgt es der Markierung: Klick auf eine andere Zeile in Gantt, Tabelle, Kalender oder
+   Board – das Fenster zeigt sofort die neue Aufgabe.
+3. **Schließen ist ungefährlich.** Wurde das Fenster (auch versehentlich) geschlossen, geht es
+   beim **nächsten** Markieren wieder auf – und steht dann an der zuletzt benutzten Stelle.
+4. Beim **Beenden des Programms** (Fenster/Tab schließen) wird es mit geschlossen.
+
+**Abschalten:** links auf **🗗 Detail** (der Knopf ist hervorgehoben, solange das Fenster läuft).
+Ein Klick holt den Bereich wieder als rechte Spalte ins Planungsfenster und schaltet den
+Fensterbetrieb dauerhaft aus; ein weiterer Klick schaltet ihn wieder an. Die Einstellung gilt
+auch nach dem nächsten Start.
+
+**Gut zu wissen:**
+
+- Es ist **derselbe** Bereich, nur an anderer Stelle: jede Änderung im Fenster wirkt sofort im
+  Plan und umgekehrt (Termine, Fortschritt, Vorgänger, Notizen, Farbe …). Es gibt keine zweite
+  Kopie der Daten.
+- Markiert wird weiterhin im Planungsfenster – dort, wo die Aufgabenliste ist.
+- Blockiert der Browser das Fenster (**Popup-Blocker**), erscheint ein Hinweis und der Bereich
+  steht sichtbar rechts im Plan – nichts geht verloren. Nach dem Erlauben von Pop-ups einfach
+  wieder auf **🗗 Detail** klicken.
+- Das **Farblayout** wird mitgenommen und folgt späteren Wechseln.
+- **Dialoge** (z. B. *Vorgänger hinzufügen*, *Termin verschieben*) erscheinen weiterhin im
+  Planungsfenster.
+
+## 16. Farblayout der Oberfläche
 
 Links auf **Farbe** (oder oben auf **◐**, oder im Setup-Fenster auf **Farblayout…**).
 Es öffnet sich eine Auswahl mit neun fertigen Layouts – jedes mit echter Vorschau in seinen
@@ -362,7 +406,7 @@ blau = offen, grau = niedrige Priorität). Dadurch sehen Pläne in jedem Layout 
 nur die Flächen und Linien ändern sich. Der **Ausdruck ist unabhängig vom Layout immer hell**,
 damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
 
-## 16. Drucken und PDF erzeugen
+## 17. Drucken und PDF erzeugen
 
 Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
 auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
@@ -437,7 +481,7 @@ Nichts wird gedruckt, solange du nicht **Drucken / PDF erzeugen** anklickst.
 sofort in den Druckdialog, mit den aktuellen Einstellungen. Und ein `Strg`+`P` außerhalb des
 Druckfensters öffnet dieses Fenster (nicht sofort den Druckdialog), damit die Einstellungen stimmen.
 
-## 17. Häufige Fragen
+## 18. Häufige Fragen
 
 **Wo liegt meine Datei?** Der Hinweis oben rechts nennt den Speicherort (Ordnerpfad bzw.
 „Browser-Speicher“). Im Ordner-Modus ist es eine normale Datei, die man kopieren, sichern oder

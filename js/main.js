@@ -17,10 +17,15 @@ import {
   shiftTaskDialog, poolDialog,
 } from './ui/dialogs.js';
 import { initTheme, toggleLightDark } from './themes.js';
+import { versionLabel } from './version.js';
 import { openPrintDialog, openPrintPreview, isPreviewOpen, ensurePrintLayout, loadPrintSettings } from './print.js';
 import { startPoolHub } from './poolhub.js';
 import { loadGlobalPool } from './pool.js';
 import { renderDetail } from './ui/editor.js';
+import {
+  toggleDetailWindow, openDetailWindow, dockDetailWindow, ensureDetailWindow,
+  initDetailWindow, isDetailDetached, detailWindowRef,
+} from './ui/detailwindow.js';
 import { renderGantt, fitGantt, ganttScrollToToday, ZOOM_DAY_W } from './views/gantt.js';
 import { renderTable } from './views/table.js';
 import { renderCalendar } from './views/calendar.js';
@@ -28,6 +33,15 @@ import { renderBoard } from './views/board.js';
 
 const $ = (sel) => document.querySelector(sel);
 const VIEWS = ['gantt', 'table', 'calendar', 'board'];
+
+/* Der Detailbereich kann in ein eigenes Fenster umgehängt werden. Dann liefert
+   `document.getElementById('detail')` hier nichts mehr – deshalb die Referenz
+   genau einmal merken und überall diese benutzen. */
+const detailHostEl = document.getElementById('detail');
+
+/* Letzte bekannte Markierung – damit der Detailbereich im eigenen Fenster
+   genau dann aufgeht, wenn eine andere Aufgabe markiert wird. */
+let detailSelWatch = null;
 
 /* ───────── Thema ───────── */
 
@@ -127,7 +141,7 @@ function renderAll() {
     else if (v === 'calendar') renderCalendar(node);
     else if (v === 'board') renderBoard(node);
   }
-  renderDetail($('#detail'));
+  renderDetail(detailHostEl);
   renderStatus();
   syncControls();
 }
@@ -196,6 +210,12 @@ function bindStorage() {
     window.dispatchEvent(new CustomEvent('tplan:filestate'));
   });
   store.on((reason, arg) => {
+    // Detailbereich im eigenen Fenster: sobald eine (andere) Aufgabe markiert ist,
+    // geht es auf – auch wenn es vorher versehentlich geschlossen wurde.
+    if (store.selectedId !== detailSelWatch) {
+      detailSelWatch = store.selectedId || null;
+      ensureDetailWindow();
+    }
     if (reason === 'change') {
       storage.touch();
       store.ui.dirty = true;
@@ -205,8 +225,7 @@ function bindStorage() {
     if (reason === 'close') {
       store.ui.armedPool = null;
       renderArmedBar();
-      const host = $('#detail');
-      if (host) { host.hidden = true; host.innerHTML = ''; }
+      if (detailHostEl) { detailHostEl.hidden = true; detailHostEl.innerHTML = ''; }
       return;
     }
     if (reason === 'armed') { renderArmedBar(); return; }
@@ -217,8 +236,12 @@ function bindStorage() {
     if (reason === 'open-shift') { shiftTaskDialog(store.selected); return; }
     if (reason === 'open-pool') { poolDialog(arg, openPoolWindow); return; }
     if (reason === 'pool-global') { requestRender(); return; }
+    if (reason === 'detail-moved') { renderDetail(detailHostEl); return; }
     if (reason === 'select' || reason === 'open-detail') {
-      const host = $('#detail');
+      // Fenster ggf. wieder öffnen (z. B. erneuter Klick auf dieselbe Zeile
+      // nach einem versehentlichen Schließen – dann ändert sich die Markierung nicht).
+      ensureDetailWindow();
+      const host = detailHostEl;
       if (reason === 'open-detail' || !host.contains(document.activeElement)) renderDetail(host);
       if (reason === 'select') requestRender();
       return;
@@ -415,6 +438,7 @@ const actions = {
   'print': () => openPrintDialog(),
   'print-preview': () => { if (store.project) openPrintPreview(store.project, loadPrintSettings()); },
   'pool-window': () => openPoolWindow(),
+  'detail-window': () => toggleDetailWindow(),
   'pool': () => poolDialog(null, openPoolWindow),
   'shift': () => shiftTaskDialog(store.selected),
   'resources': () => resourcesDialog(),
@@ -739,15 +763,28 @@ async function initWelcome() {
 
 /* ───────── Start ───────── */
 
+/* ───────── Version ───────── */
+
+/** Versionsnummer anzeigen: Statuszeile unten rechts und Startbildschirm. */
+function showVersion() {
+  const label = versionLabel();
+  const inStatus = $('#stat-version');
+  if (inStatus) inStatus.textContent = label;
+  const onWelcome = $('#w-version');
+  if (onWelcome) onWelcome.textContent = label;
+}
+
 function boot() {
   initTheme();
   wireControls();
   wireDropZone();
   wireWelcome();
   initWelcome();
+  showVersion();
   store._render = requestRender;
   showApp(false);
   startPoolHub();
+  initDetailWindow();          // Detailbereich im eigenen Fenster (Standardschalter)
   applyRowHeight();
   renderArmedBar();
   // Strg gedrückt halten zeigt den „Greif“-Zeiger im Gantt (verschieben des Ausschnitts)
@@ -764,7 +801,10 @@ function boot() {
     if (store.project) ensurePrintLayout(store.project, loadPrintSettings());
   });
   // Für Fortgeschrittene / Fehlersuche in der Browser-Konsole
-  window.tplan = { store, storage, render: requestRender, print: openPrintDialog };
+  window.tplan = {
+    store, storage, render: requestRender, print: openPrintDialog,
+    detailWindow: { open: openDetailWindow, dock: dockDetailWindow, toggle: toggleDetailWindow, isDetached: isDetailDetached, win: detailWindowRef },
+  };
 }
 
 boot();

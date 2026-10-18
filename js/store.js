@@ -392,9 +392,14 @@ export const store = {
     let created = null;
     this.mutate('Aufgabe hinzufügen', (p) => {
       const sel = after ? taskById(p, after) : null;
-      const base = sel && sel.type !== 'summary'
+      // Neue Aufgaben landen immer auf derselben Ebene wie die markierte Aufgabe –
+      // auch wenn diese eine Sammelaufgabe ist. Sonst rutscht jede weitere neue
+      // Aufgabe in die Sammelaufgabe hinein, nur weil sie noch markiert ist.
+      // Unteraufgabe bewusst über „Unteraufgabe hinzufügen“ (Kontextmenü, Detailbereich)
+      // oder Alt+→ einrücken.
+      const base = sel
         ? { start: sel.end ? addWorkdays(sel.end, 1, p.settings.calendar) : todayIso(), parentId: sel.parentId }
-        : { start: p.settings.projectStart || todayIso(), parentId: sel ? sel.id : null };
+        : { start: p.settings.projectStart || todayIso(), parentId: null };
       const t = newTask(Object.assign(base, patch));
       if (t.type === 'milestone') { t.duration = 0; t.end = t.start; }
       p.tasks.splice(this._insertIndex(p, after), 0, t);

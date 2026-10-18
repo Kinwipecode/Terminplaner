@@ -24,6 +24,7 @@
     <div>
       <h1>Ideen-Sammelbecken</h1>
       <div class="sb-sub" id="sb-project">kein Projekt verbunden</div>
+      <div class="sb-sub" id="sb-ver"></div>
     </div>
   </div>
   <div class="sb-head-actions">
@@ -66,5 +67,10 @@
 </footer>
 
 <script type="module" src="js/sideboard.js"></script>
+<script type="module">
+  // Versionsnummer auch hier zeigen
+  import { versionLabel } from './js/version.js';
+  document.getElementById('sb-ver').textContent = versionLabel();
+</script>
 </body>
 </html>

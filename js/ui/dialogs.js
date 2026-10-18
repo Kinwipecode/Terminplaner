@@ -10,6 +10,7 @@ import { storage, slugify } from '../storage.js';
 import { THEMES, applyTheme, currentThemeId, toggleLightDark } from '../themes.js';
 import { formatDateTime, formatIso, dowLong, todayIso, addDays, addMonths, parseIso, snapToWorkday, endFromDuration } from '../dateutil.js';
 import { PALETTE, DEP_TYPES, CONSTRAINT_TYPES, newTask, taskById, flatTasks } from '../model.js';
+import { versionLabel } from '../version.js';
 
 let openModal = null;
 
@@ -140,6 +141,12 @@ export function helpDialog() {
         'Ränder auf „Standard“ lassen, <b>Hintergrundgrafiken</b> einschalten, damit die Balken farbig bleiben.',
         'Reicht der Platz nicht, entstehen weitere Blätter: links wiederholen sich die Aufgaben, die Zeitachse läuft nach rechts weiter.',
       ]));
+      box.appendChild(sec('Detailbereich im eigenen Fenster', [
+        'Der <b>Detailbereich</b> (alles zur markierten Aufgabe) steht in einem <b>eigenen Fenster</b> – so hat der Plan den ganzen Bildschirm.',
+        'Es geht beim <b>Markieren</b> einer Aufgabe von selbst auf. Wurde es geschlossen, ist es beim nächsten Markieren wieder da – an der zuletzt benutzten Stelle, auch auf dem zweiten Bildschirm.',
+        'Links auf <b>🗗 Detail</b> schaltet den Fensterbetrieb ab: der Bereich steht dann wieder als rechte Spalte im Plan.',
+        'Beim Beenden des Programms wird das Fenster mit geschlossen.',
+      ]));
       box.appendChild(sec('Speichern & Datei', [
         'Oben in der Leiste: <b>＋</b> neues Projekt · <b>📂</b> Projekt öffnen · <b>🚪</b> Projekt schließen (zurück zur Startseite, die App bleibt offen) · <b>💾</b> jetzt speichern · <b>⤓</b> herunterladen.',
         'Speicherort über den Hinweis oben rechts ändern (z. B. anderer Ordner).',
@@ -148,6 +155,7 @@ export function helpDialog() {
         'Änderungen während des Arbeitens werden in die Datei geschrieben; schließt du den Tab, wird vorher noch einmal gespeichert.',
         '<b>Projekt schließen</b> speichert zuletzt noch einmal und hält das automatische Speichern an – erst dann kommt der Startbildschirm.',
       ]));
+      box.appendChild(el('p', { class: 'hint', text: versionLabel() }));
     },
   });
 }

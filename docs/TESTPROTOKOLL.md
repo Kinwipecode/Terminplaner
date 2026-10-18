@@ -253,7 +253,55 @@ und die Blattzahl sowie die Papiergröße im PDF ausgelesen.
 | Beispieldaten | ✅ `examples/beispiel-projekt.tplan.json` zeigt jetzt „Schulung … 2 Tage“ und „Foto-Shooting … 1 Woche“ |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 15. Offene Punkte / nicht geprüft
+## 15. Ebene beim Anlegen neuer Aufgaben (Sammelaufgabe)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Ausgangslage | ✅ leeres Projekt, Sammelaufgabe anlegen (sie wird markiert), dann zweimal „＋ Aufgabe“ |
+| Ebene danach | ✅ alle drei Zeilen `parentId: null` – „Neue Aufgabe“ und „Dritte“ sind **nicht** in der Sammelaufgabe |
+| Termine | ✅ Sammelaufgabe 19.10., neue Aufgaben 20.10. und 21.10. (jeweils nach dem Ende der markierten Zeile) |
+| Bewusstes Unterordnen | ✅ `addTask({parentId: Sammelaufgabe})` + `indent` gesetzt: `parentId` = Sammelaufgaben-ID (Wege über Kontextmenü und Detailbereich bleiben also erhalten) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 16. Detailbereich in einem eigenen Fenster
+
+Standard = **an**: der Bereich steht sofort im Park (`#detail-park`, unsichtbar), der Plan ist
+1180 px breit statt 840. Fehlerprotokoll über alle Prüfungen leer.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Start | ✅ Bereich im Park, Knopf **🗗 Detail** hervorgehoben (`is-active`), Planbreite 1180 px, Bereichsbreite 0 |
+| **Erstes Markieren** (echter Mausklick auf eine Gantt-Zeile, `Input.dispatchMouseEvent`) | ✅ Fenster ging von selbst auf (`detail.html`), 37 Felder darin, im Hauptfenster liefert `getElementById('detail')` `null` |
+| Fenster schließen | ✅ Bereich wanderte **in den Park** (nicht in den Plan): Bereichsbreite 0, Planbreite bleibt 1180 px |
+| Nächster Klick auf eine **andere** Zeile | ✅ Fenster wieder offen, zeigt „Wireframes“ |
+| Klick auf **dieselbe** Zeile nach dem Schließen | ✅ Fenster wieder offen (Markierung ändert sich nicht – deshalb hängt es auch am `select`-Ereignis, nicht nur am Wechsel) |
+| Knopf **＋ Aufgabe** (echter Klick) | ✅ neue Aufgabe markiert und Fenster automatisch offen |
+| Schalter **🗗 Detail** (echter Klick) | ✅ Betrieb aus: Bereich als rechte Spalte im Plan (340 px), Knopf nicht mehr hervorgehoben, Fenster zu |
+| Schalter noch einmal | ✅ Betrieb an: Fenster offen, Planbreite wieder 1180 px, Knopf hervorgehoben |
+| **Programm beenden** (`beforeunload`) | ✅ Fenster geschlossen (`isDetached()` false) |
+| Projekt schließen (`🚪`) bei offenem Fenster | ✅ Ziel `detail.html` aus der Zielliste verschwunden, Startbildschirm da, Bereich im Park |
+| Bedienen im Fenster | ✅ Bezeichnung geändert → `store.selected.name` sofort geändert; Markierungswechsel im Hauptfenster folgt im Fenster (Einzel 39 Felder, Mehrfach „2 Aufgaben ausgewählt“ 34 Felder, Kopf „◆ Meilenstein“) |
+| Popup-Blocker (nachgestellt: `window.open = () => null`) | ✅ Kein Fehler; Bereich wird sichtbar in den Plan geholt, Hinweis „Fenster wurde blockiert – Bitte Pop-ups für diese Seite erlauben …“ (nur einmal je Sitzung) |
+| Fensterschließen ohne Betriebsart „an“ | ✅ Bereich bleibt im Plan (kein Park) |
+| Position | ✅ `tplan.detailwindow.pos` wird beim Verschieben gemerkt; (0,0)-Meldungen werden verworfen, damit das Fenster nicht in die Ecke springt |
+| Farblayout | ✅ Wechsel auf „Sonnenschein“ wirkte sofort im Fenster (`data-theme` = `sonne`, Fläche hell) |
+| Größe im Fenster | ✅ Bereich füllt es (784 × 401 px bei 784 × 470 px Fenster), kein Rand am `body` |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+| **Nicht prüfbar hier** | ⚠️ Die Vorabstelle auf den **zweiten Bildschirm** (`screen.isExtended`, `left = availLeft + availWidth`): der Prüfbrowser hat nur einen Bildschirm (800 × 800), der Zweig lief deshalb nicht. Ebenso bleibt echtes Verschieben von Hand mit zwei Bildschirmen offen |
+
+## 17. Versionsnummer in der App
+
+| Prüfung | Ergebnis |
+|---|---|
+| Statuszeile unten rechts | ✅ „Version 01“, sichtbar (`width > 0`), bei x = 1196 ganz rechts, durch Trennlinie von der Dateiangabe abgesetzt |
+| Startbildschirm | ✅ „Version 01“ in der Fußzeile des Kastens |
+| Kurzanleitung (`F1`) | ✅ „Version 01“ als letzte Zeile unter allen Abschnitten |
+| Detailfenster (`detail.html`) | ✅ „Version 01“ unter dem Hinweis oben |
+| Ideen-Fenster (`sideboard.html`) | ✅ „Version 01“ unter dem Projektnamen im Kopf |
+| Eine einzige Quelle | ✅ `js/version.js` (`APP_VERSION = '01'`, `versionLabel()`) – die Seiten holen sich den Text per `import` |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 18. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

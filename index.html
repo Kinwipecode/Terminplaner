@@ -60,6 +60,7 @@
     <div class="welcome-foot">
       <span id="capability-note" class="muted"></span>
       <button class="linkbtn" data-action="help">Kurzanleitung</button>
+      <span id="w-version" class="muted" title="Programmversion"></span>
     </div>
   </div>
 </div>
@@ -105,6 +106,7 @@
     <button class="railbtn" data-view="board" title="Board (4)"><span class="ri">▥</span><span class="rl">Board</span></button>
     <div class="rail-spacer"></div>
     <button class="railbtn" data-action="pool-window" title="Ideen-Sammelbecken in eigenem Fenster öffnen (für den zweiten Bildschirm)"><span class="ri">✎</span><span class="rl">Ideen</span></button>
+    <button class="railbtn" data-action="detail-window" title="Detailbereich in eigenem Fenster (z. B. zweiter Bildschirm) – nochmal klicken dockt ihn zurück"><span class="ri">🗗</span><span class="rl">Detail</span></button>
     <button class="railbtn" data-action="print" title="Drucken / PDF erzeugen"><span class="ri">🖨</span><span class="rl">Drucken</span></button>
     <button class="railbtn" data-action="theme" title="Farblayout der Oberfläche"><span class="ri">◑</span><span class="rl">Farbe</span></button>
     <button class="railbtn" data-action="resources" title="Ressourcen / Beteiligte"><span class="ri">☺</span><span class="rl">Team</span></button>
@@ -165,6 +167,9 @@
     <aside class="detail" id="detail" hidden></aside>
   </main>
 
+  <!-- Ablage des Detailbereichs, solange er in seinem eigenen Fenster steht -->
+  <div id="detail-park" hidden></div>
+
   <!-- Statuszeile -->
   <footer class="statusbar">
     <span id="stat-count">0 Aufgaben</span>
@@ -175,6 +180,8 @@
     <span class="rail-spacer"></span>
     <span id="stat-sel" class="sel-info" hidden></span>
     <span id="stat-file" class="muted">keine Datei</span>
+    <span class="sep"></span>
+    <span id="stat-version" class="muted" title="Programmversion"></span>
   </footer>
 </div>
 

@@ -7,6 +7,10 @@ und kannst nichts verlieren, wenn der Browser geschlossen wird.
 Kein Server, kein Konto, keine Installation – reines HTML/CSS/JavaScript (ES-Module) ohne
 Abhängigkeiten. Läuft als statische Seite auf **GitHub Pages** oder lokal aus einem Ordner.
 
+**Version 01** – sie steht in der Statuszeile unten rechts, auf dem Startbildschirm, in der
+Kurzanleitung und in den beiden eigenen Fenstern (Detailbereich, Ideen-Sammelbecken). Gezählt wird
+in `js/version.js`; bei jedem Ausliefern wird die Zahl dort um eins erhöht.
+
 ![Gantt-Ansicht](docs/screenshot-gantt.png)
 
 ## Was drin ist
@@ -23,6 +27,8 @@ Abhängigkeiten. Läuft als statische Seite auf **GitHub Pages** oder lokal aus 
 **Planung wie in MS Project / GanttProject**
 
 - Aufgaben, Sammelaufgaben (mit automatischer Zusammenfassung) und Meilensteine
+- Neue Aufgaben landen auf der Ebene der markierten Zeile – auch neben einer Sammelaufgabe, nie
+  ungefragt darin; eine Unteraufgabe entsteht über „Unteraufgabe hinzufügen“ oder `Alt`+`→`
 - Abhängigkeiten in vier Arten: Ende→Anfang, Anfang→Anfang, Ende→Ende, Anfang→Ende – jeweils mit Puffer
 - **Auto-Planung**: Verschiebt man eine Aufgabe, wandern alle Nachfolger mit
 - Kritischer Pfad, Puffer pro Aufgabe, Termin-Festlegungen („muss beginnen am“, „beginnt nicht vor“ …)
@@ -110,6 +116,21 @@ legt die Auswahl zusätzlich als Text in die Windows-Zwischenablage (für Excel)
 - Eingeplante Aufgaben sind **türkis** und damit sofort von den anderen zu unterscheiden.
 - Die Liste wird **mit dem Projekt gespeichert**; ein **allgemeiner Vorrat** gilt für alle
   Projekte und lässt sich in neue Projekte übernehmen.
+
+**Detailbereich in eigenem Fenster** (Standard, links auf **🗗 Detail** zum Abschalten)
+
+- Der **Detailbereich** (alles zur markierten Aufgabe) steht in einem **eigenen Browserfenster** –
+  damit hat der Plan im Hauptfenster den **ganzen Bildschirm**.
+- Es geht **von selbst auf**, sobald eine Aufgabe markiert wird – auch wenn es vorher (etwa
+  versehentlich) geschlossen wurde: beim nächsten Markieren ist es wieder da, an der zuletzt
+  benutzten Stelle (auch auf dem **zweiten Bildschirm**).
+- Es sind **dieselben Felder**, nur an anderer Stelle: Änderungen wirken sofort im Plan und
+  umgekehrt. Markiert wird weiterhin im Planungsfenster.
+- Beim **Beenden des Programms** wird das Fenster mit geschlossen.
+- **Abschalten:** Klick auf **🗗 Detail** holt den Bereich als rechte Spalte in den Plan (Knopf
+  hervorgehoben = Fensterbetrieb läuft). Die Einstellung gilt auch nach dem nächsten Start.
+- Blockiert der Browser das Fenster (Popup-Blocker), bleibt der Bereich sichtbar rechts im Plan,
+  mit kurzem Hinweis – es geht nichts verloren.
 
 **Zeilenhöhe einstellbar** (Setup → „Zeilenhöhe in Listen und Gantt“)
 
@@ -231,6 +252,7 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 ```
 index.html            Oberfläche
 sideboard.html        Ideen-Sammelbecken (eigenes Fenster, zweiter Bildschirm)
+detail.html           Detailbereich-Aufnahme (eigenes Fenster, zweiter Bildschirm)
 Terminstart.bat       Start per Doppelklick (Windows) – start.bat macht dasselbe
 start.sh              Start unter Linux/macOS
 css/app.css           Aussehen der Oberfläche (benutzt die Farbvariablen)
@@ -248,8 +270,10 @@ js/
   pool.js             Ideen-Sammelbecken: Einträge, allgemeiner Vorrat
   poolhub.js          Verbindung zwischen Planungs- und Sammelbecken-Fenster
   sideboard.js        Steuerung des Sammelbecken-Fensters
+  version.js          Programmversion (eine Stelle – wird an vier Orten angezeigt)
   dateutil.js         Datums- und Arbeitstagsrechnung
   ui/                 Dialoge, Detailbereich, Kontextmenü, Ablegen, kleine Helfer
+                      (detailwindow.js = Detailbereich ins eigene Fenster umhängen)
   views/              gantt.js · table.js · calendar.js · board.js
 docs/                 Handbuch, Testprotokoll, Screenshots
 examples/             Beispielprojekt
