@@ -7,7 +7,7 @@
    Statuszeile unten rechts, Startbildschirm, und im Detailfenster.
    ══════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '02';
+export const APP_VERSION = '03';
 
 /** Fertiger Text für die Anzeige. */
 export function versionLabel() { return 'Version ' + APP_VERSION; }

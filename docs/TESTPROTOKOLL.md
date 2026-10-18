@@ -400,7 +400,38 @@ bei Rechtsklick auf Balken/Meilenstein (z. B. auch „Termin: 1 Tag später“),
 | Nur **ein** Menü im DOM, Klick daneben schließt es | ✅ (vorher wurden zwei Kästchen gebaut) |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 21. Offene Punkte / nicht geprüft
+## 21. Zeilenreihenfolge mit Umschalt+↑/↓ verschieben (neue Bedienung)
+
+**Wunsch:** Mit **Umschalt**+`↑`/`↓` die Reihenfolge der Aufgaben schieben, ohne dass bereits
+eingegebene Daten (Termine, Dauer, Fortschritt, Name, Zuweisungen) verändert werden.
+
+**Umsetzung:** `store.moveRows(dir, ids?)` (neu) verschiebt die markierten Zeilen **als Block**
+innerhalb ihrer Ebene; Unteraufgaben wandern mit, Sammelaufgaben mit ihrem ganzen Teilbaum. Nur die
+Reihenfolge im Feld `tasks` ändert sich – nichts an den Aufgaben selbst; die Nummerierung (WBS)
+ergibt sich daraus und läuft mit. Das flache Feld wird aus den neuen Geschwisterlisten per
+Tiefensuche wieder aufgebaut. `moveRow(id, dir)` (Kontextmenü) ist jetzt ein Aufruf von `moveRows`.
+Neu belegt: `Umschalt`+`↑`/`↓` = Reihenfolge, `Strg`+`↑`/`↓` = Auswahl zeilenweise erweitern
+(vorher auf `Umschalt`+`↑`/`↓`), `Umschalt`+`Strg`+`↑`/`↓` = Termin eine Woche, `Alt`+`↑`/`↓` =
+weiterhin Reihenfolge.
+
+| Prüfung | Ergebnis |
+|---|---|
+| `Umschalt`+`↑` auf „1.2 Zielgruppen-Workshop“ | ✅ wird zu „1.1“ und schiebt „Anforderungen sammeln“ auf „1.2“ |
+| `Umschalt`+`↓` danach | ✅ wieder die Ausgangsreihenfolge |
+| **Datenvergleich** vorher/nachher (Name, Beginn, Ende, Dauer, Fortschritt, Status, Elternteil) | ✅ **keine** Aufgabe geändert |
+| Drei markierte Zeilen (3.3/3.4/3.5) mit `Umschalt`+`↑` | ✅ wandern als **Block** über „3.2 Frontend-Grundgerüst“, Reihenfolge der drei bleibt erhalten |
+| Sammelaufgabe „Design“ mit `Umschalt`+`↑` | ✅ wandert mit allen drei Unteraufgaben über „Konzept & Planung“ (wird `1`, Konzept `2`) und mit `Umschalt`+`↓` zurück |
+| Oberste Zeile weiter nach oben | ✅ nichts passiert, **kein** neuer Rückgängig-Punkt |
+| `Strg`+`↑`/`↓` | ✅ erweitert bzw. verkleinert die Auswahl zeilenweise (wie vorher `Umschalt`) |
+| `Umschalt`+`Strg`+`↑`/`↓` und `Umschalt`+`Strg`+`←`/`→` | ✅ Termine weiterhin eine Woche bzw. einen Monat (Rückgängig-Titel „1 Wochen früher“, „1 Monat später“ …) |
+| `Umschalt`+`←`/`→` | ✅ weiterhin ein Arbeitstag (Titel „1 Tag später“) |
+| `Alt`+`↑`/`↓` | ✅ verschiebt ebenfalls die Reihenfolge (jetzt auch für die ganze Auswahl) |
+| Kontextmenü **Nach oben** / **Nach unten** | ✅ wirkt auf die Auswahl, Hinweis jetzt `Umschalt+↑`/`Umschalt+↓` |
+| Gesperrte Zeile | ✅ abgelehnt: „„Zielgruppen-Workshop“ ist gesperrt – nach oben verschieben ist nicht möglich.“ |
+| `Strg`+`Z` nach dem Schieben | ✅ stellt die vorige Reihenfolge her (ein Rückgängig-Punkt je Schieben) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 22. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

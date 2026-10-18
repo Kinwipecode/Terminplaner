@@ -167,6 +167,8 @@ export function renderTable(container) {
         { label: 'Einrücken', run: () => store.indent(task.id) },
         { label: 'Ausrücken', run: () => store.outdent(task.id) },
         { label: 'Duplizieren', run: () => store.duplicateTask(task.id) },
+        { label: 'Nach oben', run: () => store.moveRows(-1) },
+        { label: 'Nach unten', run: () => store.moveRows(1) },
         '-',
         { label: task.locked ? '🔓 Schloss öffnen' : '🔒 Sperren', hint: 'Alt+L', run: () => store.toggleLock(task.id) },
         { label: 'Aufgabe löschen', danger: true, run: () => store.deleteTask(task.id) },

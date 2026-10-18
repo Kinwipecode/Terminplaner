@@ -7,7 +7,7 @@ und kannst nichts verlieren, wenn der Browser geschlossen wird.
 Kein Server, kein Konto, keine Installation – reines HTML/CSS/JavaScript (ES-Module) ohne
 Abhängigkeiten. Läuft als statische Seite auf **GitHub Pages** oder lokal aus einem Ordner.
 
-**Version 02** – sie steht in der Statuszeile unten rechts, auf dem Startbildschirm, in der
+**Version 03** – sie steht in der Statuszeile unten rechts, auf dem Startbildschirm, in der
 Kurzanleitung und in den beiden eigenen Fenstern (Detailbereich, Ideen-Sammelbecken). Gezählt wird
 in `js/version.js`; bei jedem Ausliefern wird die Zahl dort um eins erhöht.
 
@@ -90,7 +90,7 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
 | **Klick** | diese eine Aufgabe markieren (Anker) |
 | **Strg** + **Klick** | einzelne Aufgabe zur Auswahl hinzufügen bzw. herausnehmen |
 | **Umschalt** + **Klick** | alles **von der Anker-Aufgabe bis hierher** markieren |
-| **Umschalt** + `↑`/`↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
+| **Strg** + `↑`/`↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
 | **Strg** + `A` | alle sichtbaren Aufgaben markieren |
 | `Entf` | Auswahl löschen (mit Rückfrage, `Strg`+`Z` holt sie zurück) |
 | **Strg** + `C` / `V` / `D` | Auswahl kopieren / einfügen / duplizieren |
@@ -243,12 +243,13 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Strg`+`S` | sofort speichern (sonst passiert das automatisch) |
 | `Einfg` | neue Aufgabe · `Entf` löschen · `F2` umbenennen |
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
-| `Alt`+`↑` / `Alt`+`↓` | Zeile nach oben / unten |
+| `Alt`+`↑` / `Alt`+`↓` | markierte Zeile(n) in der Reihenfolge nach oben / unten schieben |
 | `Alt`+`L` | gesperrte Aufgabe(n) freigeben bzw. markierte sperren (Schloss) |
+| **Umschalt**+`↑` / `↓` | dasselbe: markierte Zeile(n) in der Reihenfolge verschieben (Daten bleiben unverändert) |
 | **Umschalt**+`←` / `→` | Termin um einen Arbeitstag verschieben |
 | **Umschalt**+`Strg`+`←` / `→` | Termin um einen Monat verschieben |
 | **Umschalt**+`Strg`+`↑` / `↓` | Termin um eine Woche verschieben |
-| **Umschalt**+`↑` / `↓` | Auswahl erweitern bzw. verkleinern (wie im Explorer) |
+| **Strg**+`↑` / `↓` | Auswahl zeilenweise erweitern bzw. verkleinern (wie im Explorer) |
 | **Strg**+`A` | alle sichtbaren Aufgaben markieren |
 | **Strg**+`Klick` | einzelne Aufgabe zur Auswahl hinzufügen/entfernen |
 | **Umschalt**+`Klick` | Bereich von der Anker-Aufgabe bis hierher markieren |

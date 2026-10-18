@@ -583,16 +583,26 @@ document.addEventListener('keydown', (e) => {
     else store.shiftTask(store.selectedId, dir, unit);
     return;
   }
-  // Umschalt+Auf/Ab erweitert die Auswahl (wie im Explorer); mit Strg: eine Woche verschieben
-  if (e.shiftKey && !e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+  // Umschalt+Auf/Ab verschiebt die markierten Zeilen in der Reihenfolge
+  // (nur die Reihenfolge ändert sich – Termine und alle übrigen Daten bleiben)
+  if (e.shiftKey && !e.altKey && !mod && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    if (!store.selectedId) return;
+    e.preventDefault();
+    store.moveRows(e.key === 'ArrowDown' ? 1 : -1);
+    return;
+  }
+  // Strg+Auf/Ab erweitert bzw. verkleinert die Auswahl zeilenweise (wie im Explorer)
+  if (mod && !e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    e.preventDefault();
+    store.extendSelection(e.key === 'ArrowDown' ? 1 : -1);
+    return;
+  }
+  // Umschalt+Strg+Auf/Ab: Termin um eine Woche verschieben
+  if (e.shiftKey && mod && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
     e.preventDefault();
     const dir = e.key === 'ArrowDown' ? 1 : -1;
-    if (mod) {
-      if (store.selectionCount() > 1) store.shiftSelected(dir, 'week');
-      else if (store.selectedId) store.shiftTask(store.selectedId, dir, 'week');
-      return;
-    }
-    store.extendSelection(dir);
+    if (store.selectionCount() > 1) store.shiftSelected(dir, 'week');
+    else if (store.selectedId) store.shiftTask(store.selectedId, dir, 'week');
     return;
   }
   if (e.key === 'Insert') { e.preventDefault(); store.addTask(); return; }
@@ -600,8 +610,8 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'F2') { e.preventDefault(); const t = store.selected; if (t) promptDialog('Umbenennen', 'Neue Bezeichnung', t.name).then((v) => v && store.updateTask(t.id, { name: v }, 'Aufgabe umbenennen')); return; }
   if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); if (store.selectedId) store.indent(store.selectedId); return; }
   if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); if (store.selectedId) store.outdent(store.selectedId); return; }
-  if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); if (store.selectedId) store.moveRow(store.selectedId, -1); return; }
-  if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); if (store.selectedId) store.moveRow(store.selectedId, 1); return; }
+  if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); store.moveRows(-1); return; }
+  if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); store.moveRows(1); return; }
   if (['1', '2', '3', '4'].includes(e.key)) { setView(VIEWS[Number(e.key) - 1]); return; }
   if (e.key === ' ') { e.preventDefault(); ganttScrollToToday(); return; }
 });

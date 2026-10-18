@@ -95,6 +95,20 @@ Eine Unteraufgabe machen Sie anschließend mit `Alt`+`→` bzw. über **＋ Unte
 Detailbereich oder **Unteraufgabe hinzufügen** im Kontextmenü. Ohne Markierung (Esc) landet die
 neue Aufgabe am Ende des Plans, ganz außen.
 
+**Reihenfolge der Zeilen ändern:** Zeile(n) markieren und mit **Umschalt**+`↑` / `↓` nach oben bzw.
+unten schieben (im Kontextmenü **Nach oben** / **Nach unten**, alternativ `Alt`+`↑` / `↓`). Es
+wandert immer nur die **Reihenfolge** – Termine, Dauer, Fortschritt, Zuweisungen und Notizen
+bleiben unangetastet; die **Nummerierung** (`1`, `1.1`, …) läuft mit, weil sie sich aus der
+Reihenfolge ergibt. Geschoben wird immer **innerhalb der eigenen Ebene**: eine Unteraufgabe bleibt
+Unteraufgabe und tauscht nur mit ihren Geschwistern; eine Sammelaufgabe wandert mit allen ihren
+Unteraufgaben. Aus einer Ebene heraus bzw. hinein kommt man mit **Ausrücken** (`Alt`+`←`) und
+**Einrücken** (`Alt`+`→`). Mehrere markierte Zeilen wandern als Block, die einmal gewählte
+Reihenfolge der Markierung bleibt dabei erhalten. `Strg`+`Z` nimmt das Schieben zurück.
+
+*Hinweis:* In der **Tabelle** richtet sich die Anzeige nach der gewählten Spalten-Sortierung. Wenn
+dort z. B. nach **Status** sortiert ist, sieht man das Schieben erst wieder bei Sortierung nach
+**Nr.** (Standard). Im Gantt und beim Ausdruck wirkt es sofort.
+
 ## 4. Abhängigkeiten
 
 Im Detailbereich rechts unter **Vorgänger**:
@@ -176,11 +190,12 @@ Farbe gesetzt ist.
 | `Entf` | ausgewählte Aufgabe löschen |
 | `F2` | ausgewählte Aufgabe umbenennen |
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
-| `Alt`+`↑` / `Alt`+`↓` | Zeile verschieben |
+| `Alt`+`↑` / `Alt`+`↓` | markierte Zeile(n) in der Reihenfolge verschieben (wie **Umschalt**+`↑`/`↓`) |
 | **Umschalt**+`←` / `→` | Termin um **einen Arbeitstag** verschieben |
 | **Umschalt**+`Strg`+`↑` / `↓` | Termin um **eine Woche** verschieben |
 | **Umschalt**+`Strg`+`←` / `→` | Termin um **einen Monat** verschieben |
-| **Umschalt**+`↑` / `↓` | Auswahl erweitern bzw. verkleinern |
+| **Umschalt**+`↑` / `↓` | markierte Zeile(n) in der **Reihenfolge** nach oben/unten schieben – Termine und Daten bleiben unverändert |
+| **Strg**+`↑` / `↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
 | `Alt`+`L` | Schloss der markierten Aufgabe(n) umschalten (sperren / öffnen) |
 | **Strg**+`A` | alle sichtbaren Aufgaben markieren |
 | **Strg**+`C` / `Strg`+`V` / **Strg**+`D` | Auswahl kopieren / einfügen / duplizieren |
@@ -297,7 +312,8 @@ Priorität, Fortschritt und Farbe für alle in einem Rutsch zu setzen.
 | **Strg**+**Klick** | fügt eine einzelne Aufgabe hinzu bzw. nimmt sie wieder heraus |
 | **Umschalt**+**Klick** | markiert alles **von der Anker-Aufgabe bis hierher** |
 | **Strg**+**Umschalt**+**Klick** | diesen Bereich zur bestehenden Auswahl hinzufügen |
-| **Umschalt**+`↑` / `↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
+| **Strg**+`↑` / `↓` | Auswahl zeilenweise erweitern bzw. verkleinern |
+| **Umschalt**+`↑` / `↓` | markierte Zeilen als **Block** in der Reihenfolge verschieben (Daten bleiben unverändert) |
 | **Strg**+`A` | alle sichtbaren Aufgaben markieren (auch bei aktivem Filter) |
 | `Esc` oder Klick ins Leere | Auswahl aufheben |
 | **Strg**+`C` | Auswahl kopieren |

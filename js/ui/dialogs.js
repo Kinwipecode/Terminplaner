@@ -108,12 +108,12 @@ export function helpDialog() {
       box.appendChild(sec('Tastenkürzel', [
         '<kbd>Strg</kbd>+<kbd>Z</kbd> rückgängig · <kbd>Strg</kbd>+<kbd>Y</kbd> wiederholen',
         '<kbd>Einfg</kbd> neue Aufgabe · <kbd>Entf</kbd> löschen · <kbd>F2</kbd> umbenennen',
-        '<kbd>Alt</kbd>+<kbd>→</kbd> einrücken · <kbd>Alt</kbd>+<kbd>←</kbd> ausrücken · <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> Zeile verschieben',
+        '<kbd>Alt</kbd>+<kbd>→</kbd> einrücken · <kbd>Alt</kbd>+<kbd>←</kbd> ausrücken · <b>Umschalt</b>+<kbd>↑</kbd>/<kbd>↓</kbd> (oder <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>) Zeile(n) in der Reihenfolge nach oben/unten schieben – die eingegebenen Daten bleiben dabei unverändert',
         '<kbd>1</kbd>…<kbd>4</kbd> Ansicht wechseln · <kbd>Strg</kbd>+<kbd>S</kbd> sofort speichern · <kbd>Strg</kbd>+<kbd>P</kbd> drucken · <kbd>F1</kbd> Hilfe',
         '<b>Umschalt</b>+<kbd>←</kbd>/<kbd>→</kbd> Aufgabe einen Arbeitstag verschieben · <b>Umschalt</b>+<kbd>Strg</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> eine Woche · <b>Umschalt</b>+<kbd>Strg</kbd>+<kbd>←</kbd>/<kbd>→</kbd> einen Monat',
         '<kbd>Alt</kbd>+<kbd>L</kbd> sperren bzw. Schloss öffnen – eine gesperrte Aufgabe 🔒 lässt sich nicht ändern; ein Verschieben, das eine gesperrte Aufgabe mitziehen würde, wird mit Hinweis abgelehnt',
         'Mehrere Aufgaben markieren: <b>Klick</b>, <b>Strg</b>+<b>Klick</b> für einzelne, <b>Umschalt</b>+<b>Klick</b> für einen Bereich · <kbd>Strg</kbd>+<kbd>A</kbd> alles · <kbd>Entf</kbd> löschen · <kbd>Strg</kbd>+<kbd>C</kbd>/<kbd>V</kbd>/<kbd>D</kbd> kopieren/einfügen/duplizieren',
-        '<b>Umschalt</b>+<kbd>↑</kbd>/<kbd>↓</kbd> Auswahl erweitern bzw. verkleinern (wie im Explorer)',
+        '<b>Strg</b>+<kbd>↑</kbd>/<kbd>↓</kbd> Auswahl zeilenweise erweitern bzw. verkleinern (wie im Explorer)',
       ]));
       box.appendChild(sec('Maus und Ansicht im Gantt', [
         '<b>◉ Heute</b> (oder <kbd>Leertaste</kbd>): springt zum heutigen Datum – auch wenn es außerhalb des Plans liegt.',

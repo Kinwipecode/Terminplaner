@@ -628,30 +628,76 @@ export const store = {
     return created;
   },
 
-  /** Zeile nach oben/unten verschieben (innerhalb der Geschwister). */
-  moveRow(id, dir) {
-    if (this.refuseIfLocked([id], 'in der Zeilenfolge verschieben')) return false;
-    this.mutate(dir < 0 ? 'Zeile nach oben' : 'Zeile nach unten', (p) => {
-      const t = taskById(p, id);
-      if (!t) return false;
-      const sib = p.tasks.filter((x) => x.parentId === t.parentId);
-      const i = sib.findIndex((x) => x.id === id);
-      const j = i + dir;
-      if (i < 0 || j < 0 || j >= sib.length) return false;
-      const a = sib[i], b = sib[j];
-      const ia = p.tasks.indexOf(a), ib = p.tasks.indexOf(b);
-      // ganze Teilbäume tauschen
-      const blockA = [a, ...descendantsOf(p, a.id)];
-      const blockB = [b, ...descendantsOf(p, b.id)];
-      const idxA = p.tasks.findIndex((x) => x.id === blockA[0].id);
-      const idxB = p.tasks.findIndex((x) => x.id === blockB[0].id);
-      const rest = p.tasks.filter((x) => !blockA.includes(x) && !blockB.includes(x));
-      // nach oben: A vor B an die Stelle von B · nach unten: B vor A an die Stelle von A
-      const insertAt = dir < 0 ? idxB : idxA;
-      rest.splice(insertAt, 0, ...(dir < 0 ? [...blockA, ...blockB] : [...blockB, ...blockA]));
-      p.tasks = rest;
+  /**
+   * Zeilen in der Anzeigereihenfolge verschieben – nur die Reihenfolge ändert sich.
+   * Termine, Dauer, Fortschritt, Namen und Zuweisungen bleiben unangetastet; die
+   * Nummerierung (WBS) läuft mit, weil sie sich aus der Reihenfolge ergibt.
+   * Markierte Zeilen wandern als Block; Unteraufgaben kommen mit. Je Ebene
+   * (gleicher Elternteil) wird getrennt verschoben – nur Geschwister tauschen Plätze.
+   * @param {number} dir  -1 = nach oben, +1 = nach unten
+   * @param {string[]} [ids]  sonst die markierten Zeilen (ohne ihre mitmarkierten Vorfahren)
+   * @returns {number} Anzahl verschobener Zeilen
+   */
+  moveRows(dir, ids = null) {
+    const step = dir < 0 ? -1 : 1;
+    const rows = (ids && ids.length ? ids.map((id) => taskById(this.project, id)) : this.selectionRoots()).filter(Boolean);
+    if (!rows.length) return 0;
+    if (this.refuseIfLocked(rows.map((t) => t.id), step < 0 ? 'nach oben verschieben' : 'nach unten verschieben')) return 0;
+
+    let moved = 0;
+    this.mutate(step < 0 ? 'Zeilen nach oben' : 'Zeilen nach unten', (p) => {
+      // markierte Zeilen je Ebene sammeln
+      const selByParent = new Map();
+      for (const t of rows) {
+        const key = t.parentId || '';
+        if (!selByParent.has(key)) selByParent.set(key, new Set());
+        selByParent.get(key).add(t.id);
+      }
+      // Geschwisterlisten in der jetzigen Reihenfolge
+      const order = new Map();
+      for (const t of p.tasks) {
+        const key = t.parentId || '';
+        if (!order.has(key)) order.set(key, []);
+        order.get(key).push(t.id);
+      }
+      for (const [key, sel] of selByParent) {
+        const L = order.get(key) || [];
+        const idx = L.map((id, i) => (sel.has(id) ? i : -1)).filter((i) => i >= 0);
+        if (!idx.length) continue;
+        const first = idx[0], last = idx[idx.length - 1];
+        // Nachbar, an dem vorbei bewegt wird: oben der nächste nicht markierte davor, unten danach
+        const anchorId = step < 0
+          ? L.slice(0, first).reverse().find((id) => !sel.has(id))
+          : L.slice(last + 1).find((id) => !sel.has(id));
+        if (!anchorId) continue;                            // schon ganz oben bzw. unten
+        const block = idx.map((i) => L[i]);
+        const rest = L.filter((id) => !sel.has(id));
+        const at = rest.indexOf(anchorId);
+        rest.splice(step < 0 ? at : at + 1, 0, ...block);
+        order.set(key, rest);
+        moved += block.length;
+      }
+      if (!moved) return false;                             // nichts zu tun -> kein Rückgängig-Punkt
+      // flaches Feld aus den neuen Geschwisterlisten wieder aufbauen (Tiefensuche)
+      const byId = new Map(p.tasks.map((t) => [t.id, t]));
+      const out = [];
+      const emit = (parentKey) => {
+        for (const id of order.get(parentKey) || []) {
+          const t = byId.get(id);
+          if (!t) continue;
+          out.push(t);
+          emit(id);
+        }
+      };
+      emit('');
+      for (const t of p.tasks) if (!out.includes(t)) out.push(t);   // Sicherheitsnetz
+      p.tasks = out;
     });
+    return moved;
   },
+
+  /** Eine Zeile nach oben/unten verschieben (Kontextmenü). */
+  moveRow(id, dir) { return this.moveRows(dir, [id]); },
 
   /** Einrücken: wird Unteraufgabe der vorherigen Zeile. */
   indent(id) {
