@@ -7,7 +7,7 @@ und kannst nichts verlieren, wenn der Browser geschlossen wird.
 Kein Server, kein Konto, keine Installation – reines HTML/CSS/JavaScript (ES-Module) ohne
 Abhängigkeiten. Läuft als statische Seite auf **GitHub Pages** oder lokal aus einem Ordner.
 
-**Version 01** – sie steht in der Statuszeile unten rechts, auf dem Startbildschirm, in der
+**Version 02** – sie steht in der Statuszeile unten rechts, auf dem Startbildschirm, in der
 Kurzanleitung und in den beiden eigenen Fenstern (Detailbereich, Ideen-Sammelbecken). Gezählt wird
 in `js/version.js`; bei jedem Ausliefern wird die Zahl dort um eins erhöht.
 
@@ -70,6 +70,18 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
 - Rechtsklick auf eine Zeile → „Termin: 1 Tag/Woche/Monat später bzw. früher“.
 - Im Detailbereich rechts die Knöpfe `− 1 Monat … + 1 Monat` oder **Verschieben…** für einen
   eigenen Betrag (z. B. 3 Wochen) mit Vorschau des neuen Termins.
+
+**Sperren (Schloss) – Termine festhalten**
+
+- Jede Aufgabe lässt sich **sperren**: dann ändert sich daran nichts mehr (Termin, Dauer, Name,
+  Fortschritt, Status, Beteiligte, Vorgänger – und löschen geht auch nicht).
+- Sperren/öffnen über den Knopf **🔒 Sperren** in der Leiste, `Alt`+`L`, das Kontextmenü, den
+  Detailbereich oder einen Klick auf das **🔒** neben dem Namen.
+- Gesperrte Aufgaben tragen in **allen Ansichten** und im **Ausdruck/PDF** ein **🔒**.
+- **Zusammenhängende Termine:** Würde ein Verschieben (bei aktiver Auto-Planung) einen gesperrten
+  Nachfolger oder eine gesperrte Sammelaufgabe mitziehen, wird **gar nicht verschoben** – mit
+  Hinweis, welche Aufgabe im Weg ist. Beim Rechnen bleiben gesperrte Termine immer stehen; ergäbe
+  die Rechnung einen anderen Termin, wird das als Warnung gemeldet.
 
 **Mehrere Aufgaben markieren** – wie im Explorer
 
@@ -232,6 +244,7 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Einfg` | neue Aufgabe · `Entf` löschen · `F2` umbenennen |
 | `Alt`+`→` / `Alt`+`←` | einrücken / ausrücken |
 | `Alt`+`↑` / `Alt`+`↓` | Zeile nach oben / unten |
+| `Alt`+`L` | gesperrte Aufgabe(n) freigeben bzw. markierte sperren (Schloss) |
 | **Umschalt**+`←` / `→` | Termin um einen Arbeitstag verschieben |
 | **Umschalt**+`Strg`+`←` / `→` | Termin um einen Monat verschieben |
 | **Umschalt**+`Strg`+`↑` / `↓` | Termin um eine Woche verschieben |
@@ -246,6 +259,8 @@ Beispiel zum Ausprobieren: [`examples/beispiel-projekt.tplan.json`](examples/bei
 | `Leertaste` | zu „Heute“ springen (wie der Knopf **◉ Heute**) |
 | `Strg`+`P` | Druck-Einstellungen öffnen (in der Vorschau: direkt drucken) |
 | `F1` | Kurzanleitung |
+
+Die Kürzel wirken auch, wenn das Detailfenster vorn ist – nur beim Tippen in einem Feld dort nicht.
 
 ## Aufbau des Projekts
 

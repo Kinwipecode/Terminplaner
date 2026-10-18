@@ -67,11 +67,12 @@ export function renderCalendar(container) {
       const color = t.color || (STATUS[t.status] || STATUS.open).color;
       const ev = el('div', {
         class: 'cal-ev' + (t.type === 'milestone' ? ' is-ms' : '') + (t.status === 'done' ? ' is-done' : '')
+          + (t.locked ? ' is-locked' : '')
           + (store.isSelected(t.id) ? (store.selectedId === t.id ? ' is-sel' : ' is-multi') : ''),
         draggable: 'true',
         style: { borderLeftColor: color },
-        title: `${t.name}\n${t.start} – ${t.end} · ${t.progress}%`,
-        text: (t.type === 'milestone' ? '◆ ' : '') + t.name,
+        title: `${t.name}\n${t.start} – ${t.end} · ${t.progress}%${t.locked ? ' · gesperrt' : ''}`,
+        text: (t.locked ? '🔒 ' : '') + (t.type === 'milestone' ? '◆ ' : '') + t.name,
       });
       ev.addEventListener('click', (e) => {
         e.stopPropagation();

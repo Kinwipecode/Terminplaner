@@ -3,6 +3,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import { el, clear, initials, toast } from './dom.js';
+import { lockButton } from './lock.js';
 import { isDetailDetached } from './detailwindow.js';
 import { pickPredecessorDialog } from './dialogs.js';
 import { store } from '../store.js';
@@ -36,6 +37,14 @@ function renderMulti(host) {
   acts.appendChild(el('button', { class: 'pick', text: '🗑 Löschen', title: 'Alle markierten löschen (Entf)', onclick: () => store.emit('action-delete-selection') }));
   acts.appendChild(el('button', { class: 'pick', text: '✕ Auswahl aufheben', onclick: () => store.clearSelection() }));
   body.appendChild(field('Aktionen', acts));
+
+  /* Schloss für die ganze Auswahl */
+  const gesperrt = tasks.filter((t) => t.locked);
+  const lockRow = el('div', { class: 'chip-row' }, lockButton(tasks));
+  body.appendChild(field('Sperren (Schloss)', lockRow,
+    gesperrt.length
+      ? el('div', { class: 'hint', text: `${gesperrt.length} der ${tasks.length} markierten Aufgaben sind gesperrt und bleiben unverändert.` })
+      : null));
 
   /* Termin verschieben – für alle */
   const shiftRow = el('div', { class: 'chip-row' });
@@ -120,6 +129,13 @@ function renderSingle(host) {
   host.appendChild(body);
 
   const field = (label, ...kids) => el('div', { class: 'field' }, el('label', { text: label }), ...kids);
+
+  /* Schloss zuerst: es erklärt, warum danach nichts mehr geht */
+  const lockRow = el('div', { class: 'chip-row' }, lockButton([task]));
+  body.appendChild(lockRow);
+  if (task.locked) {
+    body.appendChild(el('div', { class: 'warnbox lock' , text: '🔒 Diese Aufgabe ist gesperrt – sie lässt sich nicht ändern (weder Termin noch Felder, auch nicht löschen). Mit „🔓 Schloss öffnen“ oder Alt+L wieder freigeben.' }));
+  }
 
   /* Name */
   body.appendChild(field('Bezeichnung',

@@ -84,16 +84,27 @@ export function schedule(project, opts = {}) {
         s = minIso(s, r.start);
         e = maxIso(e, r.end);
       }
-      if (s) setDates(task, s, e);
-      task.type = task.type === 'milestone' ? 'summary' : 'summary';
-      task.duration = durationFromRange(task.start, task.end, cal);
-      const kidsReal = kids.filter((k) => k.type !== 'summary');
-      const wsum = kidsReal.reduce((a, k) => a + Math.max(1, k.duration), 0) || 1;
-      task.progress = Math.round(kidsReal.reduce((a, k) => a + (Number(k.progress) || 0) * Math.max(1, k.duration), 0) / wsum);
-      const allDone = kidsReal.length && kidsReal.every((k) => k.status === 'done' || k.progress >= 100);
-      const anyRun = kidsReal.some((k) => k.status === 'running' || (k.progress > 0 && k.progress < 100));
-      const anyBlocked = kidsReal.some((k) => k.status === 'blocked');
-      task.status = allDone ? 'done' : anyBlocked ? 'blocked' : anyRun ? 'running' : 'open';
+      if (task.locked) {
+        // Gesperrte Sammelaufgabe: Zeitraum, Fortschritt und Status bleiben stehen.
+        if (s && (task.start !== s || task.end !== e)) {
+          violations.push({
+            taskId: task.id,
+            kind: 'lock',
+            message: `„${task.name}“ ist gesperrt und bleibt am ${task.start} – aus den Unteraufgaben ergäbe sich ${s} bis ${e}. Schloss öffnen, um das nachzuführen.`,
+          });
+        }
+      } else if (s) {
+        setDates(task, s, e);
+        const kidsReal = kids.filter((k) => k.type !== 'summary');
+        const wsum = kidsReal.reduce((a, k) => a + Math.max(1, k.duration), 0) || 1;
+        task.progress = Math.round(kidsReal.reduce((a, k) => a + (Number(k.progress) || 0) * Math.max(1, k.duration), 0) / wsum);
+        const allDone = kidsReal.length && kidsReal.every((k) => k.status === 'done' || k.progress >= 100);
+        const anyRun = kidsReal.some((k) => k.status === 'running' || (k.progress > 0 && k.progress < 100));
+        const anyBlocked = kidsReal.some((k) => k.status === 'blocked');
+        task.status = allDone ? 'done' : anyBlocked ? 'blocked' : anyRun ? 'running' : 'open';
+      }
+      if (s) task.duration = task.locked ? task.duration : durationFromRange(task.start, task.end, cal);
+      task.type = 'summary';
     } else {
       // Blattaufgabe
       let est = projectStart;
@@ -115,7 +126,19 @@ export function schedule(project, opts = {}) {
       const snapped = snapToWorkday(start, cal, 1);
       if (snapped !== start && !(con && con.type === 'MSO')) start = snapped;
 
-      if (task.type === 'milestone') {
+      if (task.locked) {
+        /* Schloss: der Termin steht fest. Die Berechnung wird nur gemeldet,
+           damit sichtbar ist, dass die Aufgabe woanders hin müsste. */
+        const sollEnd = task.type === 'milestone' ? start : endFromDuration(start, task.duration, cal);
+        if (task.start !== start || task.end !== sollEnd) {
+          violations.push({
+            taskId: task.id,
+            kind: 'lock',
+            message: `„${task.name}“ ist gesperrt und bleibt am ${task.start} – berechnet wäre ${start}. Schloss öffnen, um den Termin anzupassen.`,
+          });
+        }
+        if (task.type === 'milestone') task.duration = 0;
+      } else if (task.type === 'milestone') {
         if (apply) setDates(task, start, start);
         else if (task.start !== start) { task.earliestStart = start; }
         task.duration = 0;
@@ -201,8 +224,8 @@ export function schedule(project, opts = {}) {
     violations.push({ taskId: id, kind: 'cycle', message: `Abhängigkeitsschleife über „${t ? t.name : id}“ – bitte prüfen.` });
   }
 
-  // Konfliktmarkierungen zurücksetzen
-  const conflictIds = new Set(violations.filter((v) => v.kind === 'dep' || v.kind === 'cycle').map((v) => v.taskId));
+  // Konfliktmarkierungen zurücksetzen (Sperren zählen mit: sie zeigen einen gestauten Termin)
+  const conflictIds = new Set(violations.filter((v) => v.kind === 'dep' || v.kind === 'cycle' || v.kind === 'lock').map((v) => v.taskId));
   for (const t of project.tasks) t.conflict = conflictIds.has(t.id);
 
   return { violations, critical, slack, cycles, changed };

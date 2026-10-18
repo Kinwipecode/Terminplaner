@@ -301,7 +301,106 @@ Standard = **an**: der Bereich steht sofort im Park (`#detail-park`, unsichtbar)
 | Eine einzige Quelle | ✅ `js/version.js` (`APP_VERSION = '01'`, `versionLabel()`) – die Seiten holen sich den Text per `import` |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 18. Offene Punkte / nicht geprüft
+## 18. Tastenkürzel bei vorgeschaltetem Detailfenster (Nutzermeldung)
+
+**Meldung:** „Das Verschieben der Aufgaben mit den Pfeiltasten funktioniert jetzt nicht mehr.“
+
+**Ursache:** Der Detailbereich liegt seit § 16 standardmäßig in einem **eigenen Fenster**, und
+`openDetailWindow()` holt es beim Öffnen nach vorn (`w.focus()`) – das passiert bei jeder
+Markierung. Das Planungsfenster hört Tastendrücke aber nur in **seinem** Dokument
+(`document.addEventListener('keydown')`). Stand das Detailfenster vorn, kam der Tastendruck dort an
+und blieb liegen: keine Wirkung im Plan. Nachgestellt: derselbe Tastendruck (Umschalt+→) im
+Popup-Dokument → Start blieb `2026-10-19`; im Hauptfenster → `2026-10-20`.
+
+**Behebung:** `attachKeyBridge(win)` in `js/ui/detailwindow.js` hängt beim Umhängen des Bereichs
+einen Zuhörer ins Popup-Dokument, der den Tastendruck als `KeyboardEvent` ins Planungsfenster
+weitergibt. Ausgenommen sind Drucke, die einem **Eingabefeld** im Detailbereich gelten (dort wird
+getippt). Verbraucht das Planungsfenster den Druck (`dispatchEvent` → `false`), wird auch im Popup
+die Standardwirkung unterdrückt (sonst rollt das Fenster dabei).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Ausgangslage | ✅ Beispielprojekt, echte Maus auf eine Gantt-Zeile → Detailfenster ging auf (wie beim Nutzer) |
+| Tastendruck im Popup **vor** der Behebung | ✅ Ursache bestätigt: `2026-10-19` → `2026-10-19` (unverändert) |
+| Tastendruck im Hauptfenster (Gegenprobe) | ✅ `2026-10-19` → `2026-10-20` (Kürzel war also nicht grundsätzlich kaputt) |
+| **Umschalt+→ im Detailfenster, nach der Behebung** | ✅ `2026-10-19` → `2026-10-20` (ein Arbeitstag) |
+| **Umschalt+← im Detailfenster** | ✅ `2026-10-20` → `2026-10-19` (zurück) |
+| **Umschalt+Strg+→ im Detailfenster** | ✅ einen Monat: `2026-10-20` → `2026-11-20` |
+| **Alt+↓ im Detailfenster** | ✅ Zeile verschoben (Reihenfolge der sichtbaren Aufgaben geändert) |
+| Tippen in einem Feld des Detailbereichs | ✅ Feld `INPUT` fokussiert, Umschalt+→ → Start **unverändert** (nichts verschoben) |
+| Standardwirkung im Popup | ✅ `dispatchEvent` → `false`, also verbraucht und unterdrückt |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+| **Nicht prüfbar hier** | ⚠️ Echter Tastendruck von Hand in einem zweiten Browserfenster (Fokuswechsel zwischen Fenstern) – im Prüfbrowser zeigt `document.hasFocus()` in beiden Fenstern `true`; nachgestellt über denselben Ereignisweg, den die Tastatur nimmt |
+
+## 19. Sperren mit dem Schloss (neue Aufgabe)
+
+Geprüft über den echten Bedienweg (Leistenknopf mit echtem Mausklick, Tastatur, Kontextmenü,
+Klick auf das Symbol), Zustand jeweils aus `store.project.tasks` abgelesen. Fehlerprotokoll über
+alle Prüfungen leer.
+
+| Prüfung | Ergebnis |
+|---|---|
+| **Sperren** über den Leistenknopf **🔒 Sperren** (echter Klick, Aufgabe markiert) | ✅ `locked: true` in der Aufgabe; Hinweis „🔒 Gesperrt – … lässt sich jetzt nicht mehr ändern …“ |
+| Symbol in **allen vier Ansichten** | ✅ Gantt: `🔒` neben dem Namen, Zeile `.g-left.is-locked`, Balken `.bar.is-locked` (gestrichelt); Tabelle: `🔒` in der Namensspalte + `tr.is-locked`; Kalender: `🔒` in der Karte + `.cal-ev.is-locked`; Board: `🔒` in der Kartentitel + `.card.is-locked` |
+| Symbol im **Ausdruck** | ✅ Druckvorschau baut weiter 3 Blätter, `🔒` erscheint im `#print-root` |
+| **Verschieben per Tastatur** (`Umschalt`+`→`) | ✅ abgelehnt: Start bleibt `2026-10-19`, Meldung „„Anforderungen sammeln“ ist gesperrt – verschieben ist nicht möglich. Zuerst das Schloss öffnen.“ (genau **eine** Meldung je Aktion) |
+| **Ziehen am Balken** (Gantt) | ✅ abgelehnt, Termin unverändert |
+| **Ziehen im Kalender** (auf einen anderen Tag) | ✅ abgelehnt, Termin unverändert |
+| **Löschen** (`Entf`) | ✅ abgelehnt, Aufgabenanzahl unverändert |
+| **Umbenennen** über das Feld im Detailbereich | ✅ abgelehnt, Name unverändert |
+| **Datumsfeld** (Beginn) im Detailbereich | ✅ abgelehnt, Termin unverändert |
+| **Status/Fortschritt** (Board `setStatus`, Detail-Schieber) | ✅ abgelehnt |
+| **Unteraufgabe in eine gesperrte Sammelaufgabe** | ✅ abgelehnt („eine Unteraufgabe hinzufügen ist nicht möglich“) |
+| **Idee aus dem Sammelbecken** in eine gesperrte Sammelaufgabe legen | ✅ abgelehnt (`null`), Meldung |
+| **Gesperrter Nachfolger:** gesperrten Nachfolger „Zielgruppen-Workshop“ setzen, Vorgänger verschieben | ✅ gar nicht verschoben; Meldung nennt **den Nachfolger** („„Zielgruppen-Workshop“ ist gesperrt …“); Nachfolger unverändert |
+| **Gesperrte Sammelaufgabe:** Unteraufgabe verschieben | ✅ abgelehnt; Meldung nennt die **Sammelaufgabe** |
+| Schloss öffnen, dann verschieben | ✅ `2026-10-19` → `2026-10-20`, Nachfolger wanderte mit (`2026-10-23` → `2026-10-26`), keine Meldung |
+| **Rechnen mit gesperrtem Termin:** Dauer des Vorgängers um 10 AT verlängern (Vorgänger nicht gesperrt) | ✅ gesperrter Termin blieb stehen (`2026-11-05`), Warnung „„Screendesign“ ist gesperrt und bleibt am 2026-11-05 – berechnet wäre 2026-11-19.“, Aufgabe als Konflikt markiert |
+| **Schloss öffnen** per Klick auf das `🔒` neben dem Namen | ✅ `locked: false`, Meldung „🔓 Schloss geöffnet – „Design“ ist wieder änderbar.“ |
+| **Kontextmenü** (Rechtsklick auf gesperrte Zeile) | ✅ Eintrag „🔓 Schloss öffnen“ (bzw. „🔒 Sperren“) vorhanden; bei Mehrfachauswahl „N Schlösser öffnen“ / „N Aufgaben sperren“ |
+| **Rückgängig** (`Strg`+`Z`) nach dem Sperren/Öffnen | ✅ stellt den vorigen Zustand her |
+| **Speichern und Laden**: `serialize()` → `migrateProject` → `load()` | ✅ `locked` steht in der Datei und ist nach dem Laden wieder gesetzt („Design“, „Screendesign“) |
+| **Kopien**: Duplizieren, Kopieren/Einfügen einer gesperrten Aufgabe | ✅ Kopie ist **ungesperrt** („Design (Kopie)“, `locked: false`) – so gewollt und im Handbuch vermerkt |
+| Gegenprobe ohne Schloss (Regression) | ✅ `Einfg` (18 → 19 Aufgaben), `Umschalt`+`→` (`19.10.` → `20.10.`), `Alt`+`←` ausrücken, Druckvorschau, alle vier Ansichten – Fehlerprotokoll leer |
+
+**Nicht geprüft / offen:** Das Schloss-Zeichen in **Firefox/Safari** (Emoji-Darstellung) und das
+Öffnen von Projektdateien mit `locked` aus älteren Fassungen (das Feld fehlte dort – `migrateProject`
+setzt es dann auf `false`, Codepfad geprüft, nicht durchgeklickt).
+
+## 20. Kontextmenü: Einträge wirkten beim Rechtsklick auf einen Balken nicht (Nutzermeldung)
+
+**Meldung:** „Sperren über das Pull-Down-Menü funktioniert nicht – im Detailfenster schon.“
+
+**Ursache (im Bildschirmfoto sichtbar: Rechtsklick auf den *Balken*, Menü geht auf, Klick bewirkt
+nichts):** `bar` und `ms-diamond` im Gantt haben einen eigenen `contextmenu`-Zuhörer, ließen das
+Ereignis aber **weiterlaufen** – zusätzlich zum Zeilen-Zuhörer. Damit lief `rowMenu()` zweimal:
+Der zweite Aufbau entfernte das erste Menü (`closeMenu`), **ließ aber dessen Zuhörer
+„Klick außerhalb schließt“ am Dokument stehen**. Dieser alte Zuhörer sah beim nächsten
+Mausdruck den Klick auf das *neue* Menü als „außerhalb“ (er kannte nur sein eigenes, entferntes
+Kästchen) und schloss das neue Menü – und zwar in der **mousedown-Phase**. Der Knopf war damit weg,
+bevor `mouseup`/`click` kam: der Eintrag wirkte nicht. Betroffen waren **alle** Einträge des Menüs
+bei Rechtsklick auf Balken/Meilenstein (z. B. auch „Termin: 1 Tag später“), nicht nur das Schloss.
+
+**Behebung:**
+1. `js/ui/menu.js`: `closeMenu()` räumt den Außerhalb-Zuhörer mit ab, und es gibt immer nur einen
+   (der vorherige wird vor dem Registrieren entfernt). Zusätzlich baut ein Aufbau nichts mehr auf,
+   wenn dazwischen schon ein neues Menü entstanden ist (`if (current !== box) return`).
+2. `js/views/gantt.js`: `contextmenu` auf Balken und Meilenstein-Raute jetzt mit
+   `e.stopPropagation()` – der Menüaufbau läuft nur noch einmal.
+
+| Prüfung (echte Maus über `Input.dispatchMouseEvent`) | Ergebnis |
+|---|---|
+| Rechtsklick **Balken** → „🔒 Sperren“ (vorher: wirkungslos, Menü schloss nur) | ✅ sperrt die Aufgabe |
+| Rechtsklick **Zeile** (Namensspalte) → „🔓 Schloss öffnen“ | ✅ öffnet das Schloss |
+| Rechtsklick **Meilenstein-Raute** → „🔒 Sperren“ | ✅ sperrt |
+| Rechtsklick **Tabellenzeile** → „🔓 Schloss öffnen“ | ✅ öffnet |
+| Rechtsklick **Balken** → „Termin: 1 Tag später“ | ✅ `2026-10-28` → `2026-10-29` |
+| Rechtsklick **Balken** → „Duplizieren“ | ✅ 18 → 19 Aufgaben |
+| Rechtsklick **Balken** → „Termin verschieben…“ | ✅ Dialog öffnet |
+| Nur **ein** Menü im DOM, Klick daneben schließt es | ✅ (vorher wurden zwei Kästchen gebaut) |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+## 21. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

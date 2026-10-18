@@ -7,7 +7,7 @@ import { store } from './store.js';
 import { storage, downloadText, pickFile, readFileText, fileNameFor } from './storage.js';
 import {
   emptyProject, sampleProject, migrateProject, validateProject,
-  stats, taskById, STATUS, isSummary,
+  stats, taskById, STATUS, isSummary, descendantsOf,
 } from './model.js';
 import { formatIso, relativeTime, todayIso, formatDateTime } from './dateutil.js';
 import { el, toast, debounce, clear } from './ui/dom.js';
@@ -229,6 +229,24 @@ function bindStorage() {
       return;
     }
     if (reason === 'armed') { renderArmedBar(); return; }
+    if (reason === 'blocked') {
+      // Gesperrte Aufgabe: Änderung abgelehnt – deutlich sagen, warum.
+      const info = arg || {};
+      toast(info.title || 'Gesperrt', 'warn', info.message || '', 7000);
+      return;
+    }
+    if (reason === 'lock-changed') {
+      const info = arg || {};
+      const viele = (info.ids || []).length > 1;
+      toast(info.locked ? '🔒 Gesperrt' : '🔓 Schloss geöffnet', info.locked ? 'warn' : 'ok',
+        info.locked
+          ? (viele
+            ? `${info.ids.length} Aufgaben lassen sich jetzt nicht mehr ändern – erst die Schlösser wieder öffnen.`
+            : `„${info.name}“ lässt sich jetzt nicht mehr ändern – erst das Schloss wieder öffnen.`)
+          : (viele ? `${info.ids.length} Aufgaben sind wieder änderbar.` : `„${info.name}“ ist wieder änderbar.`), 4600);
+      return;
+    }
+    if (reason === 'action-lock') { toggleLockSelection(); return; }
     if (reason === 'action-copy') { copySelection(); return; }
     if (reason === 'action-paste') { pasteSelection(); return; }
     if (reason === 'action-duplicate') { duplicateSelection(); return; }
@@ -423,6 +441,7 @@ const actions = {
   'add-task': () => store.addTask(),
   'add-milestone': () => store.addMilestone(),
   'add-group': () => store.addGroup(),
+  'action-lock': () => toggleLockSelection(),
   'undo': () => { const l = store.undo(); if (l) toast('Rückgängig: ' + l, 'ok', '', 1800); },
   'redo': () => { const l = store.redo(); if (l) toast('Wiederholt: ' + l, 'ok', '', 1800); },
   'close-project': () => closeProject(),
@@ -461,15 +480,33 @@ const actions = {
 async function deleteSelection() {
   const n = store.selectionCount();
   if (!n) return;
+  // Gesperrte Aufgaben werden nicht gelöscht – gleich sagen, nicht erst nach der Rückfrage.
+  const betroffen = new Set();
+  for (const t of store.selectedTasks()) {
+    betroffen.add(t.id);
+    for (const d of descendantsOf(store.project, t.id)) betroffen.add(d.id);
+  }
+  if (store.refuseIfLocked([...betroffen], 'löschen')) return;
   if (n === 1) {
-    store.deleteTask(store.selectedId);
-    toast('Aufgabe gelöscht', 'ok', 'Mit Strg+Z zurückholen.', 2600);
+    const name = store.deleteTask(store.selectedId);
+    if (name) toast('Aufgabe gelöscht', 'ok', 'Mit Strg+Z zurückholen.', 2600);
     return;
   }
   const ok = await confirmDialog(`${n} Aufgaben löschen`, 'Die markierten Aufgaben werden gelöscht – Unteraufgaben kommen mit.', 'Löschen', { danger: true });
   if (!ok) return;
   const count = store.deleteSelected();
-  toast(`${count} Aufgaben gelöscht`, 'ok', 'Mit Strg+Z zurückholen.', 3000);
+  if (count) toast(`${count} Aufgaben gelöscht`, 'ok', 'Mit Strg+Z zurückholen.', 3000);
+}
+
+/** Schloss für die markierten Aufgaben umschalten (Alt+L, Leistenknopf, Kontextmenü). */
+function toggleLockSelection() {
+  const tasks = store.selectedTasks();
+  if (!tasks.length) {
+    toast('Zum Sperren nichts markiert', 'warn', 'Erst eine Aufgabe markieren, dann sperren.', 3600);
+    return;
+  }
+  const alleGesperrt = tasks.every((t) => t.locked);
+  store.setLock(tasks.map((t) => t.id), !alleGesperrt);
 }
 
 function copySelection() {
@@ -531,6 +568,7 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (inField()) return;
+  if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); toggleLockSelection(); return; }
   if (mod && e.key.toLowerCase() === 'a') { e.preventDefault(); store.selectAll(); return; }
   if (mod && e.key.toLowerCase() === 'c') { e.preventDefault(); copySelection(); return; }
   if (mod && e.key.toLowerCase() === 'v') { e.preventDefault(); pasteSelection(); return; }

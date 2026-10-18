@@ -57,6 +57,36 @@ function reflect() {
     : 'Detailbereich in eigenem Fenster öffnen (z. B. zweiter Bildschirm)';
 }
 
+/* ───────── Tastatur aus dem Detailfenster weiterreichen ─────────
+
+   Das Detailfenster ist ein eigenes Dokument: Tastenkürzel wie Umschalt+→
+   („Termin einen Tag später“), Entf (löschen) oder Strg+Z hört nur das
+   Planungsfenster. Ist das Detailfenster vorn, kommt kein Tastendruck dort an –
+   deshalb wird er weitergereicht. Ausnahme: gilt der Druck einem Eingabefeld
+   im Detailbereich, wird dort getippt und nichts weitergereicht. */
+
+function attachKeyBridge(w) {
+  if (!w || w.__tplanKeyBridge) return;   // nie zweimal – sonst zählt jeder Druck doppelt
+  try {
+    w.document.addEventListener('keydown', relayKey);
+    w.__tplanKeyBridge = true;
+  } catch { /* Fenster schon weg */ }
+}
+
+function relayKey(e) {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+  if (e.isComposing) return;
+  const weiter = document.dispatchEvent(new KeyboardEvent('keydown', {
+    key: e.key, code: e.code,
+    altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey,
+    repeat: e.repeat, bubbles: true, cancelable: true,
+  }));
+  // Hat das Planungsfenster den Druck verbraucht (dispatchEvent → false), hier
+  // ebenfalls die Standardwirkung unterdrücken – sonst rollt das Fenster dabei.
+  if (!weiter) e.preventDefault();
+}
+
 /* ───────── Plätze des Bereichs ───────── */
 
 /** Unsichtbar beiseitestellen – der Plan hat dann den ganzen Bildschirm. */
@@ -170,6 +200,7 @@ export function openDetailWindow({ auto = false } = {}) {
       return;
     }
     host.appendChild(pane);            // Umhängen – Ereignisse wandern mit
+    attachKeyBridge(win);              // Tastenkürzel auch hier wirksam
     syncDetailTheme();
     store.emit('detail-moved');        // Inhalt für die jetzige Markierung aufbauen
     startWatch();

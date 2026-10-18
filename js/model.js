@@ -75,6 +75,7 @@ export function newTask(patch = {}) {
     tags: [],
     collapsed: false,
     fromPool: null,            // ID des Sammelbecken-Eintrags, falls daraus entstanden
+    locked: false,             // Schloss: Änderungen erst nach dem Öffnen möglich
   };
   Object.assign(t, patch);
   if (t.type === 'milestone') { t.duration = 0; t.end = t.start; }
@@ -287,6 +288,7 @@ export function migrateProject(raw) {
     if (!PRIORITY[task.priority]) task.priority = 'normal';
     if (task.type === 'milestone') { task.duration = 0; task.end = task.start; }
     task.fromPool = t.fromPool || null;
+    task.locked = !!t.locked;
     return task;
   });
   // Verwaiste Eltern/Abhängigkeiten entfernen
@@ -324,6 +326,7 @@ export function serializeProject(project) {
       status: t.status, priority: t.priority, assignees: t.assignees, deps: t.deps,
       constraint: t.constraint, deadline: t.deadline, color: t.color, notes: t.notes,
       tags: t.tags, collapsed: t.collapsed, fromPool: t.fromPool || null,
+      locked: !!t.locked,
     })),
     pool: (project.pool || []).map((e) => ({
       id: e.id, text: e.text, note: e.note, createdAt: e.createdAt,

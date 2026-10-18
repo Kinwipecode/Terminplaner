@@ -281,7 +281,7 @@ function ganttPage(project, s, plan, desc) {
     const row = el('div', { class: 'pl-row' + (sum ? ' is-group' : '') });
     row.appendChild(el('span', { class: 'pl-nr', text: t.wbs || '' }));
     const txt = el('div', { class: 'pl-txt', style: { paddingLeft: mm(depthOf(project, t) * 2.4) } });
-    txt.appendChild(el('div', { class: 'pl-name', text: (t.type === 'milestone' ? '◆ ' : '') + t.name }));
+    txt.appendChild(el('div', { class: 'pl-name', text: (t.locked ? '🔒 ' : '') + (t.type === 'milestone' ? '◆ ' : '') + t.name }));
     const bits = [`${formatIso(t.start, 'short')}–${formatIso(t.end, 'short')}`];
     if (t.type !== 'milestone') bits.push(`${t.duration} AT`);
     if (t.progress) bits.push(`${t.progress}%`);
@@ -518,7 +518,7 @@ function tablePage(project, s, plan, desc) {
     const cell = (key) => {
       switch (key) {
         case 'wbs': return el('td', { class: 'num', style: { fontFamily: 'var(--mono)', fontSize: '6.5pt' }, text: t.wbs || '' });
-        case 'name': return el('td', { class: 'nm', style: { paddingLeft: mm(1.2 + depthOf(project, t) * 2) }, text: (t.type === 'milestone' ? '◆ ' : '') + t.name });
+        case 'name': return el('td', { class: 'nm', style: { paddingLeft: mm(1.2 + depthOf(project, t) * 2) }, text: (t.locked ? '🔒 ' : '') + (t.type === 'milestone' ? '◆ ' : '') + t.name });
         case 'start': return el('td', { text: formatIso(t.start) });
         case 'end': return el('td', { text: formatIso(t.end) });
         case 'dur': return el('td', { class: 'num', text: String(t.duration) });
@@ -596,7 +596,7 @@ function calendarPage(project, s, plan, desc) {
       cell.appendChild(el('div', {
         class: 'pc-ev' + (t.status === 'done' ? ' done' : ''),
         style: { borderLeftColor: barColor(project, t) },
-        text: (t.type === 'milestone' ? '◆ ' : '') + t.name,
+        text: (t.locked ? '🔒 ' : '') + (t.type === 'milestone' ? '◆ ' : '') + t.name,
       }));
     }
     if ((byDay.get(day) || []).length > 6) {
@@ -631,7 +631,7 @@ function boardPage(project, s, plan, desc) {
     const body = el('div', { class: 'pb-col-body' });
     for (const t of slice) {
       const card = el('div', { class: 'pb-card', style: { borderLeftColor: barColor(project, t) } });
-      card.appendChild(el('div', { class: 'pbc-t', text: (t.type === 'milestone' ? '◆ ' : '') + t.name }));
+      card.appendChild(el('div', { class: 'pbc-t', text: (t.locked ? '🔒 ' : '') + (t.type === 'milestone' ? '◆ ' : '') + t.name }));
       const meta = el('div', { class: 'pbc-m' });
       meta.appendChild(el('span', { text: `${formatIso(t.start, 'short')}–${formatIso(t.end, 'short')}` }));
       meta.appendChild(el('span', { text: `${t.progress}%` }));

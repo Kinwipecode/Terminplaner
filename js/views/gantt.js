@@ -6,6 +6,7 @@
 import { el, clear, initials, drag } from '../ui/dom.js';
 import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { contextMenu } from '../ui/menu.js';
+import { lockBadge } from '../ui/lock.js';
 import { store } from '../store.js';
 import {
   addDays, diffDays, startOfWeek, formatIso, monthName, dowShort, isoWeek,
@@ -243,13 +244,15 @@ function taskColor(task) {
 
 function leftCell(task, depth, hasKids) {
   const p = store.project;
-  const cell = el('div', { class: 'g-left' });
+  const cell = el('div', { class: 'g-left' + (task.locked ? ' is-locked' : '') });
   cell.appendChild(el('div', { class: 'g-twist', text: hasKids ? (task.collapsed ? '▶' : '▼') : '', onclick: (e) => { e.stopPropagation(); if (hasKids) store.toggleCollapse(task.id); } }));
   cell.appendChild(el('div', { class: 'g-indent', style: { width: (depth * 14) + 'px' } }));
   cell.appendChild(el('div', { class: 'g-wbs', text: task.wbs || '' }));
   const name = el('div', { class: 'g-name' + (isSummary(p, task) ? ' is-group' : '') + (task.type === 'milestone' ? ' is-ms' : ''), title: task.name });
   if (task.type === 'milestone') name.appendChild(el('span', { text: '◆ ' }));
   name.appendChild(document.createTextNode(task.name));
+  const lk = lockBadge(task, { cls: 'in-name' });
+  if (lk) name.appendChild(lk);
   name.addEventListener('dblclick', (e) => { e.stopPropagation(); inlineRename(name, task); });
   cell.appendChild(name);
 
@@ -304,14 +307,14 @@ function buildBar(task, range, dayW, rowIdx, isSum) {
   if (task.type === 'milestone') {
     const d = el('div', { class: 'ms-diamond', style: { left: (x + dayW / 2) + 'px', background: color }, title: `${task.name}\n${formatIso(task.start)}` });
     attachDrag(d, task, range, dayW, 'move');
-    d.addEventListener('contextmenu', (e) => { e.preventDefault(); rowMenu(e, task); });
+    d.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); rowMenu(e, task); });
     return d;
   }
 
   const bar = el('div', {
-    class: 'bar' + (isSum ? ' is-summary' : '') + (store.ui.showCritical && store.critical.has(task.id) ? ' is-critical' : '') + (task.conflict ? ' is-conflict' : ''),
+    class: 'bar' + (isSum ? ' is-summary' : '') + (task.locked ? ' is-locked' : '') + (store.ui.showCritical && store.critical.has(task.id) ? ' is-critical' : '') + (task.conflict ? ' is-conflict' : ''),
     style: { left: x + 'px', width: w + 'px', background: isSum ? 'transparent' : color },
-    title: `${task.name}\n${formatIso(task.start)} – ${formatIso(task.end)} · ${task.duration} AT · ${task.progress}%`,
+    title: `${task.name}\n${formatIso(task.start)} – ${formatIso(task.end)} · ${task.duration} AT · ${task.progress}%${task.locked ? ' · gesperrt' : ''}`,
   });
   if (isSum) {
     bar.appendChild(el('div', { class: 'sbar' }));
@@ -320,7 +323,7 @@ function buildBar(task, range, dayW, rowIdx, isSum) {
     bar.appendChild(el('div', { class: 'fill', style: { width: (100 - task.progress) + '%', right: '0', left: 'auto' } }));
   }
   if (w > 54) {
-    bar.appendChild(el('div', { class: 'bar-label', text: task.name + (isSum ? '' : ` · ${task.progress}%`) }));
+    bar.appendChild(el('div', { class: 'bar-label', text: (task.locked ? '🔒 ' : '') + task.name + (isSum ? '' : ` · ${task.progress}%`) }));
   }
   if (!isSum) {
     const hl = el('div', { class: 'handle l', title: 'Anfang verschieben' });
@@ -330,7 +333,7 @@ function buildBar(task, range, dayW, rowIdx, isSum) {
     bar.appendChild(hl); bar.appendChild(hr);
   }
   attachDrag(bar, task, range, dayW, isSum ? 'none' : 'move');
-  bar.addEventListener('contextmenu', (e) => { e.preventDefault(); rowMenu(e, task); });
+  bar.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); rowMenu(e, task); });
   void rowIdx;
   return bar;
 }
@@ -383,10 +386,12 @@ function attachDrag(node, task, range, dayW, mode) {
 export function multiMenuItems(task) {
   const n = store.selectionCount();
   if (n < 2 || !store.isSelected(task.id)) return [];
+  const alleGesperrt = store.selectedTasks().every((t) => t.locked);
   return [
     { label: `${n} Aufgaben duplizieren`, hint: 'Strg+D', run: () => store.emit('action-duplicate') },
     { label: `${n} Aufgaben kopieren`, hint: 'Strg+C', run: () => store.emit('action-copy') },
     store.hasClipboard ? { label: 'Einfügen', hint: 'Strg+V', run: () => store.emit('action-paste') } : null,
+    { label: alleGesperrt ? `${n} Schlösser öffnen` : `${n} Aufgaben sperren`, hint: 'Alt+L', run: () => store.emit('action-lock') },
     { label: `${n} Aufgaben löschen`, danger: true, hint: 'Entf', run: () => store.emit('action-delete-selection') },
     '-',
   ].filter(Boolean);
@@ -401,6 +406,8 @@ function rowMenu(ev, task) {
     { label: 'Aufgabe hinzufügen', hint: 'Einfg', run: () => store.addTask({}, task.id) },
     { label: 'Unteraufgabe hinzufügen', run: () => { const id = store.addTask({ parentId: task.id, start: task.start }, task.id); store.indent(id); } },
     { label: 'Duplizieren', run: () => store.duplicateTask(task.id) },
+    '-',
+    { label: task.locked ? '🔓 Schloss öffnen' : '🔒 Sperren', hint: 'Alt+L', run: () => store.toggleLock(task.id) },
     '-',
     { label: 'Termin: 1 Tag später', hint: 'Umschalt+→', run: () => store.shiftTask(task.id, 1, 'day') },
     { label: 'Termin: 1 Woche später', hint: 'Umschalt+Strg+↓', run: () => store.shiftTask(task.id, 1, 'week') },
@@ -488,6 +495,7 @@ export function renderGantt(container) {
     track.appendChild(buildBar(task, { from, to, days }, dayW, i, isSum));
     row.appendChild(track);
     row.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;           // Rechtsklick behält die Mehrfachauswahl
       if (e.target.closest('.g-twist') || e.target.closest('.bar') || e.target.closest('.ms-diamond')) return;
       if (e.ctrlKey || e.metaKey) return;   // Strg = Ausschnitt verschieben (Pan)
       if (store.ui.armedPool) { e.preventDefault(); placeArmed({ start: task.start, afterId: task.id, parentId: task.parentId }); return; }

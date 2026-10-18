@@ -25,12 +25,12 @@ export function renderBoard(container) {
 
     for (const t of list) {
       const card = el('div', {
-        class: 'card' + (store.isSelected(t.id) ? (store.selectedId === t.id ? ' is-sel' : ' is-multi') : ''),
+        class: 'card' + (store.isSelected(t.id) ? (store.selectedId === t.id ? ' is-sel' : ' is-multi') : '') + (t.locked ? ' is-locked' : ''),
         draggable: 'true',
         dataset: { taskId: t.id },
         style: { borderLeftColor: t.color || STATUS[t.status].color },
       });
-      card.appendChild(el('div', { class: 'card-title', text: (t.type === 'milestone' ? '◆ ' : '') + t.name }));
+      card.appendChild(el('div', { class: 'card-title', text: (t.locked ? '🔒 ' : '') + (t.type === 'milestone' ? '◆ ' : '') + t.name }));
       const meta = el('div', { class: 'card-meta' });
       if (t.wbs) meta.appendChild(el('span', { text: '#' + t.wbs }));
       meta.appendChild(el('span', { text: `${formatIso(t.start, 'short')} – ${formatIso(t.end, 'short')}` }));

@@ -5,8 +5,13 @@
 import { el, clear } from './dom.js';
 
 let current = null;
+let offHandler = null;      // Zuhörer „Klick außerhalb schließt das Menü“
 
 export function closeMenu() {
+  // Wichtig: den Zuhörer mit abräumen. Wird er stehen gelassen (weil das Menü von
+  // einem zweiten Aufbau ersetzt wurde), schließt er beim nächsten Mausdruck das
+  // FALSCHE Menü – und zwar in der mousedown-Phase, sodass der Eintrag nie klickt.
+  if (offHandler) { document.removeEventListener('mousedown', offHandler); offHandler = null; }
   if (current) { current.remove(); current = null; }
 }
 
@@ -27,7 +32,11 @@ export function contextMenu(x, y, items) {
   box.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
   current = box;
   setTimeout(() => {
-    const off = (ev) => { if (!box.contains(ev.target)) { closeMenu(); document.removeEventListener('mousedown', off); } };
+    // Nur ein Zuhörer zur Zeit – auch wenn zwei Menüs unmittelbar nacheinander gebaut werden
+    if (offHandler) { document.removeEventListener('mousedown', offHandler); offHandler = null; }
+    if (current !== box) return;                 // dieses Menü ist schon wieder weg
+    const off = (ev) => { if (!box.contains(ev.target)) closeMenu(); };
+    offHandler = off;
     document.addEventListener('mousedown', off);
   }, 0);
   return box;

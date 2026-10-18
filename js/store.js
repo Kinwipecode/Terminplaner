@@ -245,6 +245,12 @@ export const store = {
   deleteSelected() {
     const ids = [...this.selectedIds];
     if (!ids.length) return 0;
+    const betroffen = new Set();
+    for (const id of ids) {
+      betroffen.add(id);
+      for (const d of descendantsOf(this.project, id)) betroffen.add(d.id);
+    }
+    if (this.refuseIfLocked([...betroffen], 'löschen')) return 0;
     let count = 0;
     this.mutate('Aufgaben löschen', (p) => {
       const kill = new Set();
@@ -341,7 +347,7 @@ export const store = {
     this.mutate('Aufgaben einfügen', (p) => {
       const idMap = new Map();
       const copies = clip.tasks.map((src) => {
-        const t = newTask(Object.assign({}, src, { id: undefined, deps: [] }));
+        const t = newTask(Object.assign({}, src, { id: undefined, deps: [], locked: false }));
         t.id = uid();
         idMap.set(src.id, t.id);
         return t;
@@ -378,6 +384,119 @@ export const store = {
   /** Auswahl in den Papierkorb-Sinn: löschen ohne Rückfrage (Rückgängig möglich). */
   get hasClipboard() { return !!(this.clipboard && this.clipboard.tasks.length); },
 
+  /* ───────── Schloss (Sperren) ───────── */
+
+  /** Ist die Aufgabe gesperrt? */
+  isLocked(id) {
+    const t = this.project ? taskById(this.project, id) : null;
+    return !!(t && t.locked);
+  },
+
+  /**
+   * Sperrprüfung: meldet eine Sperre und lehnt die Änderung damit ab.
+   * @param {string[]} ids  betroffene Aufgaben
+   * @param {string} action Tätigkeit für die Meldung (z. B. „verschieben“)
+   * @returns {boolean} true = abgelehnt (Meldung wurde abgesetzt)
+   */
+  refuseIfLocked(ids, action = 'ändern') {
+    if (!this.project) return false;
+    const hits = [...new Set(ids || [])]
+      .map((id) => taskById(this.project, id))
+      .filter((t) => t && t.locked);
+    if (!hits.length) return false;
+    const names = hits.map((t) => `„${t.name}“`);
+    const viele = hits.length > 1;
+    const liste = names.slice(0, 4).join(', ') + (names.length > 4 ? ` und ${names.length - 4} weitere` : '');
+    this.emit('blocked', {
+      action,
+      ids: hits.map((t) => t.id),
+      title: viele ? `${hits.length} Aufgaben sind gesperrt` : 'Aufgabe ist gesperrt',
+      message: viele
+        ? `${liste}: gesperrt – ${action} ist nicht möglich. Zuerst das Schloss öffnen.`
+        : `${names[0]} ist gesperrt – ${action} ist nicht möglich. Zuerst das Schloss öffnen.`,
+    });
+    return true;
+  },
+
+  /**
+   * Was ein Verschieben mitbewegen würde: die Zeilen samt Unteraufgaben, die
+   * Zusammenfassungen darüber und – bei eingeschalteter Auto-Planung – die
+   * Nachfolger, die terminlich nachrücken. Grundlage der Sperrprüfung.
+   */
+  moveCascade(ids) {
+    const p = this.project;
+    const out = new Set();
+    const add = (t) => { if (t && !out.has(t.id)) out.add(t.id); };
+    for (const id of ids || []) {
+      const r = taskById(p, id);
+      if (!r) continue;
+      add(r);
+      descendantsOf(p, r.id).forEach(add);
+    }
+    // Sammelaufgaben oberhalb (ihr Zeitraum fasst die Kinder zusammen)
+    for (const id of [...out]) {
+      let cur = taskById(p, id), guard = 0;
+      while (cur && cur.parentId && guard++ < 60) {
+        cur = taskById(p, cur.parentId);
+        if (!cur) break;
+        add(cur);
+      }
+    }
+    // Nachfolger über Verknüpfungen (nur wenn die Auto-Planung sie mitzieht)
+    if (this.ui.autoPlan) {
+      const queue = [...out];
+      const seen = new Set(queue);
+      while (queue.length) {
+        const id = queue.shift();
+        for (const t of p.tasks) {
+          if (seen.has(t.id)) continue;
+          if (!(t.deps || []).some((d) => d.id === id)) continue;
+          seen.add(t.id);
+          add(t);
+          descendantsOf(p, t.id).forEach(add);
+          queue.push(t.id);
+        }
+      }
+    }
+    return out;
+  },
+
+  /** Sperrprüfung für ein Verschieben – samt Nachfolgern und Sammelaufgaben. */
+  refuseIfLockedInMove(ids, action = 'verschieben') {
+    if (!this.project) return false;
+    return this.refuseIfLocked([...this.moveCascade(ids)], action);
+  },
+
+  /** Schloss einer Aufgabe umschalten. Gibt den neuen Zustand zurück. */
+  toggleLock(id) {
+    if (!this.project) return false;
+    const t0 = taskById(this.project, id);
+    if (!t0) return false;
+    const on = !t0.locked;
+    const name = t0.name;
+    this.mutate(on ? 'Aufgabe sperren' : 'Schloss öffnen', (p) => {
+      const t = taskById(p, id);
+      if (!t) return false;
+      t.locked = on;
+    });
+    this.emit('lock-changed', { ids: [id], locked: on, name });
+    return on;
+  },
+
+  /** Schloss für mehrere Aufgaben setzen (true = sperren). */
+  setLock(ids, on) {
+    const list = [...new Set(ids || [])].filter((id) => taskById(this.project, id));
+    if (!list.length) return 0;
+    const name = list.length > 1
+      ? `${list.length} Aufgaben`
+      : (taskById(this.project, list[0]) || {}).name;
+    this.mutate(on ? 'Aufgaben sperren' : 'Schlösser öffnen', (p) => {
+      for (const id of list) { const t = taskById(p, id); if (t) t.locked = !!on; }
+    });
+    this.emit('lock-changed', { ids: list, locked: !!on, name });
+    return list.length;
+  },
+
   /* ───────── Aufgaben ───────── */
 
   /** Einfügeposition: nach der ausgewählten Aufgabe, sonst am Ende. */
@@ -389,6 +508,8 @@ export const store = {
 
   addTask(patch = {}, afterId = undefined) {
     const after = afterId === undefined ? this.selectedId : afterId;
+    // Unteraufgabe einer gesperrten Sammelaufgabe? Erst das Schloss öffnen.
+    if (patch && patch.parentId && this.refuseIfLocked([patch.parentId], 'eine Unteraufgabe hinzufügen')) return null;
     let created = null;
     this.mutate('Aufgabe hinzufügen', (p) => {
       const sel = after ? taskById(p, after) : null;
@@ -429,6 +550,7 @@ export const store = {
   },
 
   updateTask(id, patch, label = 'Aufgabe ändern') {
+    if (this.refuseIfLocked([id], 'ändern')) return false;
     this.mutate(label, (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -437,6 +559,7 @@ export const store = {
   },
 
   updateMany(ids, patch, label = 'Aufgaben ändern') {
+    if (this.refuseIfLocked(ids, 'ändern')) return false;
     this.mutate(label, (p) => {
       for (const id of ids) {
         const t = taskById(p, id);
@@ -450,6 +573,7 @@ export const store = {
     const roots = this.selectionRoots();
     const n = Number(amount) || 0;
     if (!roots.length || !n) return 0;
+    if (this.refuseIfLockedInMove(roots.map((r) => r.id))) return 0;
     let done = 0;
     const word = { day: 'Tag(e)', week: 'Woche(n)', month: 'Monat(e)' }[unit] || 'Tag(e)';
     this.mutate(`${roots.length} Aufgaben ${n > 0 ? '+' : '−'}${Math.abs(n)} ${word}`, (p) => {
@@ -474,6 +598,7 @@ export const store = {
 
   deleteTask(id) {
     let name = '';
+    if (this.refuseIfLocked([id, ...descendantsOf(this.project, id).map((x) => x.id)], 'löschen')) return '';
     this.mutate('Aufgabe löschen', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -493,7 +618,7 @@ export const store = {
       const src = taskById(p, id);
       if (!src) return false;
       const copy = newTask(Object.assign({}, src, {
-        id: undefined, name: src.name + ' (Kopie)', deps: [], wbs: undefined,
+        id: undefined, name: src.name + ' (Kopie)', deps: [], wbs: undefined, locked: false,
       }));
       copy.id = uid();
       p.tasks.splice(this._insertIndex(p, id), 0, copy);
@@ -505,6 +630,7 @@ export const store = {
 
   /** Zeile nach oben/unten verschieben (innerhalb der Geschwister). */
   moveRow(id, dir) {
+    if (this.refuseIfLocked([id], 'in der Zeilenfolge verschieben')) return false;
     this.mutate(dir < 0 ? 'Zeile nach oben' : 'Zeile nach unten', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -529,6 +655,7 @@ export const store = {
 
   /** Einrücken: wird Unteraufgabe der vorherigen Zeile. */
   indent(id) {
+    if (this.refuseIfLocked([id], 'einrücken')) return false;
     this.mutate('Einrücken', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -550,6 +677,7 @@ export const store = {
 
   /** Ausrücken: wird Geschwister der bisherigen Elternzeile. */
   outdent(id) {
+    if (this.refuseIfLocked([id], 'ausrücken')) return false;
     this.mutate('Ausrücken', (p) => {
       const t = taskById(p, id);
       if (!t || !t.parentId) return false;
@@ -577,6 +705,7 @@ export const store = {
 
   /** Termin verschieben (Ziehen im Gantt / Kalender). */
   moveTaskDates(id, { start, end }, { addConstraint = false } = {}) {
+    if (this.refuseIfLockedInMove([id])) return false;
     this.mutate('Termin verschieben', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -596,6 +725,7 @@ export const store = {
   },
 
   setProgress(id, progress) {
+    if (this.refuseIfLocked([id], 'den Fortschritt ändern')) return false;
     this.mutate('Fortschritt setzen', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -606,6 +736,7 @@ export const store = {
   },
 
   setStatus(id, status) {
+    if (this.refuseIfLocked([id], 'den Status ändern')) return false;
     this.mutate('Status setzen', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -616,6 +747,7 @@ export const store = {
   },
 
   addDependency(id, predId, type = 'FS', lag = 0) {
+    if (this.refuseIfLocked([id], 'eine Verknüpfung hinzufügen')) return false;
     this.mutate('Abhängigkeit hinzufügen', (p) => {
       const t = taskById(p, id);
       if (!t || !taskById(p, predId) || predId === id) return false;
@@ -629,6 +761,7 @@ export const store = {
   },
 
   updateDependency(id, predId, patch) {
+    if (this.refuseIfLocked([id], 'eine Verknüpfung ändern')) return false;
     this.mutate('Abhängigkeit ändern', (p) => {
       const t = taskById(p, id);
       const d = t && (t.deps || []).find((x) => x.id === predId);
@@ -638,6 +771,7 @@ export const store = {
   },
 
   removeDependency(id, predId) {
+    if (this.refuseIfLocked([id], 'eine Verknüpfung entfernen')) return false;
     this.mutate('Abhängigkeit entfernen', (p) => {
       const t = taskById(p, id);
       if (!t) return false;
@@ -662,6 +796,12 @@ export const store = {
     });
   },
   removeResource(id) {
+    // Bei gesperrten Aufgaben würde die Zuweisung mitentfernt – das erst nach dem Öffnen.
+    const betroffen = this.project.tasks.filter((t) => t.locked && (t.assignees || []).includes(id));
+    if (betroffen.length) {
+      this.refuseIfLocked(betroffen.map((t) => t.id), 'die Zuweisung dieser Person entfernen');
+      return false;
+    }
     this.mutate('Person entfernen', (p) => {
       p.resources = p.resources.filter((r) => r.id !== id);
       for (const t of p.tasks) t.assignees = (t.assignees || []).filter((a) => a !== id);
@@ -687,6 +827,7 @@ export const store = {
   shiftTask(id, amount, unit = 'day', { label = null } = {}) {
     const n = Number(amount) || 0;
     if (!n) return false;
+    if (this.refuseIfLockedInMove([id])) return false;
     const unitName = { day: n === 1 ? 'Tag' : 'Tage', week: n === 1 ? 'Woche' : 'Wochen', month: n === 1 ? 'Monat' : 'Monate' }[unit] || 'Tage';
     const dirWord = n > 0 ? 'später' : 'früher';
     const text = label || `${Math.abs(n)} ${unitName} ${dirWord}`;
@@ -808,6 +949,7 @@ export const store = {
   placePoolEntry(poolId, { start = null, afterId = null, parentId = null, status = 'open', scope = 'project' } = {}) {
     const entry = scope === 'global' ? loadGlobalPool().find((e) => e.id === poolId) : this.poolEntry(poolId);
     if (!entry) return null;
+    if (parentId && this.refuseIfLocked([parentId], 'eine Idee hineinlegen')) return null;
     let created = null;
     this.mutate('Idee in den Plan legen', (p) => {
       const cal = p.settings.calendar;
@@ -921,7 +1063,7 @@ function applyTaskPatch(t, patch) {
 function cloneSubtree(project, root, nameFor = (t) => t.name) {
   const out = [];
   const walk = (src, parentId) => {
-    const copy = newTask(Object.assign({}, src, { id: undefined, deps: [], wbs: undefined }));
+    const copy = newTask(Object.assign({}, src, { id: undefined, deps: [], wbs: undefined, locked: false }));
     copy.id = uid();
     copy.name = nameFor(src);
     copy.parentId = parentId;

@@ -6,6 +6,7 @@
 import { el, clear, initials } from '../ui/dom.js';
 import { placeArmed, isPoolDrag, poolIdFromDrag } from '../ui/place.js';
 import { contextMenu } from '../ui/menu.js';
+import { lockBadge } from '../ui/lock.js';
 import { multiMenuItems } from './gantt.js';
 import { store } from '../store.js';
 import { STATUS, STATUS_ORDER, PRIORITY, PRIORITY_ORDER, taskById, isSummary } from '../model.js';
@@ -133,10 +134,11 @@ export function renderTable(container) {
     const depth = (() => { let d = 0, cur = task, g = 0; while (cur.parentId && g++ < 50) { cur = taskById(p, cur.parentId); if (!cur) break; d++; } return d; })();
     const sel = store.isSelected(task.id);
     const tr = el('tr', {
-      class: (sel ? (store.selectedId === task.id ? 'is-sel ' : 'is-multi ') : '') + (isSummary(p, task) ? 'is-group ' : '') + (isTodayTask(task) ? 'is-today' : ''),
+      class: (sel ? (store.selectedId === task.id ? 'is-sel ' : 'is-multi ') : '') + (isSummary(p, task) ? 'is-group ' : '') + (isTodayTask(task) ? 'is-today' : '') + (task.locked ? ' is-locked' : ''),
       dataset: { taskId: task.id },
     });
     tr.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;           // Rechtsklick behält die Mehrfachauswahl
       if (!e.target.closest('input,select,button')) {
         if (store.ui.armedPool) {
           e.preventDefault();
@@ -165,6 +167,8 @@ export function renderTable(container) {
         { label: 'Einrücken', run: () => store.indent(task.id) },
         { label: 'Ausrücken', run: () => store.outdent(task.id) },
         { label: 'Duplizieren', run: () => store.duplicateTask(task.id) },
+        '-',
+        { label: task.locked ? '🔓 Schloss öffnen' : '🔒 Sperren', hint: 'Alt+L', run: () => store.toggleLock(task.id) },
         { label: 'Aufgabe löschen', danger: true, run: () => store.deleteTask(task.id) },
       ]);
     });
@@ -192,6 +196,8 @@ export function renderTable(container) {
     });
     nameTd.appendChild(nameInput);
     if (task.type === 'milestone') nameTd.insertBefore(el('span', { text: '◆ ', title: 'Meilenstein', style: { color: 'var(--accent-2)' } }), nameInput);
+    const lk = lockBadge(task, { cls: 'in-name', style: { marginLeft: '6px' } });
+    if (lk) nameTd.appendChild(lk);
     if (task.fromPool) {
       const n = store.placedCountFor(task);
       nameTd.appendChild(el('span', { class: 'pool-badge', style: { marginLeft: '6px' }, title: `Aus dem Ideen-Sammelbecken – ${n}× in den Plan gelegt`, text: `(${n})` }));

@@ -18,7 +18,7 @@ Browser. Läuft sie schon, wird nur das Browserfenster geholt.
 > **Kein Ordner gewählt?** Dann speichert die App im Browser-Speicher weiter und sagt das oben
 > rechts. Über den Hinweis lässt sich jederzeit ein Ordner nachwählen.
 
-**Welche Version läuft?** Die Nummer steht **unten rechts in der Statuszeile** („Version 01“),
+**Welche Version läuft?** Die Nummer steht **unten rechts in der Statuszeile** (z. B. „Version 02“),
 außerdem auf dem Startbildschirm, unten in der Kurzanleitung und im Detailfenster. Sie hilft, wenn
 du zwei Stände vergleichst – z. B. die eigene Kopie gegen die veröffentlichte Seite: passen die
 Nummern nicht zusammen, ist eine davon älter.
@@ -181,6 +181,7 @@ Farbe gesetzt ist.
 | **Umschalt**+`Strg`+`↑` / `↓` | Termin um **eine Woche** verschieben |
 | **Umschalt**+`Strg`+`←` / `→` | Termin um **einen Monat** verschieben |
 | **Umschalt**+`↑` / `↓` | Auswahl erweitern bzw. verkleinern |
+| `Alt`+`L` | Schloss der markierten Aufgabe(n) umschalten (sperren / öffnen) |
 | **Strg**+`A` | alle sichtbaren Aufgaben markieren |
 | **Strg**+`C` / `Strg`+`V` / **Strg**+`D` | Auswahl kopieren / einfügen / duplizieren |
 | `Entf` | markierte Aufgaben löschen |
@@ -189,6 +190,10 @@ Farbe gesetzt ist.
 | `Strg`+`P` | drucken bzw. PDF erzeugen |
 | `F1` | Kurzanleitung |
 | `Esc` | Dialog schließen / Auswahl aufheben / Ablegen abbrechen |
+
+Die Tastenkürzel gelten auch dann, wenn das **Detailfenster** vorn ist (§ 16): Tastendrücke dort
+werden ins Planungsfenster weitergereicht. Nur beim **Tippen in einem Eingabefeld** im
+Detailbereich bleibt das Tippen dort und verschiebt nichts.
 
 ## 10. Ansicht steuern: Heute, Verschieben des Ausschnitts, Zoom
 
@@ -233,7 +238,55 @@ Geregelt wird dabei immer:
   im Verschieben-Fenster). Ist sie aus, bleibt alles stehen und die App meldet nur Widersprüche.
 - Sammelaufgaben verschieben alle ihre Unteraufgaben mit.
 
-## 12. Mehrere Aufgaben markieren (wie im Explorer)
+## 12. Sperren: das Schloss
+
+Manche Termine sollen sich nicht mehr verschieben lassen – etwa ein bereits zugesagter Kundentermin
+oder eine Meilenstein-Zusage. Dafür gibt es das **Schloss**.
+
+**Sperren** – Aufgabe markieren, dann einer dieser Wege:
+
+| Weg | So geht es |
+|---|---|
+| Leiste oben | Knopf **🔒 Sperren** |
+| Tastatur | `Alt`+`L` |
+| Rechtsklick | Kontextmenü → **🔒 Sperren** |
+| Detailbereich | unter **Sperren (Schloss)** auf **🔒 Sperren** |
+
+Mehrere auf einmal: mit **Strg**+Klick (einzelne) oder **Umschalt**+Klick (Bereich) markieren, dann
+sperren – der Knopf in der Leiste sperrt immer die ganze Auswahl.
+
+**Angezeigt wird es überall:** gesperrte Aufgaben tragen in **Gantt, Tabelle, Kalender und Board**
+ein **🔒** neben dem Namen (im Gantt zusätzlich ein gestrichelter Balkenrand, in der Tabelle eine
+farbige Kante). Auch im **gedruckten Plan und PDF** steht das Zeichen.
+
+**Was „gesperrt“ heißt:** Termin, Dauer, Name, Fortschritt, Status, Beteiligte und Vorgänger lassen
+sich nicht ändern; die Aufgabe lässt sich auch nicht löschen, ein-/ausrücken oder in der
+Zeilenfolge verschieben. Jeder Versuch wird abgelehnt und unten rechts gemeldet, zum Beispiel:
+
+> **Aufgabe ist gesperrt** — „Kundentermin“ ist gesperrt – verschieben ist nicht möglich.
+> Zuerst das Schloss öffnen.
+
+**Zusammenhängende Termine.** Weil die Auto-Planung Nachfolger mitzieht, prüft die App vor dem
+Verschieben die **ganze Kette**: die markierte Zeile samt Unteraufgaben, die Sammelaufgaben darüber
+und alle Nachfolger, die terminlich nachrücken würden. Ist **einer** davon gesperrt, wird gar nicht
+verschoben – die Meldung nennt genau die Aufgabe, die im Weg steht („„Zulieferung“ ist gesperrt –
+verschieben ist nicht möglich …“). Nach dem Öffnen dieses Schlosses geht das Verschieben wieder.
+Ist die Auto-Planung **aus**, bewegt ein Verschieben ohnehin nur die markierte Zeile und ihre
+Unteraufgaben – dann zählen nur diese (und die Sammelaufgaben darüber).
+
+**Schloss öffnen:** dieselben vier Wege wie oben – oder einfach auf das **🔒** neben dem Namen
+klicken. `Strg`+`Z` macht auch das Sperren rückgängig.
+
+**Während der Plan rechnet**, bleiben gesperrte Termine immer stehen: ergäbe die Rechnung einen
+anderen Termin, wird das nur **gemeldet** (gelbe Warnung im Detailbereich und in der Statuszeile),
+geändert wird nichts. Die Aufgabe gilt dann als Konflikt und wird im Gantt gestrichelt umrandet.
+
+**Sammelaufgaben und Kopien.** Eine gesperrte Sammelaufgabe hält auch ihre Unteraufgaben fest –
+deren Verschieben würde ja ihren Zeitraum ändern. Eine neue Unteraufgabe lässt sich in eine
+gesperrte Sammelaufgabe nicht einfügen (erst Schloss öffnen). **Kopien** (Duplizieren, Kopieren und
+Einfügen) sind dagegen immer ungesperrt: das Schloss wird nicht mitkopiert.
+
+## 13. Mehrere Aufgaben markieren (wie im Explorer)
 
 Es lassen sich beliebig viele Aufgaben gleichzeitig markieren – zum Löschen, Kopieren oder um Status,
 Priorität, Fortschritt und Farbe für alle in einem Rutsch zu setzen.
@@ -283,13 +336,13 @@ Die Statuszeile unten zeigt jederzeit „*n* markiert“ samt der wichtigsten K�
   Sammelaufgabe wandern automatisch mit, auch wenn sie selbst nicht markiert sind.
   Beim **Ziehen mit der Maus** bewegt sich dagegen nur der gegriffene Balken.
 
-## 13. Zeilenhöhe
+## 14. Zeilenhöhe
 
 **Setup** → *Zeilenhöhe in Listen und Gantt*: **kompakt** (24 px), **normal** (30 px),
 **geräumig** (38 px) oder **sehr groß** (46 px). Die Einstellung wirkt sofort in Gantt, Tabelle,
 Kalender und Board und wird **im Projekt gespeichert** – beim nächsten Öffnen ist sie wieder da.
 
-## 14. Ideen-Sammelbecken (zweites Fenster)
+## 15. Ideen-Sammelbecken (zweites Fenster)
 
 Der Gedanke: Aufgaben, die es gibt, aber noch keinen Termin haben, sollen nicht verloren gehen.
 Sie stehen in einem eigenen Fenster, das man auf den zweiten Bildschirm schieben kann.
@@ -347,7 +400,7 @@ wandert der Vorrat ins Projekt.
 allgemeinen Vorrat trotzdem bearbeiten; das Projekt-Sammelbecken braucht das Planungsfenster
 (denn die Daten gehören zur Projektdatei).
 
-## 15. Detailbereich in einem eigenen Fenster (zweiter Bildschirm)
+## 16. Detailbereich in einem eigenen Fenster (zweiter Bildschirm)
 
 Der Detailbereich (alles zur markierten Aufgabe) steht **standardmäßig in einem eigenen
 Browserfenster** – so hat der Plan im Hauptfenster den ganzen Bildschirm. Das Fenster lässt sich
@@ -361,6 +414,11 @@ frei ziehen, z. B. auf einen zweiten Bildschirm; die Stelle wird gemerkt.
 3. **Schließen ist ungefährlich.** Wurde das Fenster (auch versehentlich) geschlossen, geht es
    beim **nächsten** Markieren wieder auf – und steht dann an der zuletzt benutzten Stelle.
 4. Beim **Beenden des Programms** (Fenster/Tab schließen) wird es mit geschlossen.
+
+Die **Tastenkürzel des Plans** wirken auch bei vorgeschaltetem Detailfenster: `Umschalt`+`←`/`→`
+verschiebt den Termin der markierten Aufgabe, `Entf` löscht sie und so weiter – das Fenster reicht
+die Tastendrücke weiter. Nur beim Tippen in einem **Eingabefeld** im Detailbereich bleibt der
+Tastendruck dort (dort wird getippt und nichts verschoben).
 
 **Abschalten:** links auf **🗗 Detail** (der Knopf ist hervorgehoben, solange das Fenster läuft).
 Ein Klick holt den Bereich wieder als rechte Spalte ins Planungsfenster und schaltet den
@@ -380,7 +438,7 @@ auch nach dem nächsten Start.
 - **Dialoge** (z. B. *Vorgänger hinzufügen*, *Termin verschieben*) erscheinen weiterhin im
   Planungsfenster.
 
-## 16. Farblayout der Oberfläche
+## 17. Farblayout der Oberfläche
 
 Links auf **Farbe** (oder oben auf **◐**, oder im Setup-Fenster auf **Farblayout…**).
 Es öffnet sich eine Auswahl mit neun fertigen Layouts – jedes mit echter Vorschau in seinen
@@ -406,7 +464,7 @@ blau = offen, grau = niedrige Priorität). Dadurch sehen Pläne in jedem Layout 
 nur die Flächen und Linien ändern sich. Der **Ausdruck ist unabhängig vom Layout immer hell**,
 damit er auf Papier gut lesbar ist und keine Farbe verschwendet wird.
 
-## 17. Drucken und PDF erzeugen
+## 18. Drucken und PDF erzeugen
 
 Links auf **Drucken**, oben auf **🖨** oder `Strg`+`P`. Der Aufbau entsteht dabei automatisch –
 auch beim direkten `Strg`+`P` des Browsers, dort mit den zuletzt gewählten Einstellungen.
@@ -481,7 +539,7 @@ Nichts wird gedruckt, solange du nicht **Drucken / PDF erzeugen** anklickst.
 sofort in den Druckdialog, mit den aktuellen Einstellungen. Und ein `Strg`+`P` außerhalb des
 Druckfensters öffnet dieses Fenster (nicht sofort den Druckdialog), damit die Einstellungen stimmen.
 
-## 18. Häufige Fragen
+## 19. Häufige Fragen
 
 **Wo liegt meine Datei?** Der Hinweis oben rechts nennt den Speicherort (Ordnerpfad bzw.
 „Browser-Speicher“). Im Ordner-Modus ist es eine normale Datei, die man kopieren, sichern oder
