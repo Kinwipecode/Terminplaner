@@ -246,6 +246,14 @@ function bindStorage() {
           : (viele ? `${info.ids.length} Aufgaben sind wieder änderbar.` : `„${info.name}“ ist wieder änderbar.`), 4600);
       return;
     }
+    if (reason === 'holidays-extended') {
+      // Feiertage einer neuen Planjahr-Grenze automatisch nachgetragen
+      const info = arg || {};
+      const jahre = (info.years || []).join(', ');
+      toast(`📅 Feiertage ${jahre} ergänzt`, 'info',
+        `${info.added} Tage${info.regionLabel ? ` (${info.regionLabel})` : ''} – die Region wird für neue Jahre automatisch weitergeführt.`, 5200);
+      return;
+    }
     if (reason === 'action-lock') { toggleLockSelection(); return; }
     if (reason === 'action-copy') { copySelection(); return; }
     if (reason === 'action-paste') { pasteSelection(); return; }

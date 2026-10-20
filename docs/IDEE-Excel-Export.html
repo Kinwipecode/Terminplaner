@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ideen-Notiz – Excel-Export mit Zeitleiste (Terminplanung)</title>
+<style>
+  :root{
+    --fg:#1c2230; --fg-2:#4a5468; --fg-3:#7a8496; --bg:#f6f7fa; --panel:#ffffff;
+    --line:#e2e6ee; --accent:#4f46e5; --accent-soft:#eef0fe; --ok:#15803d; --warn:#b45309;
+    --danger:#b91c1c; --code:#f3f4f8; --bar:#4f46e5; --bar2:#8b5cf6; --weekend:#f0f2f7;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --fg:#e8ebf2; --fg-2:#b3bccb; --fg-3:#8b95a7; --bg:#12151c; --panel:#1a1f29;
+      --line:#2a3140; --accent:#8b8cf0; --accent-soft:#242a3a; --ok:#4ade80; --warn:#fbbf24;
+      --danger:#f87171; --code:#1f2430; --bar:#6d6ff0; --bar2:#a78bfa; --weekend:#1e2330;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.6 "Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:34px 22px 70px}
+  header{border-bottom:2px solid var(--line);padding-bottom:16px;margin-bottom:26px}
+  h1{margin:0 0 6px;font-size:25px;line-height:1.25}
+  .sub{color:var(--fg-3);font-size:13px}
+  h2{margin:34px 0 10px;font-size:18px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h3{margin:22px 0 8px;font-size:15.5px;color:var(--accent)}
+  p{margin:9px 0}
+  ul,ol{margin:9px 0 9px 20px;padding:0}
+  li{margin:5px 0}
+  code,kbd{font-family:"Cascadia Mono",Consolas,"Courier New",monospace;font-size:13px;
+    background:var(--code);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  kbd{border-bottom-width:2px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;
+    box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h3{margin-top:0}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .tag{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:2px 10px;color:var(--fg-2);background:var(--code)}
+  .tag.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+  .tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+  .tag.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,transparent)}
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;
+    padding:10px 14px;margin:12px 0}
+  .warnbox{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent);
+    border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:middle}
+  th{background:var(--code);font-weight:600;font-size:12.5px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.day,th.day{width:26px;min-width:26px;padding:2px;text-align:center;font-size:10.5px;color:var(--fg-3)}
+  th.day.we,td.day.we{background:var(--weekend)}
+  .bar{display:block;height:14px;border-radius:3px;background:var(--bar)}
+  .bar.p{background:var(--bar2)}
+  .q{color:var(--fg-3);font-style:italic}
+  footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--line);color:var(--fg-3);font-size:12.5px}
+  .checklist{list-style:none;margin-left:0}
+  .checklist li{padding-left:26px;position:relative}
+  .checklist li::before{content:"☐";position:absolute;left:4px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Ideen-Notiz: Aufgaben als Excel-Datei <em>mit</em> Zeitleiste</h1>
+  <div class="sub">Projekt <strong>Terminplanung</strong> (G:\Terminplanung, Stand Version 03) ·
+    Notiz vom 20.10.2026 · noch nichts gebaut, reine Ideensammlung für später</div>
+  <div class="meta">
+    <span class="tag warn">Status: Idee / nicht beauftragt</span>
+    <span class="tag">Betrifft: Export &amp; Import</span>
+    <span class="tag">Aufwand: mittel bis hoch</span>
+  </div>
+</header>
+
+<h2>1. Die Frage</h2>
+<p>Lassen sich die Aufgaben aus dem Projekt so nach Excel exportieren, dass man <strong>dort</strong>
+Termine und Aufgaben ändern kann und das Ergebnis trotzdem <strong>graphisch auf einer Zeitleiste</strong>
+(Gantt) erscheint?</p>
+<p><strong>Antwort: Ja.</strong> Es gibt drei Abstufungen — von „Tabelle mit farbigem Tagesraster“
+bis „richtiges Excel-Gantt“. Der entscheidende Punkt:</p>
+<div class="note">
+  In Excel wächst eine Zeitleiste nur mit, wenn die Balken <strong>formelgesteuert</strong> sind
+  (bedingte Formatierung oder Diagramm mit Zellbezug). Fest eingefärbte Zellen ziehen bei einer
+  Datumsänderung <em>nicht</em> mit.
+</div>
+
+<h2>2. Was die App heute schon kann</h2>
+<table>
+  <tr><th>Weg</th><th>Ergebnis</th></tr>
+  <tr><td>Projektdatei <code>.tplan.json</code> (Knopf <strong>⤓</strong>)</td><td>Sicherung / Weitergeben, wieder ladbar — aber kein Excel-Format</td></tr>
+  <tr><td>Drucken / PDF (<strong>🖨</strong>, <kbd>Strg</kbd>+<kbd>P</kbd>)</td><td>fertiger Plan auf Papier/PDF, A4 bis eigenes Blattmaß, mit Balken, Tabellen, Kalender, Board</td></tr>
+  <tr><td>Kopieren (<kbd>Strg</kbd>+<kbd>C</kbd>)</td><td>Tabulator-Text für Excel — landet als <em>reine Tabelle</em>, ohne Grafik</td></tr>
+  <tr><td>CSV-/Excel-Ausgabe, Kalender-Abo (.ics)</td><td><strong>noch nicht enthalten</strong></td></tr>
+</table>
+
+<h2>3. Weg A — Tabelle mit Tagesraster (sieht aus wie ein Gantt)</h2>
+<p>Eine Zeile je Aufgabe, links die Felder, rechts ein Raster mit einer Spalte je Arbeitstag
+(bei langen Plänen je Woche). So würde es aussehen:</p>
+<table>
+  <tr>
+    <th>Nr.</th><th>Aufgabe</th><th>Beginn</th><th class="num">Dauer</th><th>Ende</th><th class="num">Forts.</th>
+    <th class="day">Mo<br>19.10.</th><th class="day">Di<br>20.10.</th><th class="day">Mi<br>21.10.</th>
+    <th class="day">Do<br>22.10.</th><th class="day">Fr<br>23.10.</th><th class="day we">Sa<br>24.10.</th><th class="day we">So<br>25.10.</th>
+  </tr>
+  <tr>
+    <td>1.1</td><td>Anforderungen sammeln</td><td>19.10.26</td><td class="num">4</td><td>22.10.26</td><td class="num">25 %</td>
+    <td class="day"><span class="bar"></span></td><td class="day"><span class="bar"></span></td>
+    <td class="day"><span class="bar"></span></td><td class="day"><span class="bar"></span></td>
+    <td class="day"></td><td class="day we"></td><td class="day we"></td>
+  </tr>
+  <tr>
+    <td>1.2</td><td>Zielgruppen-Workshop</td><td>23.10.26</td><td class="num">2</td><td>26.10.26</td><td class="num">0 %</td>
+    <td class="day"></td><td class="day"></td><td class="day"></td><td class="day"></td>
+    <td class="day"><span class="bar p"></span></td><td class="day we"></td><td class="day we"></td>
+  </tr>
+  <tr>
+    <td>1.3</td><td>Konzept freigegeben <em>(Meilenstein)</em></td><td>27.10.26</td><td class="num">0</td><td>27.10.26</td><td class="num">0 %</td>
+    <td class="day"></td><td class="day"></td><td class="day"></td><td class="day"></td>
+    <td class="day"></td><td class="day we"></td><td class="day we"></td>
+  </tr>
+</table>
+<p>Das Raster ist über <strong>bedingte Formatierung</strong> an Beginn und Dauer gekoppelt: Trägt man
+in Excel ein neues Datum oder eine andere Dauer ein, wandern die farbigen Zellen sofort mit. Dazu
+Kopfzeile mit Datum und Wochentag, Wochenenden ausgegraut, Feiertage aus dem Projektkalender
+markiert; der Fortschritt lässt sich als Innenschraffur darstellen.</p>
+<div class="meta">
+  <span class="tag ok">Termine in Excel änderbar</span>
+  <span class="tag ok">Zeitleiste läuft mit</span>
+  <span class="tag warn">keine Abhängigkeitspfeile</span>
+  <span class="tag warn">kein Auto-Nachziehen der Nachfolger</span>
+  <span class="tag">Aufwand: mittel</span>
+</div>
+
+<h2>4. Weg B — echtes Excel-Balkendiagramm</h2>
+<p>Dieselbe Tabelle, dazu ein <strong>gestapeltes Balkendiagramm</strong> mit unsichtbarer
+„Startversatz“-Reihe und sichtbarer „Dauer“-Reihe; Kategorien sind die Aufgaben. Ergebnis: ein
+richtiger Streifenplan, der sich beim Ändern der Zellen neu zeichnet, mit Achse und Gitternetz.</p>
+<div class="warnbox">
+  <strong>Grenzen:</strong> In der Browser-App deutlich mehr Arbeit (Diagramme in <code>.xlsx</code>
+  müssen von Hand geschrieben werden), und grober als Weg A — Wochenenden, Fortschritt und
+  Beschriftungen sind im Diagramm kaum abbildbar.
+</div>
+<div class="meta"><span class="tag">Aufwand: hoch</span><span class="tag warn">gröber als Weg A</span></div>
+
+<h2>5. Weg C — Rückweg in die App (Excel als Eingabemaske)</h2>
+<p>Export als Excel-Tabelle, in Excel Termine, Dauern und neue Zeilen pflegen, die Datei dann wieder
+<strong>in die App einlesen</strong>. Die App übernimmt Beginn/Dauer/Status, rechnet Abhängigkeiten
+und Auto-Planung und zeigt den Plan in ihrer klickbaren Grafik.</p>
+<div class="note">
+  Das ist der <strong>einzige</strong> Weg, bei dem die Terminlogik erhalten bleibt — und er
+  verhindert, dass App und Excel auseinanderlaufen (zwei Stände desselben Plans).
+</div>
+<div class="meta"><span class="tag ok">Terminrechner der App bleibt gültig</span><span class="tag ok">keine Doppelstände</span><span class="tag">Aufwand: mittel</span></div>
+
+<h2>6. Empfehlung</h2>
+<p><strong>A + C kombinieren:</strong> ein Knopf <strong>„Excel“</strong> in der Leiste, der eine
+<code>.xlsx</code> schreibt — Blatt „Plan“ mit den Feldern und dem Tagesraster samt bedingter
+Formatierung, dazu ein Blatt „Info“ mit Herkunft, Version und Datum — plus <strong>Import</strong>
+derselben Tabelle zurück in die App. Damit hat man in Excel die gewohnte Oberfläche mit Zeitleiste,
+die mit den eigenen Änderungen mitläuft, und die App bleibt die Wahrheit für Terminberechnung,
+Abhängigkeiten und Prüfung.</p>
+<p>Technisch ohne fremde Bibliothek machbar: <code>.xlsx</code> ist nur ein ZIP mit XML, und ein ZIP
+darf auch unkomprimierte Einträge enthalten — das lässt sich klein selbst schreiben. Für deutsches
+Excel: Semikolon bzw. UTF-8-Kennung beachten, Datums- und Zahlenformate sauber setzen.</p>
+
+<h2>7. Offene Fragen für die Umsetzung</h2>
+<ul class="checklist">
+  <li>Nur <strong>Weg A</strong> (Tagesraster) als Schritt 1 — oder gleich <strong>A + C</strong> mit Rückweg?</li>
+  <li>Raster je <strong>Arbeitstag</strong> (fein, breit) oder je <strong>Woche</strong> (kompakt)?</li>
+  <li>Beim Import: nur Termine übernehmen, oder auch neue/gelöschte Zeilen und Umbenennungen?
+    (Vorschlag: Termine, Dauer, Fortschritt, Status — Struktur bleibt in der App.)</li>
+  <li>Sollen gesperrte Aufgaben (🔒) beim Import unverändert bleiben? (Vorschlag: ja, mit Hinweiszeile.)</li>
+</ul>
+
+<h2>8. Später zu bedenken</h2>
+<ul>
+  <li><strong>Excel kennt den Terminrechner nicht:</strong> Abhängigkeiten (FS/SS/FF/SF), Auto-Planung,
+    kritischer Pfad und Konflikterkennung bleiben Sache der App. In Excel sieht man nur die Termine,
+    die beim Export gerade gültig waren.</li>
+  <li><strong>Kalender-Abo (.ics)</strong> ist im Testprotokoll ebenfalls als „noch nicht enthalten“
+    vermerkt — passt thematisch in dieselbe Ecke (Weitergabe nach außen).</li>
+  <li>Ein Export nach Excel ersetzt <strong>nicht</strong> den Druck/PDF-Weg: der Ausdruck ist die
+    „fertige“ Darstellung, die Excel-Datei die Arbeitsunterlage.</li>
+</ul>
+
+<footer>
+  Notiz zur Frage vom 20.10.2026 · Projekt Terminplanung, Version 03 · Es wurde noch nichts
+  umgesetzt; Details zum Stand des Projekts stehen in <code>docs/TESTPROTOKOLL.md</code> und
+  <code>docs/BENUTZERHANDBUCH.md</code>.
+</footer>
+
+</div>
+</body>
+</html>

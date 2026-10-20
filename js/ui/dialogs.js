@@ -10,6 +10,7 @@ import { storage, slugify } from '../storage.js';
 import { THEMES, applyTheme, currentThemeId, toggleLightDark } from '../themes.js';
 import { formatDateTime, formatIso, dowLong, todayIso, addDays, addMonths, parseIso, snapToWorkday, endFromDuration } from '../dateutil.js';
 import { PALETTE, DEP_TYPES, CONSTRAINT_TYPES, newTask, taskById, flatTasks } from '../model.js';
+import { COUNTRIES, regions, regionName, holidaysForYear } from '../holidays.js';
 import { versionLabel } from '../version.js';
 
 let openModal = null;
@@ -117,6 +118,7 @@ export function helpDialog() {
       ]));
       box.appendChild(sec('Maus und Ansicht im Gantt', [
         '<b>◉ Heute</b> (oder <kbd>Leertaste</kbd>): springt zum heutigen Datum – auch wenn es außerhalb des Plans liegt.',
+        '<b>Wochentage, Wochenenden und Feiertage</b>: im Tag-Raster stehen über den Tageszahlen die Wochentage; Samstag/Sonntag und Feiertage sind als Spalten gefärbt. Feiertage holst du im <b>Setup</b> wie in Outlook: Land (Schweiz/Deutschland), Region – in der Schweiz der <b>Kanton</b> – und Jahre wählen, dann <b>Feiertage eintragen</b>. Mit <b>„Feiertage und Zeitstrahl bis Jahr“</b> legst du fest, bis wohin gerechnet wird (Vorgabe: nächstes Jahr) – der Zeitstrahl zeichnet so weit, auch ohne Aufgaben. Eigene freie Tage trägst du daneben mit Bezeichnung ein.',
         '<b>Strg</b> gedrückt halten und mit der <b>linken Maustaste ziehen</b> (oder die <b>mittlere Maustaste</b> ziehen): der Ausschnitt wandert – wie ein Hand-Werkzeug.',
         '<b>Strg</b>+<b>Mausrad</b>: stufenlos zoomen, genau um den Mauszeiger herum.',
         '<b>Umschalt</b>+<b>Mausrad</b>: seitlich rollen. Mausrad allein: senkrecht rollen.',
@@ -270,23 +272,98 @@ export function projectSettingsDialog() {
       });
       box.appendChild(el('div', { class: 'field' }, el('label', { text: 'Arbeitstage' }), dayRow));
 
+      /* Feiertage – wie „Feiertage hinzufügen“ in Outlook */
+      const span = store.planSpan();
+      const hy = (store.project.settings.calendar || {}).holidayYears || null;
       const holIn = el('input', { type: 'date' });
-      const holList = el('div', { class: 'chip-row' });
+      const holNameIn = el('input', { type: 'text', placeholder: 'Bezeichnung (z. B. Betriebsausflug)', style: { flex: '1', minWidth: '150px' } });
+      const holList = el('div', { class: 'dep-list' });
       const renderHol = () => {
         clear(holList);
-        const list = store.project.settings.calendar.holidays.slice().sort();
+        const list = store.holidays();
         if (!list.length) holList.appendChild(el('span', { class: 'hint', text: 'keine Feiertage eingetragen' }));
         for (const h of list) {
-          holList.appendChild(el('span', { class: 'tag removable', title: 'Entfernen', text: formatIso(h), onclick: () => {
-            store.setCalendar({ holidays: store.project.settings.calendar.holidays.filter((x) => x !== h) }); renderHol();
-          } }));
+          const d = parseIso(h.date);
+          holList.appendChild(el('div', { class: 'dep-item' },
+            el('span', { class: 't', text: `${formatIso(h.date)} · ${d ? dowLong(d.getUTCDay()) : ''}` }),
+            el('span', { class: 'hint', style: { flex: '1', overflow: 'hidden', textOverflow: 'ellipsis' }, text: h.name || 'ohne Bezeichnung' }),
+            el('button', { class: 'iconbtn', title: 'Feiertag entfernen', text: '✕', onclick: () => { store.removeHoliday(h.date); renderHol(); } })));
         }
       };
       renderHol();
+
+      const savedRegion = (store.project.settings.calendar || {}).holidayRegion || 'CH';
+      const countrySel = el('select', {}, ...COUNTRIES.map((c) => el('option', { value: c.id, text: c.name })));
+      const regionSel = el('select', {});
+      const setRegionOptions = (want) => {
+        const list = regions(countrySel.value);
+        clear(regionSel);
+        for (const r of list) regionSel.appendChild(el('option', { value: r.id, text: r.name }));
+        const has = [...regionSel.options].some((o) => o.value === want);
+        regionSel.value = has ? want : (regionSel.options[0] || {}).value || '';
+      };
+      countrySel.value = savedRegion.startsWith('DE') ? 'DE' : 'CH';
+      setRegionOptions(savedRegion);
+      countrySel.addEventListener('change', () => {
+        setRegionOptions(countrySel.value === 'CH' ? 'CH' : 'DE');
+        store.setCalendar({ holidayRegion: regionSel.value });
+      });
+      regionSel.addEventListener('change', () => store.setCalendar({ holidayRegion: regionSel.value }));
+
+      /* Bis zu welchem Jahr sollen die Feiertage vorgehalten werden? */
+      const untilIn = el('input', { type: 'number', min: '1970', max: '2100', value: String(store.horizonYear()), style: { width: '78px' } });
+      untilIn.addEventListener('change', () => {
+        const vor = store.holidays().length;
+        const jahr = store.setHolidayUntil(untilIn.value);
+        const nach = store.holidays().length;
+        untilIn.value = String(jahr);
+        /* Wurde etwas nachgetragen, meldet sich die Automatik selbst („📅 Feiertage … ergänzt“). */
+        if (nach === vor) {
+          toast(`Feiertage bis ${jahr}`, 'info', store.project.settings.calendar.holidayImport
+            ? 'Für diese Jahre ist bereits alles eingetragen.'
+            : 'Wird beim nächsten „Feiertage eintragen“ gleich mit berücksichtigt.', 4000);
+        }
+        renderHol();
+      });
+
+      const yFrom = el('input', { type: 'number', min: '1970', max: '2100', value: String(Math.min(Number(span.from.slice(0, 4)), hy && Number(hy.from) ? Number(hy.from) : Number(span.from.slice(0, 4)))), style: { width: '78px' } });
+      const yTo = el('input', { type: 'number', min: '1970', max: '2100', value: String(Math.max(Number(span.to.slice(0, 4)), hy && Number(hy.to) ? Number(hy.to) : Number(span.to.slice(0, 4)), store.horizonYear())), style: { width: '78px' } });
       box.appendChild(el('div', { class: 'field' },
-        el('label', { text: 'Feiertage / freie Tage' }),
-        el('div', { style: { display: 'flex', gap: '8px' } }, holIn,
-          el('button', { class: 'btn', text: 'Hinzufügen', onclick: () => { if (holIn.value) { store.setCalendar({ holidays: [...store.project.settings.calendar.holidays, holIn.value] }); holIn.value = ''; renderHol(); } } })),
+        el('label', { text: 'Feiertage übernehmen (wie in Outlook)' }),
+        el('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' } },
+          el('span', { class: 'hint', text: 'Land' }), countrySel,
+          el('span', { class: 'hint', text: 'Region' }), regionSel,
+          el('span', { class: 'hint', text: 'Jahre von' }), yFrom, el('span', { class: 'hint', text: 'bis' }), yTo,
+          el('button', { class: 'btn', text: 'Feiertage eintragen', onclick: () => {
+            const a = Math.min(Number(yFrom.value) || 0, Number(yTo.value) || 0);
+            const b = Math.max(Number(yFrom.value) || 0, Number(yTo.value) || 0);
+            if (a < 1970 || b > 2100) { toast('Bitte Jahre zwischen 1970 und 2100', 'warn'); return; }
+            const list = [];
+            for (let y = a; y <= b; y++) list.push(...holidaysForYear(y, regionSel.value));
+            const n = store.addHolidays(list, { region: regionSel.value, from: a, to: b });
+            toast(n ? `${n} Feiertage eingetragen` : 'Alles schon eingetragen', n ? 'ok' : 'info',
+              `${regionName(regionSel.value)} · ${a}${b > a ? `–${b}` : ''}${n < list.length ? ` · ${list.length - n} waren bereits vorhanden` : ''}`);
+            renderHol();
+          } })),
+        el('div', { class: 'hint', text: 'Die Liste gilt für jedes Jahr – die beweglichen Feiertage werden aus Ostern gerechnet. In der Schweiz ist nur der Bundesfeiertag gesamtschweizerisch, alles andere kantonale Sache; Tage, die nur regional frei sind, tragen einen Hinweis und lassen sich einzeln löschen. Reicht dein Plan später in ein neues Jahr, ergänzt die App die Feiertage dieser Region von selbst.' })));
+
+      box.appendChild(el('div', { class: 'field' },
+        el('label', { text: 'Feiertage und Zeitstrahl bis Jahr' }),
+        el('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' } },
+          untilIn,
+          el('span', { class: 'hint', style: { flex: '1', minWidth: '240px' }, text: 'Vorgabe: ein Jahr länger als heute. Der Zeitstrahl wird bis zum Jahresende gezeichnet, und fehlende Feiertage bis dahin trägt die App von selbst nach. Bereits eingetragene Tage bleiben stehen.' })),
+        el('div', { class: 'hint', text: 'Gilt für die oben eingetragene Region – also einmal Region, Jahre und dieses Ziel setzen, danach nie wieder kümmern.' })));
+
+      box.appendChild(el('div', { class: 'field' },
+        el('label', { text: 'Eigenen freien Tag eintragen' }),
+        el('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } }, holIn, holNameIn,
+          el('button', { class: 'btn', text: 'Hinzufügen', onclick: () => {
+            if (!holIn.value) { toast('Bitte ein Datum wählen', 'warn'); return; }
+            store.addHolidays([{ date: holIn.value, name: holNameIn.value.trim() }]);
+            holIn.value = ''; holNameIn.value = '';
+            renderHol();
+          } })),
+        el('div', { class: 'hint', text: 'Eingetragene Tage sind keine Arbeitstage: Aufgaben werden nicht darauf gelegt und rutschen beim Rechnen daran vorbei.' }),
         holList));
 
       /* Darstellung: Zeilenhöhe */

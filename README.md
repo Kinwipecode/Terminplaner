@@ -83,6 +83,23 @@ Bedeutung (grün = erledigt, rot = blockiert …), damit Pläne vergleichbar ble
   Hinweis, welche Aufgabe im Weg ist. Beim Rechnen bleiben gesperrte Termine immer stehen; ergäbe
   die Rechnung einen anderen Termin, wird das als Warnung gemeldet.
 
+**Zeitachse: Wochentage, Wochenenden, Feiertage**
+
+- Im Tag-Raster steht über jeder Tageszahl der **Wochentag** (`Mo`, `Di`, `Mi` …).
+- **Wochenenden** und **Feiertage** sind als senkrechte Spalten farblich abgesetzt (Wochenende blau,
+  Feiertag bernsteinfarben mit gestricheltem Rand); der Hinweis am Tag nennt Datum und Feiertagsnamen.
+- **Feiertage übernehmen wie in Outlook:** im **Setup** **Land** (Schweiz/Deutschland), **Region**
+  (in der Schweiz der **Kanton** – ZH, BE, LU … JU – oder „ganze Schweiz“) und Jahre wählen →
+  **Feiertage eintragen** (bewegliche Feiertage werden aus Ostern gerechnet, Namen inklusive).
+  Grundlage ist die amtliche Schweizer Feiertagsliste je Kanton (geprüft gegen 2025–2029).
+  **Neue Jahre ergänzt die App von selbst**, sobald der Plan hineinreicht (Meldung „📅 Feiertage … ergänzt“).
+  Im Feld **„Feiertage und Zeitstrahl bis Jahr“** stellst du ein, bis zu welchem Jahr gerechnet wird
+  (Vorgabe: ein Jahr länger als heute): der Zeitstrahl zeichnet bis zum **Jahresende** dieses Jahres,
+  und die Feiertage werden bis dahin vorgehalten.
+  Regionale Tage, die fehlen (z. B. Schulferien oder Brückentage), lassen sich als
+  **eigener freier Tag** mit Bezeichnung ergänzen. Feiertage sind keine Arbeitstage – Aufgaben
+  rutschen beim Rechnen daran vorbei.
+
 **Mehrere Aufgaben markieren** – wie im Explorer
 
 | Eingabe | Wirkung |

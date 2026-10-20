@@ -9,8 +9,8 @@ import { contextMenu } from '../ui/menu.js';
 import { lockBadge } from '../ui/lock.js';
 import { store } from '../store.js';
 import {
-  addDays, diffDays, startOfWeek, formatIso, monthName, dowShort, isoWeek,
-  parseIso, snapToWorkday, endFromDuration, durationFromRange, todayIso,
+  addDays, diffDays, startOfWeek, formatIso, monthName, dowShort, dowLong, isoWeek,
+  parseIso, snapToWorkday, endFromDuration, durationFromRange, todayIso, holidayName,
 } from '../dateutil.js';
 import { STATUS, PRIORITY, isSummary, taskById, DEP_TYPES } from '../model.js';
 
@@ -109,7 +109,9 @@ export function fitGantt() {
   if (!box || !view) return;
   const available = view.clientWidth - 380 - 30;
   const days = diffDays(state.from, state.to) + 1 || 1;
-  const dayW = Math.max(1.2, available / days);
+  /* Mindestens 4 px je Tag: bei mehrjährigen Zeitstrahlen wäre sonst nichts mehr
+     erkennbar – dann lieber rollen. */
+  const dayW = Math.max(4, available / days);
   store.ui.fitDayW = dayW;
   store.emit('change');
 }
@@ -189,13 +191,41 @@ function buildHeader(range, dayW) {
       const dd = parseIso(u.from).getUTCDay();
       if (!cal.workdays.includes(dd)) cls.push('wknd');
       if (cal.holidays.includes(u.from)) cls.push('hol');
-      if (u.from === new Date().toISOString().slice(0, 10)) cls.push('today-h');
+      if (u.from === todayIso()) cls.push('today-h');
     }
-    units.appendChild(el('div', { class: cls.join(' '), style: { width: w + 'px' }, text: u.label }));
+    const attrs = { class: cls.join(' '), style: { width: w + 'px' }, text: u.label };
+    if (u.day) {
+      const nm = holidayName(cal, u.from);
+      attrs.title = `${dowLong(parseIso(u.from).getUTCDay())}, ${formatIso(u.from)}`
+        + (nm ? ` · Feiertag: ${nm}` : (cal.holidays.includes(u.from) ? ' · freier Tag' : (!cal.workdays.includes(parseIso(u.from).getUTCDay()) ? ' · Wochenende' : '')));
+    }
+    units.appendChild(el('div', attrs));
+  }
+
+  /* Wochentagszeile über den Tageszahlen (nur wenn die Spalten breit genug sind) */
+  const showDows = zoom === 'day';
+  const dows = el('div', { class: 'g-head-dows' });
+  if (showDows) {
+    for (let s = range.from; s <= range.to; s = addDays(s, 1)) {
+      const dd = parseIso(s).getUTCDay();
+      const cls = [];
+      if (!cal.workdays.includes(dd)) cls.push('wknd');
+      if (cal.holidays.includes(s)) cls.push('hol');
+      if (s === todayIso()) cls.push('today-h');
+      const nm = holidayName(cal, s);
+      dows.appendChild(el('div', {
+        class: cls.join(' '),
+        style: { width: dayW + 'px' },
+        text: dowShort(dd),
+        title: `${dowLong(dd)}, ${formatIso(s)}${nm ? ` · Feiertag: ${nm}` : ''}`,
+      }));
+    }
   }
 
   track.appendChild(coarse);
+  if (showDows) track.appendChild(dows);
   track.appendChild(units);
+  track.style.height = (22 + (showDows ? 18 : 0) + 22) + 'px';
   head.appendChild(track);
   return { head, fineUnits, coarseUnits };
 }
@@ -447,7 +477,8 @@ export function renderGantt(container) {
   const rows = tasks;
   const RH = store.ui.rowH || 30;   // Zeilenhöhe (im Setup einstellbar)
 
-  // Zeitraum bestimmen – „heute“ ist immer mit dabei, damit der Heute-Knopf wirkt
+  // Zeitraum bestimmen – „heute“ ist immer mit dabei, damit der Heute-Knopf wirkt,
+  // und die Einstellung „bis Jahr“ gibt die äußerste Grenze vor (Zeitstrahl bis Jahresende).
   let min = project.settings.projectStart;
   let max = project.settings.projectStart;
   for (const t of project.tasks) {
@@ -458,7 +489,10 @@ export function renderGantt(container) {
   const nowIso = todayIso();
   if (nowIso < min) min = nowIso;
   if (nowIso > max) max = nowIso;
-  min = addDays(min, -7); max = addDays(max, 14);
+  min = addDays(min, -7);
+  const ziel = `${store.horizonYear()}-12-31`;      // „Feiertage und Zeitstrahl bis Jahr“
+  if (ziel > max) max = ziel;                        // bis Jahresende zeichnen
+  else max = addDays(max, 14);                       // sonst nur Rand hinter der letzten Aufgabe
   const from = startOfWeek(min);
   const to = endOfWeek(max);
   const days = diffDays(from, to) + 1;

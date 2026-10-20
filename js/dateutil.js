@@ -55,15 +55,39 @@ export function maxIso(a, b) { return !a ? b : !b ? a : (a >= b ? a : b); }
 /* ───────── Arbeitskalender ───────── */
 
 export function defaultCalendar() {
-  return { workdays: [1, 2, 3, 4, 5], holidays: [], extraWorkdays: [] };
+  return { workdays: [1, 2, 3, 4, 5], holidays: [], holidayNames: {}, extraWorkdays: [] };
 }
 
 export function normalizeCalendar(cal) {
   const c = Object.assign(defaultCalendar(), cal || {});
   c.workdays = Array.isArray(c.workdays) && c.workdays.length ? c.workdays.map(Number) : [1, 2, 3, 4, 5];
-  c.holidays = Array.isArray(c.holidays) ? c.holidays.filter(Boolean) : [];
+  /* Feiertage sind ISO-Texte. Ältere oder fremde Dateien können statt dessen
+     Objekte { date, name } enthalten – daraus wird Datum + Namensliste. */
+  const names = Object.assign({}, c.holidayNames || {});
+  const dates = [];
+  for (const h of (Array.isArray(c.holidays) ? c.holidays : [])) {
+    if (!h) continue;
+    if (typeof h === 'string') { dates.push(h.slice(0, 10)); continue; }
+    if (h.date) {
+      const d = String(h.date).slice(0, 10);
+      dates.push(d);
+      if (h.name) names[d] = h.name;
+    }
+  }
+  c.holidays = [...new Set(dates)].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  c.holidayNames = names;
   c.extraWorkdays = Array.isArray(c.extraWorkdays) ? c.extraWorkdays.filter(Boolean) : [];
   return c;
+}
+
+/** Name eines Feiertags (leerer Text, wenn nur das Datum eingetragen ist). */
+export function holidayName(cal, isoStr) {
+  return (cal && cal.holidayNames && cal.holidayNames[isoStr]) || '';
+}
+
+/** Ist der Tag ein Feiertag bzw. freier Tag? */
+export function isHoliday(cal, isoStr) {
+  return !!(cal && Array.isArray(cal.holidays) && cal.holidays.includes(isoStr));
 }
 
 export function isWorkday(isoStr, cal) {

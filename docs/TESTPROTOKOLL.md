@@ -431,7 +431,201 @@ weiterhin Reihenfolge.
 | `Strg`+`Z` nach dem Schieben | ✅ stellt die vorige Reihenfolge her (ein Rückgängig-Punkt je Schieben) |
 | Keine Fehler | ✅ Fehlerprotokoll leer |
 
-## 22. Offene Punkte / nicht geprüft
+## 22. Wochentage, Wochenenden und Feiertage (neue Bedienung)
+
+**Wunsch:** (1) über den Tageszahlen die Wochentage `Mo`, `Di`, `Mi` … anzeigen, (2) Samstag und
+Sonntag als Spalten deutlich anders färben, (3) Feiertage wie in Outlook übernehmen – mit
+regionaler Ergänzung – und ähnlich auffällig zeigen wie gesperrte Aufgaben.
+
+**Umsetzung**
+
+- **Wochentagszeile** (`buildHeader` in `views/gantt.js`): im **Tag-Raster** eine eigene Reihe
+  zwischen Monatszeile und Tageszahlen (`Mo Di Mi Do Fr Sa So …`), Spaltenkopf wächst auf 62 px.
+  Bei Woche/Monat/Quartal bleibt der Kopf wie bisher (dort gibt es keine Tagesspalten).
+  Jede Tageszelle nennt im Hinweis nun `Wochentag, Datum` plus `· Feiertag: Name`.
+- **Feiertage wie in Outlook** (`js/holidays.js`, neu): Bundesland + Jahre wählen, Knopf
+  **Feiertage eintragen** im Setup-Dialog. 9 bundesweite Feiertage plus die regionalen des Landes;
+  die beweglichen werden aus Ostern gerechnet (Anonymus Gregorianus), feste stehen als Regel drin.
+  Namen werden mitgespeichert (neues Feld `settings.calendar.holidayNames`) – `holidays` bleibt die
+  Datumsliste, damit ältere Dateien weiter laden (`normalizeCalendar` versteht jetzt auch
+  `{date,name}`). Eigene freie Tage lassen sich wie bisher mit Bezeichnung eintragen.
+- **Anzeige**: Wochenenden kühl-blau, Feiertage bernsteinfarben mit gestricheltem Rand und im
+  Spaltenkopf ein kleines 🔒 vor der Zahl (wie bei gesperrten Aufgaben); Kalenderzelle und
+  Ausdruck ebenfalls hervorgehoben.
+
+**Zwei alte Fehler kamen dabei ans Licht**
+
+1. **Die Spaltenfärbung im Plan war nie zu sehen**: die Regeln in `css/app.css` hießen
+   `.g-track .grid-day`, der Hintergrund liegt aber in einem eigenen Kästchen `.g-bg` – der
+   Selektor passte nie. Jetzt `.g-bg .grid-day…` (plus `.g-track` als Rückfall).
+2. **`--weekend`/`--holiday` liegen in `themes.css`** (je Layout) – Änderungen nur in `app.css`
+   wirken nicht, weil die Theme-Blöcke später kommen. Alle **neun** Layouts wurden angepasst.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Tag-Raster: Reihen im Spaltenkopf | ✅ `g-head-coarse` (Monat) · `g-head-dows` (Wochentage) · `g-head-units` (Tage), Höhe 62 px |
+| Wochentage über den Zahlen | ✅ `Mo Di Mi Do Fr Sa So Mo Di …` über `12 13 14 15 …` (Tag-Spalte 30 px) |
+| Woche/Monat/Quartal | ✅ unverändert (`KW 42 KW 43 …`, Kopfhöhe 44 px) – keine Wochentagszeile |
+| Wochenend-Spalten im Plan | ✅ 24 Spalten, gemessene Farbe `rgba(120,160,235,.15)` (vorher unsichtbar) |
+| Feiertags-Spalten | ✅ bernsteinfarben `rgba(245,158,11,.22)` mit gestricheltem linken Rand |
+| Hinweis am Tag | ✅ „Sonntag, 01.11.2026 · Feiertag: Allerheiligen“ (Tages- und Wochentagszelle) |
+| **Import Bayern 2026–2027** über den echten Knopf | ✅ 26 Tage (13 je Jahr) = 9 bundesweit + Heilige Drei Könige, Fronleichnam, Allerheiligen, Mariä Himmelfahrt |
+| Namen | ✅ „Allerheiligen“, „Tag der Arbeit“ … · in BY „Mariä Himmelfahrt – in Bayern nur katholische Gemeinden“ |
+| Gegenprobe regional | ✅ Reformationstag bei **BY** nicht dabei, bei **SN** schon; Frauentag bei **BE**; Buß- und Bettag nur **SN** |
+| **Rechnung stimmt** (gegen die amtlichen Termine) | ✅ Ostern 2026 `05.04.`, 2027 `28.03.`, 2028 `16.04.` · Karfreitag `03.04.2026`, `26.03.2027` · Himmelfahrt `14.05.2026`, `06.05.2027` · Pfingstmontag `25.05.2026`, `17.05.2027` · Fronleichnam `04.06.2026`, `27.05.2027` · Buß- und Bettag `18.11.2026`, `17.11.2027` |
+| Zweimal eintragen | ✅ „Alles schon eingetragen“, keine Doppel |
+| Kalender-Ansicht | ✅ Zelle `cal-cell wknd hol`, Hinweis „Feiertag: Allerheiligen“ |
+| Wirkung auf Termine | ✅ Aufgabe auf den `01.11.` gesetzt → beginnt am `02.11.`; Verschieben rutscht über den Feiertag |
+| Druck/PDF | ✅ 3 Blätter, Feiertagsspalte als `pg-hol`-Streifen vorhanden |
+| Keine Fehler | ✅ Fehlerprotokoll leer |
+
+**Nicht geprüft / offen:** Schulferien sind bewusst nicht enthalten (kein verlässlicher Datensatz
+ohne externe Quelle); ein **.ics-Import** (Kalenderdatei aus Outlook) ist noch nicht gebaut.
+Die Schweiz mit ihren Kantonen ist in § 23 nachgetragen.
+
+## 23. Feiertage für die Schweiz und ihre Kantone (Erweiterung)
+
+**Wunsch:** Feiertage wie in Outlook übernehmen – „für die Schweiz und deren Kantone“.
+
+**Umsetzung**
+
+- `js/holidays.js` kennt jetzt zwei Länder: **Schweiz** (`CH`) und **Deutschland** (`DE`).
+  Regionen-Kennungen: `CH` (nur die 4 gesamtschweizerischen Tage), `CH:UEB`
+  („Feiertagsfahrplan“ von SBB/Post/Bundesverwaltung, 9 Tage), `CH:ZH` … `CH:JU` (die 26 Kantone),
+  `DE`, `DE:BW` … `DE:TH`. Die alte Form `holidaysForYear(y, 'BY')` funktioniert weiter.
+- **Datenquelle:** amtliche Feiertagsliste des Bundesamts für Justiz, maschinenlesbar über
+  `date.nager.at/api/v3/PublicHolidays/<jahr>/CH` (Tage mit `counties` = „CH-XX“ bzw. `global`).
+  Daraus wurden **Regeln** abgeleitet (festes Datum oder Abstand zu Ostern) statt einzelner Jahre,
+  damit jedes Jahr – auch künftige – stimmt. Der Kanton Zürich führt zusätzlich den
+  **Berchtoldstag** als kantonalen Feiertag (Personalamt ZH/Zürich Tourismus); die Bundesliste
+  nennt AG, BE, FR, SH, TG, VD.
+- Bundesweite Sonderfälle: **Jeûne genevois** (Donnerstag nach dem ersten Sonntag im September, GE),
+  **Bettagsmontag** (Montag nach dem 3. Sonntag im September, VD), **Näfelser Fahrt** (erster
+  Donnerstag im April, GL – Datum wird angegeben, „Ausnahmen möglich“), **Stephanstag nur, wenn er
+  nicht auf Dienstag oder Samstag fällt** (AI, AR). Der Eidgenössische Bettag selbst ist immer ein
+  Sonntag und wurde deshalb weggelassen.
+- Nur regional geltende Tage (z. B. Josefstag in LU, Mariä Empfängnis in TI) werden mit dem Hinweis
+  „nur regional bzw. gewohnheitsmäßig frei“ mit eingetragen, damit nichts fehlt – löschbar einzeln.
+- **Oberfläche:** Der Setup-Dialog hat jetzt **Land** + **Region**; die Auswahl wird als
+  `settings.calendar.holidayRegion` im Projekt gemerkt (Standard Schweiz).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Automatischer Abgleich gegen die Quelle | ✅ **130 Kanton-Jahre** (26 Kantone × 2025–2029) **datumsgenau verglichen – 0 Abweichungen** (Prüfskript `ch_check.mjs`, node) |
+| Ostersonntage | ✅ 2025 `20.04.` · 2026 `05.04.` · 2027 `28.03.` · 2028 `16.04.` · 2029 `01.04.` |
+| „Ganze Schweiz“ | ✅ genau 4: Neujahr, Auffahrt, Bundesfeier, Weihnachtstag |
+| Kanton Zürich 2026 | ✅ 10 Tage: mit **2.1. (Berchtoldstag)** und **1.5.** |
+| Kanton Luzern 2026 (echte Klicks im Dialog) | ✅ 11 Tage, u. a. 19.3. Josefstag (Hinweis), 1.11. Allerheiligen |
+| Tessin 2026 | ✅ 15 Tage, mit 6.1., 19.3., 29.6. – **ohne Karfreitag** |
+| Wallis 2026 | ✅ 9 Tage – **ohne Karfreitag, Ostermontag, Pfingstmontag** |
+| Genf / Waadt / Glarus | ✅ Jeûne genevois `10.09.2026` + `31.12.` · Bettagsmontag `21.09.2026` · Näfelser Fahrt `02.04.2026` |
+| Appenzell Innerrhoden | ✅ 26.12.2026 (Samstag) fehlt, 2025/2027 vorhanden – Regel wirkt |
+| Deutschland unverändert | ✅ Bayern 2026 weiterhin 13 Tage |
+| Swiss-Hinweise | ✅ nur bei den betroffenen Tagen, Löschen mit ✕ möglich |
+| Anzeige im Plan | ✅ 4 Feiertagsspalten im Zeitraum (1.11., 8.12., 25.12., 26.12.2026), Tag-Zelle `wknd hol` mit Hinweis „Sonntag, 01.11.2026 · Feiertag: Allerheiligen“ und 🔒 vor der Zahl |
+| Wirkung auf Termine | ✅ Aufgabe auf Freitag 30.10.2026, Dauer 2 → endet Montag `02.11.2026` (Wochenende + Allerheiligen übersprungen) |
+| Speichern/Laden | ✅ Region `CH:LU` und alle 11 Tage mit Namen bleiben erhalten |
+| Fehlerprotokoll | ✅ leer |
+
+**Offen:** Schulferien, reine Lokalanlässe und ein `.ics`-Import sind weiterhin nicht enthalten.
+Die Datenlage ist zwischen öffentlichem Dienst und Privatwirtschaft kantonal unterschiedlich
+(z. B. Berchtoldstag in AG/FR nur in bestimmten Gemeinden) – deshalb die Hinweise und die
+Möglichkeit, einzelne Zeilen zu löschen.
+
+## 24. Feiertage in künftigen Jahren – automatische Ergänzung (Erweiterung)
+
+**Frage des Nutzers:** „Wie funktioniert die Aktualisierung der Feiertage in folgenden Jahren?“
+Gewünscht: einmal einrichten, danach nie wieder daran denken.
+
+**Vorher (gemessen):** Die Jahre im Dialog waren aus dem Plan vorbelegt; die Feiertage lagen als
+Daten in `settings.calendar.holidays`. Ein neues Jahr musste man selbst hochziehen und erneut
+klicken (harmlos: Doppeltes wurde übersprungen), ein nicht eingetragenes Jahr hatte keine Feiertage.
+
+**Umsetzung**
+
+- Beim Übernehmen merkt sich das Projekt `settings.calendar.holidayImport = { region, from, to }`
+  (welche Region für welche Jahre eingetragen ist); `holidayYears` bleibt für die Anzeige/Vorbelegung.
+- `store.extendHolidaysToPlan()` prüft bei jeder Terminberechnung, ob der Plan über die
+  eingetragenen Jahre hinausreicht oder früher beginnt, und trägt die fehlenden Jahre für **dieselbe
+  Region** nach (bewegliche Feiertage wieder aus Ostern gerechnet). Meldung als Toast
+  „📅 Feiertage 2027 ergänzt – n Tage (Kanton …)“.
+- Läuft **vor und nach** dem Terminlauf: erst dann steht fest, wohin der Plan wirklich reicht
+  (Vorgänger und Arbeitstage schieben Termine über die Jahresgrenze). Wächst der Plan dadurch,
+  wird gleich neu gerechnet – eine Aufgabe, die dadurch auf einen neuen Feiertag fällt, rutscht weg.
+- Schutz gegen Selbstaufruf (`_extendingHolidays`), kein Leerlauf (nachgetragene Jahre werden
+  mitgeschrieben, sonst würde jede Neuberechnung erneut arbeiten).
+- Maßgeblich ist die **eingetragene** Region, nicht die im Auswahlfeld stehende: wer die Auswahl nur
+  umstellt (ohne Knopf), behält die alte Region für die Automatik; bestehende Tage bleiben immer.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Luzern 2026 eingetragen | ✅ 11 Tage, `holidayImport {CH:LU, 2026, 2026}` |
+| Aufgabe nach 2027 geschoben (Start + Ende) | ✅ 11 Tage für 2027 automatisch, `{CH:LU, 2026, 2027}`, Toast „📅 Feiertage 2027 ergänzt“ |
+| Sprung von 2026 nach 2028 | ✅ 20 Tage für 2027 **und** 2028 in einem Zug, Toast „📅 Feiertage 2027, 2028 ergänzt“ |
+| Aufgabe **rückwärts** in 2025 | ✅ 11 Tage für 2025 ergänzt, `{2025 … 2027}` |
+| Termin genau auf neuem Feiertag | ✅ Aufgabe auf `01.05.2028` (Tag der Arbeit, ZH) gesetzt → beginnt `02.05.2028` |
+| 3× Neuberechnung ohne Planänderung | ✅ keine neuen Tage, keine zusätzlichen Rückgängig-Punkte (kein Leerlauf) |
+| Auswahlfeld auf anderen Kanton, ohne Knopf | ✅ Automatik bleibt bei der eingetragenen Region (Luzern-Tage für 2027, kein ZH-Tag) |
+| Knopf gedrückt nach Regionswechsel (ZH) | ✅ 2.1. und 1.5. für 2026 **und** 2027 ergänzt, `holidayImport {CH:ZH, …}`, Jahre im Dialog vorbelegt |
+| Speichern/Laden | ✅ Region, `holidayImport` und alle 40 Tage bleiben erhalten; keine erneute Nacharbeit |
+| Fehlerprotokoll | ✅ leer |
+
+## 25. Einstellung „Feiertage und Zeitstrahl bis Jahr“ (Erweiterung)
+
+**Wunsch:** „Ich will im Setup einstellen können, bis zu welchem Jahr die Tage hier angezeigt
+werden sollen. Standardmäßig aber 1 Jahr länger als aktuelles Datum.“
+
+**Umsetzung**
+
+- Neue Einstellung `settings.calendar.holidayUntil`. Ohne Wert gilt als Vorgabe das **kommende
+  Jahr** (`store.holidayHorizon()` = heutiges Jahr + 1).
+- Im Setup steht dafür ein eigenes Feld **„Feiertage vorhalten bis Jahr“** (Zahlenfeld) mit Hinweis.
+  Ändern wirkt sofort: `store.setHolidayUntil(jahr)` speichert und ruft die Nachträge für die
+  eingetragene Region; die Automatik zieht `holidayHorizon()` als Zielmarke mit
+  (`b = max(Planjahre, eingetragene Jahre, Zieljahr)`).
+- Das Jahresfeld „bis“ beim Eintragen ist mit `max(Planende, eingetragene Jahre, Zieljahr)`
+  vorbelegt – der erste Klick deckt also gleich die Vorgabe „nächstes Jahr“ mit ab.
+- **Automatik erst nach bewusstem Eintragen:** `extendHolidaysToPlan()` arbeitet nur mit
+  `holidayImport.region` (nicht mit der nur im Auswahlfeld stehenden Region). Ein Umstellen der
+  Region ohne Klick trägt nichts ein; Heruntersetzen des Zieljahrs löscht nichts.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Vorgabe im Feld (heute 20.10.2026) | ✅ `2027` = ein Jahr länger als heute |
+| Region Zürich wählen, **ohne** Knopf | ✅ keine Feiertage eingetragen (leer) |
+| Eintragen mit Jahre 2026, Zieljahr 2027 | ✅ 10 Tage 2026 **und** 10 Tage 2027 in einem Vorgang |
+| Zieljahr auf 2031 | ✅ 2028–2031 ergänzt (40 Tage), Toast „📅 Feiertage 2028, 2029, 2030, 2031 ergänzt“ |
+| Zieljahr auf 2030 senken | ✅ nichts gelöscht (60 Tage bleiben), Einstellung gespeichert, Hinweis-Toast |
+| Speichern/Laden | ✅ `holidayUntil` 2030, 60 Tage und Vermerk bleiben erhalten, Feld zeigt 2030 |
+| Fehlerprotokoll | ✅ leer |
+
+### Nachtrag: derselbe Wert steuert auch den Zeitstrahl
+
+**Nutzerfrage:** „Warum sehe ich hier nur bis 15. November? Wo ist der Rest der Tage?“
+**Ursache (gemessen):** Der Gantt-Zeitraum wurde **allein aus den Aufgaben** bestimmt – frühester
+Start − 7 Tage bis spätestes Ende + 14 Tage, auf ganze Wochen gerundet. Bei einem Plan, der Mitte
+November endet, endete damit auch der Strahl; der eingestellte Zielwert wirkte nur auf die
+Feiertage. Meine erste Auslegung der Bitte war zu eng.
+
+**Änderung**
+
+- `store.holidayHorizon()` → **`store.horizonYear()`** (ein Wert für Feiertage **und** Zeitstrahl).
+- `views/gantt.js`: `max = max(Planende, „<Zieljahr>-12-31“)`; nur wenn der Plan darüber hinausreicht,
+  bleibt es beim Rand von 14 Tagen. Feld im Setup heißt jetzt **„Feiertage und Zeitstrahl bis Jahr“**.
+- `fitGantt()`: kleinste Tagesbreite von 1,2 px auf **4 px** angehoben – bei mehrjährigen Strahlen war
+  „Einpassen“ sonst unlesbar.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Zieljahr 2027, Plan endet 17.12.2026 | ✅ 448 Tagesspalten, `12.10.2026 … 02.01.2028` |
+| Zieljahr 2026 senken | ✅ 84 Spalten (Planende + Jahresende), letzte Spalte `03.01.2027` |
+| Zieljahr 2028 | ✅ 812 Spalten bis `31.12.2028` |
+| Feiertage weit rechts sichtbar | ✅ 22 `hol`-Spalten mit Namen, z. B. „Dienstag, 26.12.2028 · Feiertag: Stephanstag“ |
+| Rechenzeit beim Umschalten | ✅ Tag (812 Spalten) 90 ms · Monat 15 ms · Quartal 12 ms bis zum nächsten Bild |
+| Einpassen bei langem Strahl | ✅ Tagesbreite bleibt ≥ 4 px, der Rest wird gerollt |
+| Fehlerprotokoll | ✅ leer |
+
+## 26. Offene Punkte / nicht geprüft
 
 - **Ordner-Freigabe (`showDirectoryPicker`)**: Der native Dialog lässt sich nicht automatisiert
   bedienen. Der Weg ist implementiert (Zugriff merken in IndexedDB, Wiederherstellen mit

@@ -12,6 +12,7 @@ import {
 import { loadGlobalPool, saveGlobalPool, newPoolEntry, POOL_COLOR, poolDurationWorkdays } from './pool.js';
 import { schedule } from './scheduler.js';
 import { addWorkdays, addDays, addMonths, todayIso, startOfWeek, snapToWorkday, endFromDuration } from './dateutil.js';
+import { holidaysForYear, regionName } from './holidays.js';
 
 const MAX_UNDO = 120;
 
@@ -47,6 +48,7 @@ export const store = {
   },
   _listeners: new Set(),
   _render: null,
+  _extendingHolidays: false,   // Schutz gegen Selbstaufruf beim Ergänzen der Feiertage
 
   on(fn) { this._listeners.add(fn); return () => this._listeners.delete(fn); },
   emit(reason = 'change', ...args) {
@@ -74,6 +76,17 @@ export const store = {
 
   /* ───────── Terminberechnung ───────── */
   reschedule() {
+    this.extendHolidaysToPlan();          // fehlende Jahre der gemerkten Region nachtragen
+    let res = this._applySchedule();
+    /* Erst der Terminlauf schiebt Aufgaben endgültig über eine Jahresgrenze
+       (Vorgänger, Arbeitstage, Feiertage). Reicht der Plan jetzt weiter,
+       werden die Feiertage nachgetragen und die Termine gleich neu gerechnet. */
+    if (this.extendHolidaysToPlan()) res = this._applySchedule();
+    return res;
+  },
+
+  /** Terminlauf ausführen und die abgeleiteten Kennzahlen übernehmen. */
+  _applySchedule() {
     const res = schedule(this.project, { apply: this.ui.autoPlan });
     this.violations = res.violations;
     this.critical = res.critical;
@@ -860,6 +873,168 @@ export const store = {
   },
   setCalendar(patch) {
     this.mutate('Kalender ändern', (p) => { p.settings.calendar = Object.assign(p.settings.calendar, patch); });
+  },
+
+  /**
+   * Feiertage übernehmen (Datum + Name) – z. B. aus der eingebauten Länderliste.
+   * Doppelte Daten werden nicht doppelt eingetragen, Namen werden nachgetragen.
+   * @param {{date:string, name?:string}[]} list
+   * @param {{region?:string, from?:number, to?:number}} [meta]  Region und Jahre, für die
+   *        die Liste gilt – damit später fehlende Jahre automatisch ergänzt werden können.
+   * @returns {number} Anzahl neu eingetragener Tage
+   */
+  addHolidays(list, meta = null) {
+    const items = (list || []).filter((h) => h && /^\d{4}-\d{2}-\d{2}$/.test(String(h.date).slice(0, 10)));
+    if (!items.length && !meta) return 0;
+    let added = 0;
+    this.mutate('Feiertage übernehmen', (p) => {
+      const cal = p.settings.calendar;
+      cal.holidays = Array.isArray(cal.holidays) ? cal.holidays.slice() : [];
+      cal.holidayNames = Object.assign({}, cal.holidayNames || {});
+      for (const h of items) {
+        const d = String(h.date).slice(0, 10);
+        if (!cal.holidays.includes(d)) { cal.holidays.push(d); added += 1; }
+        if (h.name) cal.holidayNames[d] = h.name;
+      }
+      cal.holidays.sort();
+      if (meta && meta.region) {
+        const a = Number(meta.from) || 0;
+        const b = Number(meta.to) || 0;
+        const old = cal.holidayYears;
+        cal.holidayRegion = meta.region;
+        cal.holidayYears = {
+          from: old && Number(old.from) ? Math.min(Number(old.from), a || Number(old.from)) : a,
+          to: old && Number(old.to) ? Math.max(Number(old.to), b || Number(old.to)) : b,
+        };
+        /* Region, für die tatsächlich eingetragen wurde – danach richtet sich die Automatik. */
+        cal.holidayImport = { region: meta.region, from: cal.holidayYears.from, to: cal.holidayYears.to };
+      }
+    });
+    return added;
+  },
+
+  /**
+   * Zieljahr aus dem Setup – gilt für die Feiertage **und** für den Zeitstrahl.
+   * Einstellung `settings.calendar.holidayUntil`; Vorgabe: ein Jahr länger als heute.
+   */
+  horizonYear() {
+    const cal = (this.project && this.project.settings.calendar) || {};
+    const y = Number(cal.holidayUntil) || 0;
+    if (y >= 1970 && y <= 2100) return y;              // ausdrücklich eingestellt
+    return Number(todayIso().slice(0, 4)) + 1;         // Vorgabe: ein Jahr länger als heute
+  },
+
+  /**
+   * „Feiertage bis Jahr“ einstellen. Fehlende Jahre bis dahin werden sofort nachgetragen
+   * (für die zuletzt eingetragene Region); bereits eingetragene Tage bleiben stehen.
+   * @param {number} year
+   */
+  setHolidayUntil(year) {
+    const y = Math.max(1970, Math.min(2100, Number(year) || 0));
+    this.setCalendar({ holidayUntil: y });
+    this.extendHolidaysToPlan();
+    return y;
+  },
+
+  /**
+   * Feiertage der gemerkten Region auf die Jahre des Plans ausdehnen.
+   * Läuft bei jeder Terminberechnung: reicht der Plan über die eingetragenen Jahre hinaus
+   * (oder beginnt er früher), werden die fehlenden Jahre einmalig nachgetragen – die
+   * beweglichen Feiertage kommen dabei aus der Ostern-Rechnung. Zusätzlich gilt die
+   * Einstellung „Feiertage bis Jahr X“ (Vorgabe: nächstes Jahr), auch wenn der Plan
+   * kürzer ist.
+   * @returns {number} Anzahl neu eingetragener Tage
+   */
+  extendHolidaysToPlan() {
+    if (this._extendingHolidays || !this.project) return 0;
+    const cal = this.project.settings.calendar || {};
+    /* Automatik erst, wenn die Region bewusst übernommen wurde (Knopf „Feiertage eintragen“).
+       Ein bloßes Umstellen der Auswahl im Setup trägt also nichts ein. */
+    const region = (cal.holidayImport && cal.holidayImport.region) || '';
+    if (!region) return 0;
+    const span = this.planSpan();
+    const yFrom = Number(String(span.from).slice(0, 4));
+    const yTo = Number(String(span.to).slice(0, 4));
+    if (!yFrom || !yTo) return 0;
+    // Ohne gemerkte Jahre (ältere Projekte) gelten die Jahre des Plans als abgedeckt.
+    const known = cal.holidayYears && Number(cal.holidayYears.from) && Number(cal.holidayYears.to)
+      ? { from: Number(cal.holidayYears.from), to: Number(cal.holidayYears.to) }
+      : { from: yFrom, to: yTo };
+    const a = Math.min(known.from, yFrom);
+    const b = Math.max(known.to, yTo, this.horizonYear());
+    if (a === known.from && b === known.to) return 0;
+
+    const offen = [];
+    for (let y = a; y < known.from; y++) offen.push(y);
+    for (let y = known.to + 1; y <= b; y++) offen.push(y);
+    const list = [];
+    for (let y = a; y <= b; y++) list.push(...holidaysForYear(y, region));
+
+    let added = 0;
+    this._extendingHolidays = true;
+    try {
+      this.mutate(offen.length === 1
+        ? `Feiertage ${offen[0]} ergänzen`
+        : 'Feiertage für weitere Jahre ergänzen', (p) => {
+        const c = p.settings.calendar;
+        c.holidays = Array.isArray(c.holidays) ? c.holidays.slice() : [];
+        c.holidayNames = Object.assign({}, c.holidayNames || {});
+        for (const h of list) {
+          if (!c.holidays.includes(h.date)) { c.holidays.push(h.date); added += 1; }
+          if (h.name) c.holidayNames[h.date] = h.name;
+        }
+        c.holidays.sort();
+        c.holidayYears = { from: a, to: b };
+        // Auch der Vermerk „welche Region ist für welche Jahre eingetragen“ wächst mit,
+        // sonst arbeitet die Automatik bei jeder Neuberechnung erneut.
+        c.holidayImport = { region, from: a, to: b };
+      }, { noSchedule: true, silent: true });
+    } finally {
+      this._extendingHolidays = false;
+    }
+    if (added) this.emit('holidays-extended', { added, years: offen.slice().sort((x, y) => x - y), region, regionLabel: regionName(region) });
+    return added;
+  },
+
+  /** Einen Feiertag austragen (Datum und Name). */
+  removeHoliday(date) {
+    if (!this.project) return false;
+    const cal = this.project.settings.calendar;
+    if (!(cal.holidays || []).includes(date)) return false;
+    const names = Object.assign({}, cal.holidayNames || {});
+    delete names[date];
+    this.mutate('Feiertag entfernen', (p) => {
+      p.settings.calendar.holidays = p.settings.calendar.holidays.filter((x) => x !== date);
+      p.settings.calendar.holidayNames = names;
+    });
+    return true;
+  },
+
+  /** Name eines eingetragenen Feiertags (leerer Text, wenn keiner hinterlegt ist). */
+  holidayName(date) {
+    if (!this.project) return '';
+    return (this.project.settings.calendar.holidayNames || {})[date] || '';
+  },
+
+  /** Eingetragene Feiertage als Liste { date, name }. */
+  holidays() {
+    if (!this.project) return [];
+    const cal = this.project.settings.calendar;
+    const names = cal.holidayNames || {};
+    return (cal.holidays || []).slice().sort().map((d) => ({ date: d, name: names[d] || '' }));
+  },
+
+  /** Zeitspanne des Plans (für „welche Jahre“ beim Feiertags-Import). */
+  planSpan() {
+    const p = this.project;
+    if (!p) return { from: todayIso(), to: todayIso() };
+    let from = p.settings.projectStart || todayIso();
+    let to = from;
+    for (const t of p.tasks) {
+      if (t.start && t.start < from) from = t.start;
+      if (t.end && t.end > to) to = t.end;
+    }
+    return { from, to };
   },
 
   /* ───────── Termin verschieben (Menü, Tastatur, Dialog) ───────── */

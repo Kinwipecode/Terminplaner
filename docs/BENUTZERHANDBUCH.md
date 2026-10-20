@@ -40,7 +40,9 @@ Links in der Leiste umschalten (oder `1` … `4`).
 - **Rechtsklick** auf eine Zeile öffnet das Menü (einfügen, ein-/ausrücken, verschieben,
   duplizieren, löschen).
 - **Doppelklick auf den Namen** benennt direkt um.
-- Die rote Linie ist **heute**; Wochenenden und Feiertage sind schattiert.
+- Die rote Linie ist **heute**. **Wochenenden** sind blau hinterlegt, **Feiertage** bernsteinfarben
+  mit gestricheltem Rand – bei Tag-Raster steht über jeder Tageszahl der **Wochentag** (`Mo`, `Di` …),
+  und der Hinweis am Tag nennt Datum und Feiertagsnamen.
 
 **Bedienung mit der Maus und der „Heute“-Knopf**
 
@@ -146,11 +148,83 @@ Puffer und Kennzeichnung stehen im Detailbereich jeder Aufgabe.
 **Setup** in der linken Leiste:
 
 - **Arbeitstage**: Mo–Fr voreingestellt; beliebige Kombination möglich.
-- **Feiertage / freie Tage**: einzelne Tage als arbeitsfrei eintragen.
+- **Feiertage übernehmen (wie in Outlook)**: **Land** (Schweiz / Deutschland), **Region** und Jahre
+  wählen, dann **Feiertage eintragen**. Die beweglichen Tage (Karfreitag, Ostermontag, Auffahrt,
+  Pfingstmontag, Fronleichnam, Buß- und Bettag) werden **aus Ostern gerechnet** – die Liste gilt
+  damit für jedes Jahr, auch für künftige. Namen stehen mit dabei („Allerheiligen“, „Tag der Arbeit“ …).
+  Die gewählte Region wird im Projekt gemerkt; beim nächsten Öffnen steht sie wieder da.
+- **Eigenen freien Tag eintragen**: Datum und Bezeichnung (z. B. „Betriebsausflug“,
+  „Brückentag“). Die Liste darunter zeigt alle Tage; das ✕ nimmt einen wieder heraus.
 - **Projektbeginn**: frühester Termin für Aufgaben ohne Vorgänger.
+
+**Schweiz und Kantone**
+
+In der Schweiz ist nur der **Bundesfeiertag** (1. August) gesamtschweizerisch – alles andere regeln
+die Kantone. Deshalb gibt es in der Regionen-Liste die 26 Kantone (ZH, BE, LU … JU) und zwei
+Sammel-Einträge:
+
+| Eintrag | Inhalt |
+|---|---|
+| **Ganze Schweiz (nur die 4 gemeinsamen)** | Neujahr, Auffahrt, Bundesfeier, Weihnachtstag – gilt in jedem Kanton |
+| **Ganze Schweiz – Feiertagsfahrplan (SBB/Post/Bund)** | die 9 Tage, die überregionale Betriebe und die Bundesverwaltung einhalten |
+| **Kanton (z. B. Zürich (ZH))** | die Feiertage dieses Kantons, regional geltende Tage mit Hinweis |
+
+Beispiele: **Zürich** hat 10 Tage (mit **Berchtoldstag** 2. Januar und **Tag der Arbeit** 1. Mai),
+**Tessin** 15 (mit Heilige Drei Könige, Josefstag 19. März, Peter und Paul 29. Juni, aber **ohne
+Karfreitag**), **Wallis** 9 (ohne Karfreitag, Ostermontag und Pfingstmontag, mit Josefstag),
+**Genf** mit **Jeûne genevois** (Donnerstag nach dem ersten Sonntag im September) und
+**31. Dezember**, **Waadt** mit **Bettagsmontag**, **Glarus** mit **Näfelser Fahrt** (erster
+Donnerstag im April), **Neuenburg** mit dem 1. März.
+
+Tage, die nicht kantonsweit gesetzlich sind – z. B. Josefstag in Luzern oder Mariä Empfängnis im
+Tessin – tragen den Hinweis „nur regional bzw. gewohnheitsmäßig frei“. Sie werden mit eingetragen,
+damit du nichts vergisst, und lassen sich einzeln löschen (✕). Grundlage der Liste ist die amtliche
+Feiertagsliste des Bundesamts für Justiz (maschinenlesbar über date.nager.at); sie wurde gegen die
+Jahre 2025–2029 geprüft.
+
+**Neue Jahre kommen von selbst.** Das Projekt merkt sich die Region und die Jahre, für die eingetragen
+wurde. Reicht dein Plan später über diese Jahre hinaus (oder beginnt er früher), trägt die App die
+fehlenden Jahre beim nächsten Rechnen selbst nach – mit kurzer Meldung „📅 Feiertage 2027 ergänzt“.
+Du musst also **nicht** jedes Jahr wieder klicken; einmal eintragen genügt. Nachgetragen wird nur
+für die Region, die zuletzt eingetragen wurde: stellst du die Auswahl im Setup nur um, ohne
+**Feiertage eintragen** zu drücken, bleibt die alte Region maßgeblich (und die bereits eingetragenen
+Tage bleiben in jedem Fall stehen). Ein Regionswechsel wird also bewusst mit einem Klick bestätigt.
+
+**Feiertage und Zeitstrahl bis Jahr.** Darunter steht, bis zu welchem Jahr gerechnet wird –
+**vorgeschlagen ist ein Jahr länger als heute** (2026 → 2027). Das Feld steuert **zwei** Dinge:
+
+1. **Den Zeitstrahl**: Der Gantt zeichnet seine Tagesspalten bis zum **Jahresende dieses Jahres**,
+   auch wenn dein Plan viel kürzer ist. Reicht der Plan weiter als das Zieljahr, gilt der Plan.
+   So sind auch die leeren Tage bis dahin sichtbar, und du kannst Aufgaben dorthin ziehen.
+   Mit **◉ Heute** und **⤢ Einpassen** findest du dich in langen Strahlen schnell zurecht;
+   für weite Zeiträume sind **Monat** und **Quartal** die ruhigeren Zoomstufen.
+2. **Die Feiertage**: Beim Eintragen zählt der Wert mit und ist die Zielmarke für die Automatik –
+   stellst du ihn z. B. auf 2031, trägt die App die fehlenden Jahre bis 2031 sofort nach.
+
+Heruntersetzen löscht nichts: bereits eingetragene Feiertage bleiben stehen, es kommen nur keine
+mehr dazu.
+
+**Deutschland**
+
+Bundesweit plus die regionalen Tage des gewählten Bundeslands. Beispiel Bayern: 13 Tage, dabei
+**Mariä Himmelfahrt** mit dem Hinweis, dass es nur in katholisch geprägten Gemeinden gilt.
 
 Dauern werden in **Arbeitstagen** gerechnet: eine Aufgabe mit Dauer 4, die an einem Montag
 beginnt, endet am Donnerstag. Wochenenden und Feiertage zählen nicht mit.
+
+**Anzeige.** Wochenenden und Feiertage sind im Gantt als eigene **senkrechte Spalten** gefärbt –
+Wochenenden in einem kühlen Blau, Feiertage in Bernstein mit gestricheltem Rand. Im Spaltenkopf
+steht über jeder Tageszahl der **Wochentag** (`Mo`, `Di`, `Mi` …); fährt man über die Zahl, nennt
+der Hinweis das Datum und den Namen des Feiertags. Im **Kalender** sind Feiertage ebenso
+hervorgehoben, im **Ausdruck/PDF** als orangefarbene Spalte.
+
+**Wirkung.** Feiertage sind keine Arbeitstage: neu angelegte Aufgaben und Terminverschiebungen
+rutschen daran vorbei (eine Aufgabe, die auf einen Feiertag gesetzt würde, beginnt am nächsten
+Arbeitstag). Das Schloss hat damit nichts zu tun – freie Tage wirken auf die Terminrechnung,
+gesperrte Aufgaben (🔒) auf deine Eingaben.
+
+*Hinweis:* Schulferien, reine Lokalanlässe und Feiertage anderer Länder sind nicht enthalten –
+solche Tage trägst du mit **Eigenen freien Tag eintragen** selbst ein.
 
 ## 7. Team
 

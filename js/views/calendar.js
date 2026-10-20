@@ -8,7 +8,7 @@ import { store } from '../store.js';
 import { STATUS, taskById } from '../model.js';
 import {
   parseIso, addDays, startOfWeek, startOfMonth, endOfMonth, iso, todayIso,
-  monthName, dowShort, snapToWorkday, diffDays,
+  monthName, dowShort, snapToWorkday, diffDays, holidayName,
 } from '../dateutil.js';
 
 export function renderCalendar(container) {
@@ -54,9 +54,11 @@ export function renderCalendar(container) {
     const dd = dt.getUTCDay();
     const inMonth = day >= first && day <= last;
     const isWknd = !cal.workdays.includes(dd);
+    const hol = holidayName(cal, day);
     const cell = el('div', {
-      class: 'cal-cell' + (inMonth ? '' : ' out') + (isWknd ? ' wknd' : '') + (day === today ? ' today' : ''),
+      class: 'cal-cell' + (inMonth ? '' : ' out') + (isWknd ? ' wknd' : '') + (hol ? ' hol' : '') + (day === today ? ' today' : ''),
       dataset: { day },
+      title: hol ? `Feiertag: ${hol}` : null,
     });
     const num = el('div', { class: 'cal-daynum' },
       el('span', { text: String(dt.getUTCDate()) + (dt.getUTCDate() === 1 ? ' ' + monthName(dt.getUTCMonth(), true) : '') }),

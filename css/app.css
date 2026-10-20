@@ -33,8 +33,10 @@
   --fg: #e8ebf2;
   --fg-2: #a8b1c2;
   --fg-3: #6d7688;
-  --weekend: rgba(255,255,255,.028);
-  --holiday: rgba(245,158,11,.08);
+  --weekend: rgba(120,160,235,.15);       /* Sa/So im Zeitstrahl (Themes überschreiben das) */
+  --holiday: rgba(245,158,11,.22);        /* Feiertage/freie Tage im Zeitstrahl */
+  --holiday-fg: #d97706;                  /* Schrift für Feiertage (lesbar hell wie dunkel) */
+  --holiday-line: rgba(217,119,6,.5);
   --today: rgba(239,68,68,.85);
   --grid: rgba(255,255,255,.055);
   --grid-strong: rgba(255,255,255,.11);
@@ -174,8 +176,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .g-head-units { display: flex; height: 22px; }
 .g-head-units > div { font-size: 10.5px; color: var(--fg-3); text-align: center; border-right: 1px solid var(--grid); overflow: hidden; display: grid; place-items: center; }
 .g-head-units > div.wknd { background: var(--weekend); }
-.g-head-units > div.hol { background: var(--holiday); }
+.g-head-units > div.hol { background: var(--holiday); color: var(--holiday-fg); font-weight: 700; }
+.g-head-units > div.hol::before { content: "🔒"; font-size: 8px; margin-right: 2px; }
 .g-head-units > div.today-h { background: rgba(239,68,68,.16); color: var(--today); font-weight: 700; }
+.g-head-dows { display: flex; height: 18px; border-bottom: 1px solid var(--line-soft); }
+.g-head-dows > div { font-size: 9.5px; letter-spacing: .02em; color: var(--fg-3); text-align: center; border-right: 1px solid var(--grid); overflow: hidden; display: grid; place-items: center; }
+.g-head-dows > div.wknd { background: var(--weekend); color: var(--fg-2); }
+.g-head-dows > div.hol { background: var(--holiday); color: var(--holiday-fg); font-weight: 700; }
+.g-head-dows > div.today-h { background: rgba(239,68,68,.16); color: var(--today); font-weight: 700; }
 
 .g-body { position: relative; }
 .g-row { display: flex; height: var(--row-h); border-bottom: 1px solid var(--line-soft); }
@@ -198,10 +206,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .avatar { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; font-weight: 700; color: #fff; flex: none; }
 .pdot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
 .g-track { position: relative; flex: none; }
-.g-track .grid-day { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--grid); }
-.g-track .grid-day.wknd { background: var(--weekend); }
-.g-track .grid-day.hol { background: var(--holiday); }
-.g-track .grid-day.grid-strong { border-right-color: var(--grid-strong); }
+/* Wochenenden/Feiertage als senkrechte Spalten.
+   Der Hintergrund liegt im eigenen Kästchen .g-bg (früher stand hier nur
+   .g-track – dadurch war die Färbung im Plan nie zu sehen). */
+.g-bg .grid-day, .g-track .grid-day { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--grid); }
+.g-bg .grid-day.wknd, .g-track .grid-day.wknd { background: var(--weekend); }
+.g-bg .grid-day.hol, .g-track .grid-day.hol { background: var(--holiday); border-left: 1px dashed var(--holiday-line); }
+.g-bg .grid-day.grid-strong, .g-track .grid-day.grid-strong { border-right-color: var(--grid-strong); }
 
 .bar { position: absolute; top: 6px; height: calc(var(--row-h) - 13px); border-radius: 6px; background: var(--accent); display: flex; align-items: center; overflow: hidden; cursor: grab; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: filter var(--t); min-width: 3px; }
 .bar:hover { filter: brightness(1.15); }
@@ -263,6 +274,7 @@ table.tbl td.num, table.tbl th.num { text-align: right; font-variant-numeric: ta
 .cal-cell:hover { border-color: var(--grid-strong); }
 .cal-cell.out { opacity: .42; }
 .cal-cell.wknd { background: var(--bg-3); }
+.cal-cell.hol { background: color-mix(in srgb, var(--holiday) 55%, var(--panel)); box-shadow: inset 0 0 0 1px var(--holiday-line); }
 .cal-cell.today { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 .cal-daynum { font-size: 11.5px; color: var(--fg-3); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
 .cal-cell.today .cal-daynum { color: var(--accent); }
